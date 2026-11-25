@@ -17,4 +17,4 @@
 # Ví dụ 2 — mọi khối Sonnet mức low, riêng khối Agent (Trợ lý) dùng Opus mức high:
 #   mac_dinh = claude-sonnet-5-5 / low
 #   agent_node = claude-opus-5-5 / high
-mac_dinh = claude-sonnet-5-5 / medium
+# mac_dinh = claude-sonnet-5-5 / medium

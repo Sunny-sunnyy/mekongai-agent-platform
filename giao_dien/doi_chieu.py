@@ -1,4 +1,4 @@
-"""Đối chiếu câu trả lời của khối Agent với nguồn — cải tiến (1), yêu cầu vận hành 04/11/2026. Bản 2 (sửa theo D kiểm độc lập, BAO_CAO_KET_QUA mục 16).
+"""Đối chiếu câu trả lời của khối Agent với nguồn — cải tiến (1), yêu cầu vận hành 04/11/2026. Bản 2 (sửa theo đã kiểm độc lập, BAO_CAO_KET_QUA mục 16).
 
 Vì sao: khuôn đầu ra chỉ ép HÌNH DẠNG, không ép ĐÚNG (bên mekongai đo: gpt-6-luna bịa số mà vẫn điền khuôn đẹp). Bộ này soát bằng code:
 mọi SỐ, NGÀY, GIỜ, THỨ, ĐƯỜNG LINK, MÃ trong câu trả lời phải có trong nguồn của CHÍNH khối đó — kết quả công cụ (mạnh nhất), đầu vào khối

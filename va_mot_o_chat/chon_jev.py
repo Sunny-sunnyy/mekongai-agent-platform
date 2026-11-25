@@ -97,7 +97,7 @@ def _criteria_vi_cu(the: list[dict]) -> dict:   # [ghi chú kỹ thuật] bản 
 
 
 # ================================================================ [ghi chú kỹ thuật] BẢN CHỮ "ĐẦY ĐỦ VỪA" + GỬI ĐỦ LỊCH SỬ
-# Số đo (76 câu ×2 lượt): 41 tự chạy đúng + 9 đặc biệt đúng, 0 nhầm (nền 33 + 11); bộ kín của E 34 / 34. Bản 28 KB "đầy đủ" làm v1.2 hỏng (7 nhầm) ⇒ giữ mức 1–2 câu / thẻ.
+# Số đo (76 câu ×2 lượt): 41 tự chạy đúng + 9 đặc biệt đúng, 0 nhầm (nền 33 + 11); bộ kín nhóm kỹ thuật 34 / 34. Bản 28 KB "đầy đủ" làm v1.2 hỏng (7 nhầm) ⇒ giữ mức 1–2 câu / thẻ.
 # Trần + lịch sử: decider nhận 262.144 token; các số dưới là RÀO CỠ (lời gửi không phình vô hạn), không phải tiết kiệm.
 # [ghi chú kỹ thuật] ba dòng dưới là RÀO CỠ chống phình vô hạn, đặt rất rộng (trước: 40.000 · 20 × 6.000 · 60.000):
 # bộ định tuyến nhận 262.144 token; 150.000 + 400.000 byte ≈ dưới mức đó. Chạm rào lịch sử ⇒ bỏ mục CŨ nhất, CÓ ĐẾM + cờ; chạm rào lời gửi ⇒ không gọi, hỏi lại.

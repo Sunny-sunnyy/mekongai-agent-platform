@@ -80,7 +80,7 @@ def _public_ips(host: str) -> list[str]:
 
 
 def _peer_ip_ok(resp: httpx.Response) -> bool:
-    """D kiểm 04/11 (MAJOR, DNS rebinding): kiểm lúc trước có thể khác IP httpx tự phân giải lúc kết nối ⇒ kiểm lại IP THẬT đã kết nối."""
+    """đã kiểm 04/11 (MAJOR, DNS rebinding): kiểm lúc trước có thể khác IP httpx tự phân giải lúc kết nối ⇒ kiểm lại IP THẬT đã kết nối."""
     stream = resp.extensions.get("network_stream")
     addr = stream.get_extra_info("server_addr") if stream is not None else None
     if not addr:
@@ -109,7 +109,7 @@ async def fetch_url(url: str) -> dict:
                     if not _peer_ip_ok(r):
                         return {"ok": False, "error": "Kết nối thật trỏ vào mạng nội bộ — bị chặn."}
                     if r.is_redirect:
-                        cur = cur.join(r.headers.get("location", ""))   # chuyển hướng tương đối nối với URL HIỆN TẠI (D kiểm)
+                        cur = cur.join(r.headers.get("location", ""))   # chuyển hướng tương đối nối với URL HIỆN TẠI (đã kiểm)
                         continue
                     buf = bytearray()
                     async for chunk in r.aiter_bytes():            # đọc dần, dừng ở trần — không tải cả trang lớn vào bộ nhớ
@@ -159,7 +159,7 @@ async def order_lookup(order_id: str) -> dict:
     if not found:
         return {"ok": False, "error": f"Không có đơn {key} trong bảng — đừng đoán thông tin đơn."}
     # Bộ ca thử 04/11 (P12): AI đem trường ghi chú nội bộ ("dữ liệu GIẢ để thử…") kể cho khách ⇒ chỉ trả các trường dành cho khách.
-    # Bản 2 (chiều 04/11): danh sách CẤM 3 tên lọt trường tên khác + items[].note (D kiểm, mục 17 C3); bước 19 C2: khách hỏi đơn của
+    # Bản 2 (chiều 04/11): danh sách CẤM 3 tên lọt trường tên khác + items[].note (đã kiểm, mục 17 C3); bước 19 C2: khách hỏi đơn của
     # NGƯỜI KHÁC vẫn được trả tên chủ đơn ("Anh Minh") ⇒ đổi sang danh sách CHO PHÉP, bỏ tên khách. Công cụ chưa biết ai đang nhắn
     # (chưa có mã khách do hệ thống đưa) ⇒ chỉ trả điều không lộ danh tính: trạng thái, ngày, sản phẩm, chính sách đổi.
     public = {k: found[k] for k in _ORDER_PUBLIC if k in found}
@@ -208,7 +208,7 @@ def _sha(p: Path) -> str:
 
 # [Gắn file đẹp, nhóm kỹ thuật 05/11/2026] make_docx / make_pptx bản 2 + make_pdf (mới) lấy từ xuat_file.py (gắn cạnh file này, chỉ đọc):
 # bộ màu theo chủ đề, 7 kiểu trang, code tự canh cỡ / tách trang, PDF nhúng phông DejaVu. Giữ đúng hình tham số + kiểu trả về bản cũ
-# (tự kiểm 79/79 + D kiểm độc lập — chay_thu/xuat_file_dep/BAO_CAO.md, BAO_CAO_KET_QUA.md mục 23). make_xlsx, _safe_name, EXPORT_DIR, _mot_lan ở file này giữ nguyên.
+# (tự kiểm 79/79 + đã kiểm độc lập — chay_thu/xuat_file_dep/BAO_CAO.md, BAO_CAO_KET_QUA.md mục 23). make_xlsx, _safe_name, EXPORT_DIR, _mot_lan ở file này giữ nguyên.
 from nodes.agent.xuat_file import make_csv, make_docx, make_md, make_pdf, make_pptx, make_txt, make_xlsx  # noqa: E402  (X1, X2 — C 09/11)
 # [Gắn sql_query, nhóm kỹ thuật 05/11/2026 — người vận hành thiết kế 21:11] hỏi SQLite CHỈ ĐỌC (chay_thu/sql_chi_doc/sql_query.py, gắn cạnh file này):
 # mã khách do HỆ THỐNG truyền qua bao đóng sql_query_for(cid) — AI chỉ thấy tham số cau_sql. Tự kiểm 50/50 trong hộp (sql_chi_doc/KET_QUA.md).
@@ -237,7 +237,7 @@ _MA_TO_CHUC = re.compile(r"^[A-Za-z0-9-]{1,64}$")
 
 
 def kiem_khoa_cua_to_chuc(s3_key: str, orgid: str) -> None:
-    """[D kiểm B2b, BLOCKER S5] phong bì do người soạn workflow viết được ⇒ s3_key tuỳ ý ⇒ phải nằm trong vùng file TẢI LÊN của chính tổ
+    """[đã kiểm B2b, BLOCKER S5] phong bì do người soạn workflow viết được ⇒ s3_key tuỳ ý ⇒ phải nằm trong vùng file TẢI LÊN của chính tổ
     chức chạy lượt: khuôn khoá của route tải lên là files/<orgid>/… (AB services/aws/s3.py:313-323; B1 thấy files/<org>/<uuid>/<tên>).
     Thêm: không đoạn rỗng / "." / "..", không ký tự điều khiển, ≤ 1024 ký tự. Lệch ⇒ ValueError, KHÔNG tải."""
     if not _MA_TO_CHUC.match(orgid or ""):
@@ -250,7 +250,7 @@ def kiem_khoa_cua_to_chuc(s3_key: str, orgid: str) -> None:
 
 
 def _hoi_co_s3(nf) -> int:
-    """[D kiểm B2b, minor a] hỏi cỡ (head_object) TRƯỚC khi tải — file 5 GB không vào bộ nhớ worker rồi mới bị từ chối."""
+    """[đã kiểm B2b, minor a] hỏi cỡ (head_object) TRƯỚC khi tải — file 5 GB không vào bộ nhớ worker rồi mới bị từ chối."""
     from services.aws.s3 import S3Service
     from workflow.node.base.file import _resolve_read_bucket
 
@@ -298,7 +298,7 @@ CONG_CU_DI_KEM_RUN_PYTHON = {"tool_current_time", "tool_order_lookup", "tool_sql
 def _csv_an_toan(b: bytes) -> bytes:
     """R10: CSV do code AI viết ra có thể chứa ô công thức (=HYPERLINK(...), +cmd, @SUM...) — mở bằng Excel là chạy. Ghi lại (cách OWASP):
     - ô có công thức ở ĐẦU hoặc sau dấu ; , tab, xuống dòng, khoảng trắng (Excel máy đặt dấu ; làm dấu tách sẽ tách "a;=1+1" thành ô mới
-      — D kiểm S4, M1) mà ô KHÔNG phải số ⇒ thêm dấu ' đứng trước; số âm (-5, -1.2) giữ nguyên;
+      — đã kiểm S4, M1) mà ô KHÔNG phải số ⇒ thêm dấu ' đứng trước; số âm (-5, -1.2) giữ nguyên;
     - mọi ô đặt trong ngoặc kép (QUOTE_ALL) ⇒ dấu ; , trong ô không bị coi là dấu tách."""
     import csv
     import io
@@ -578,7 +578,7 @@ def build_native_tools(params: dict, run_id: str = "", orgid: str = "") -> list:
         if not cid:   # bài học D-1: ô mã khách trống thì KHÔNG chạy thiếu kiểm — công cụ vẫn bật nhưng mọi câu trả lỗi bi_chan (sql_query._mo)
             logger.warning("[NATIVE_TOOL] tool_sql_query bật nhưng ô tool_customer_id trống ⇒ mọi câu sẽ bị từ chối")
         # [va_kiem_so_sql C 12/11] mỗi lần công cụ trả về, CODE ghi {câu SQL, kết quả} vào sổ của lượt (nho_sql_luot) để khối Rào chắn chế độ "sql"
-        # so số trong câu trả lời với ĐÚNG kết quả công cụ. sql_query.py (bản đóng băng của B) KHÔNG đổi — chỉ bọc ở đây.
+        # so số trong câu trả lời với ĐÚNG kết quả công cụ. sql_query.py (bản đóng băng nhóm kỹ thuật) KHÔNG đổi — chỉ bọc ở đây.
         out.append(Tool(_sql_co_so(sql_query_for(cid), run_id, orgid), takes_ctx=False))
     if _on(params.get("tool_rag_search")):   # [ghi chú] tìm trong tài liệu đã tải lên app RAG mekongai qua hộp cổng capitol-rag-cong
         from nodes.agent.rag_tool import rag_search_for

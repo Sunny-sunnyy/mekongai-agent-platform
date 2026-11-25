@@ -46,10 +46,16 @@
 
 - [ ] **Ở `mekongai-rag`:** sao chép `.env.example` → `.env` và `.env.qdrant.example` → `.env.qdrant`, điền API key mô hình (OpenAI / AWS Bedrock / Anthropic tuỳ cấu hình) và khoá nội bộ Qdrant.
 - [ ] **Ở `mekongai-agent-platform`:** sao chép toàn bộ các file `.env.example` sang `.env` / `*.khoa.env` đúng vị trí theo hướng dẫn cài đặt; điền đủ khoá dịch vụ cần dùng:
-  - LLM: AWS Bedrock hoặc OpenAI / OpenRouter
-  - Sandbox chạy code: `E2B_API_KEY` (nếu bật tính năng chạy code cách ly trên E2B)
+  - LLM mặc định (`gpt-6-luna`): **`OPENAI_API_KEY` bắt buộc** (trong `env/agentic-backend.khoa.env`, `env/cong_ai.khoa.env`, `env/platform-api-openai.khoa.env`, `env/eval.khoa.env`)
+  - Bộ định tuyến khung chat: `OPENROUTER_API_KEY` (trong `env/openrouter.khoa.env`)
+  - Amazon Bedrock (tuỳ chọn, nếu chuyển sang Claude 5.5): đặt credentials JSON vào `${CAPITOL_STATE_DIR}/bedrock_046/bedrock-046-creds.json`
+  - Sandbox chạy code: `E2B_API_KEY` / `CHAY_THU_E2B_KHOA` (nếu bật tính năng chạy code cách ly trên E2B; hoặc để `may` trong `cau_hinh_mo_hinh/noi_chay_khoi.txt`)
   - Tìm kiếm web (tuỳ chọn): `EXA_API_KEY`
-  - Khoá nội bộ tự sinh giữa các dịch vụ (Postgres, MinIO, Redis, mã phiên mở trang, mã dịch vụ nội bộ).
+  - Khoá nội bộ tự sinh giữa các dịch vụ (Postgres, MinIO, Redis, mã phiên mở trang, mã dịch vụ nội bộ — tự sinh qua `scripts_sach/khoi_tao_lan_dau.sh`).
+- [ ] Kiểm tra 3 file cấu hình nóng mặc định cho `gpt-6-luna`:
+  - `cau_hinh_mo_hinh/mo_hinh_khoi.txt` (dòng `mac_dinh = claude-...` đã comment `#`)
+  - `cau_hinh_mo_hinh/mo_hinh_operator.txt` (dòng `claude-...` đã comment `#`)
+  - `cau_hinh_mo_hinh/kiem_so_kpi.txt` (`quyet_dinh = code`)
 - [ ] Kiểm tra `git status` ở cả 2 kho đều không có file bí mật nào bị theo dõi (`.gitignore` đã chặn `.env` / `*.khoa.env`).
 
 ---

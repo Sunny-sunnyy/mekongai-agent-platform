@@ -1,4 +1,4 @@
-"""[ghi chú kỹ thuật] Bốn đường MÀN GHÉP CỘT của trang 18400 ⇒ hộp chuyển tiếp 127.0.0.1:18402 (chuyen_tiep.py của B,
+"""[ghi chú kỹ thuật] Bốn đường MÀN GHÉP CỘT của trang 18400 ⇒ hộp chuyển tiếp 127.0.0.1:18402 (chuyen_tiep.py nhóm kỹ thuật,
 449e834f) ⇒ kpi-backend (lõi mekongai 1e7202d4: khuon / bo-cuc / ghep-thu / ghep-xac-nhan).
 
 Vì sao tách file: may_chu.py chỉ thêm 2 dòng định tuyến; mọi phép kiểm nằm ở đây để thử được 0 đồng với hộp 18402 GIẢ (thu_ghep_kpi.py).

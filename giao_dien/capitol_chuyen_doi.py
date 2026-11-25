@@ -40,7 +40,7 @@ DA_CHAY = {"text_input_node", "agent_node", "human_intervention_node", "text_out
            "network_graph_output_node",
            "text_to_speech_output_node",
            "vercel_deploy_agent_node"}   # 10/11 15:4x — Đăng trang bản thay: lên kho file nội bộ, CSP, 0 ra Internet (C, D ĐẠT)   # 10/11 15:29 — đọc giọng bản thay OpenAI tts-1 (C, D ĐẠT), T1 SUCCESS
-DA_CHAY.add("collections_node")   # [ghi chú kỹ thuật] nhóm phát triển xác nhận (a) của E 17/11: hỏi kho bảng (ô query_text + datasets, cổng ra results); lượt thật đầu = E mục (10)
+DA_CHAY.add("collections_node")   # [ghi chú kỹ thuật] nhóm phát triển xác nhận (a) nhóm kỹ thuật 17/11: hỏi kho bảng (ô query_text + datasets, cổng ra results); lượt thật đầu = E mục (10)
 # người dùng 10/11: "ở phần 'thêm khối' chỉ hiển thị các khối mà chúng ta đã xây dựng được, những khối nào chưa xây dựng được thì đừng đưa vào"
 # ⇒ danh mục gửi trang chỉ gồm DA_CHAY. Khối dựng xong thì THÊM vào DA_CHAY (sau khi đã chạy thật) rồi làm mới danh mục.
 CHI_HIEN_DA_CHAY = True
@@ -55,12 +55,12 @@ KHONG_CHAY = {
 }
 # Mô hình: chỉ gpt-6-luna đã chạy thật (khoá OpenAI của người dùng + bản vá bỏ temperature, sua_doi/). Claude: máy không có khoá Anthropic.
 # Tên lạ KHÔNG được để lọt: code Capitol tự đổi sang gpt-5.2 (đắt) hoặc Claude (model_resolution.py:205-242).
-# [ghi chú kỹ thuật] khớp luật trong hộp (kiem_sau_ghep.MO_HINH_O_MODEL của B): Claude Sonnet / Opus 5.5 qua Bedrock + luna (còn giữ cho khối KPI khoá).
+# [ghi chú kỹ thuật] khớp luật trong hộp (kiem_sau_ghep.MO_HINH_O_MODEL nhóm kỹ thuật): Claude Sonnet / Opus 5.5 qua Bedrock + luna (còn giữ cho khối KPI khoá).
 MO_HINH_DUOC = ["claude-sonnet-5-5", "claude-opus-5-5", "gpt-6-luna"]
 MO_HINH_MAC_DINH = "claude-sonnet-5-5"
 # [ghi chú kỹ thuật] loại khối CHƯA chuyển sang Claude (muc_toi_da chưa có mức cho ô model Claude ở các loại này ⇒ trang sẽ chặn chạy) ⇒ ô model mặc định còn luna.
 # Bỏ một dòng ở đây khi đã chuyển xong loại khối đó.
-MO_HINH_MAC_DINH_THEO_KHOI = {}   # [ghi chú kỹ thuật] trống từ khi gói va_skill_dr_claude của B gắn (skill chạy code + tra cứu sâu đã chạy Claude theo file mô hình khối)
+MO_HINH_MAC_DINH_THEO_KHOI = {}   # [ghi chú kỹ thuật] trống từ khi gói va_skill_dr_claude nhóm kỹ thuật gắn (skill chạy code + tra cứu sâu đã chạy Claude theo file mô hình khối)
 
 NHOM_VIEC = {"input": "Đầu vào", "agent": "AI", "governance": "Kiểm soát", "output": "Đầu ra", "tool": "Công cụ"}
 
@@ -121,13 +121,13 @@ class DanhMuc:
             params, inputs = [], []
             for p in s.get("params", []):
                 bc = p.get("bindable_config")
-                # D kiểm 04/11 (BLOCKER): ô ẩn khỏi form (show=False) VẪN có thể là ô nhận dây bắt buộc — vd preview_context của khối duyệt,
+                # đã kiểm 04/11 (BLOCKER): ô ẩn khỏi form (show=False) VẪN có thể là ô nhận dây bắt buộc — vd preview_context của khối duyệt,
                 # text_content của khối xuất chữ. Ẩn ⇒ chỉ bỏ khỏi form, KHÔNG bỏ khỏi danh sách cổng vào.
                 an = _true(p.get("hidden")) or p.get("show") in (False, "False")
                 if an and not bc:
                     continue
                 if loai == "agent_node" and p["field_id"] == "files":
-                    continue   # D kiểm 04/11: cổng ẩn, chỉ nhận file, đưa file vào máy ảo E2B — máy này không có E2B_API_KEY ⇒ chưa dùng được
+                    continue   # đã kiểm 04/11: cổng ẩn, chỉ nhận file, đưa file vào máy ảo E2B — máy này không có E2B_API_KEY ⇒ chưa dùng được
                 o = {"name": p["field_id"], "label": p.get("display_name") or p["field_id"], "kind": p.get("display_modal"),
                      "required": _true(p.get("required")), "default": p.get("default"), "info": p.get("info") or "",
                      "advanced": _true(p.get("advanced")), "bindable": bool(bc), "placeholder": p.get("placeholder") or ""}
@@ -300,7 +300,7 @@ def kiem(wf: dict, dm: DanhMuc) -> list[dict]:
                 continue
             v = pr.get(f, p.get("value"))
             if v in (None, "") and p.get("default") not in (None, ""):
-                v = p.get("default")          # D kiểm 04/11 (MAJOR): Capitol tự dùng mặc định khi chạy ⇒ không báo "bắt buộc mà trống"
+                v = p.get("default")          # đã kiểm 04/11 (MAJOR): Capitol tự dùng mặc định khi chạy ⇒ không báo "bắt buộc mà trống"
             trong = v is None or (isinstance(v, str) and not v.strip())
             if _true(p.get("required")) and trong and vao_o.get((n["id"], f), 0) == 0 and not _true(p.get("hidden")):
                 bao("loi", "o_bat_buoc_trong", f"“{_ten(n)}”: ô “{p.get('display_name')}” bắt buộc mà đang trống.",

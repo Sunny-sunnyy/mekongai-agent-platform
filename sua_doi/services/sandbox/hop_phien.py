@@ -1,6 +1,6 @@
 """[TRẠNG THÁI 09/11 chiều: BẢN VÒNG 4 — vòng 2 (m4, ensure_ascii) + lần chạy hộp thật 2 (15:06): thư mục phiên đã bị người chạy xoá (phiên đóng) ⇒ trả phien_het_han thay vì NÉM; chờ đã soát diff (hop_phien.py.vong3 = bản đã chạy).]
 [CHẠY THỬ — MỤC 63, nhóm kỹ thuật, 09/11/2026] Bộ chuyển HỘP PHIÊN (V2): thay `SandboxManager` (E2B) cho dịch vụ E2BSkillsChatService.
-Gắn đè thành `services/sandbox/hop_phien.py` trong 3 hộp ab-* (V5 của B); V1 chọn lớp này khi cờ `CHAY_THU_HOP_PHIEN` bật.
+Gắn đè thành `services/sandbox/hop_phien.py` trong 3 hộp ab-* (V5 nhóm kỹ thuật); V1 chọn lớp này khi cờ `CHAY_THU_HOP_PHIEN` bật.
 
 Giao diện chốt với B: chay_thu/khoi_e2b/GIAO_DIEN_V2.md (mục 3 + mục 6). Thiết kế: chay_thu/khoi_e2b/THIET_KE_HOP_PHIEN.md bản 2.
 Chiều dữ liệu: lớp này KHÔNG chạy docker, KHÔNG mở mạng — chỉ ghi phiếu vào  <hàng đợi>/vao/…  và đọc trả lời ở  <hàng đợi>/ra/…  (ab-* gắn ra/ CHỈ ĐỌC).

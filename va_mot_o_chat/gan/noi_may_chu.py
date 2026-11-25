@@ -4,7 +4,7 @@
   goi_jev = OpenRouter Decisions qua SỔ (giữ chỗ byte × giá × 2 TRƯỚC, ghi usage.cost làm tròn LÊN, khoá B CG-7), chờ CHO_JEV giây
 Khoá OpenRouter: biến OPENROUTER*KEY trong môi trường may_chu (đối chiếu kỹ thuật) — không in.
 Gắn = thêm route POST /api/tro-ly vào may_chu bằng gan_dot1.sh (sha gốc + lùi), đường cũ /api/chat /api/hoi-nhanh GIỮ.
-[ghi chú kỹ thuật] thẻ KPI đầy đủ: bang = hoi_nhanh._bang (cùng hình "view" /api/hoi-nhanh) · xuất kết quả vừa trả lời = va_xuat_ket_qua.xuat của B
+[ghi chú kỹ thuật] thẻ KPI đầy đủ: bang = hoi_nhanh._bang (cùng hình "view" /api/hoi-nhanh) · xuất kết quả vừa trả lời = va_xuat_ket_qua.xuat nhóm kỹ thuật
 (0 AI; máy chủ tự lấy phiên trả lời cuối của conv) · GET /api/tro-ly/tep?conv=&id= ⇒ tai_tep (chỉ file đã xuất trong ĐÚNG cuộc chat, 30 phút).
 """
 from __future__ import annotations
@@ -72,7 +72,7 @@ def goi_jev_qua_so(S5, body: dict, so_byte: int, cho: float, ghi=lambda s: None,
 
 
 def dung_cache(CTL, KHO_CTL, cache_lay, van_tay_kpi, org):
-    """[ghi chú kỹ thuật] cache câu trả lời DÙNG CHUNG của trang (cache_tra_loi của B): khoá = câu chuẩn hoá + lịch sử trước + vân tay hộp KPI + workflow +
+    """[ghi chú kỹ thuật] cache câu trả lời DÙNG CHUNG của trang (cache_tra_loi nhóm kỹ thuật): khoá = câu chuẩn hoá + lịch sử trước + vân tay hộp KPI + workflow +
     số phiên bản + tổ chức; hộp KPI không đọc được vân tay ⇒ không cache (chạy như thường)."""
     def khoa(cau, uuid, so, ls):
         vt = van_tay_kpi()
@@ -94,7 +94,7 @@ def dung_cache(CTL, KHO_CTL, cache_lay, van_tay_kpi, org):
 
 
 def _xuat_b(ket_qua_luot, kiem_ma, xem=None, ghi=None):
-    """Hàm xuất của B (va_xuat_ket_qua.xuat) — nạp muộn; không có ⇒ None (thẻ xuất không gửi định tuyến).
+    """Hàm xuất nhóm kỹ thuật (va_xuat_ket_qua.xuat) — nạp muộn; không có ⇒ None (thẻ xuất không gửi định tuyến).
     [ghi chú kỹ thuật] trả hàm (phien, dang, cau=None) ⇒ (tên, byte, thông tin): chuyển câu vừa hỏi + kết quả công cụ của CHÍNH lượt (cong_cu_luot.doc —
     đọc đủ từ Postgres theo mã phiên do máy chủ tự lấy) cho bộ dựng. thông tin = {"phan_cau_hoi": bool, "ly_do", "cong_cu_da_in"} để câu báo nói đúng file có gì.
     Bộ dựng bản cũ (chưa có xuat_chi_tiet) ⇒ gọi xuat như trước, thông tin = {"phan_cau_hoi": False, "ly_do": None}."""

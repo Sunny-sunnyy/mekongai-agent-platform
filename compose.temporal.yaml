@@ -103,7 +103,7 @@ services:
       - ./sua_doi/nodes/logic/human_intervention/node.py:/srv/src/nodes/logic/human_intervention/node.py:ro
       - ./va_xuat_ket_qua/dung_file.py:/srv/src/nodes/logic/human_intervention/dung_file_nhap.py:ro   # [ghi chú] bộ dựng Excel NHÁP có nhãn cho lượt tự duyệt khi quá hạn
       - ./sua_doi/nodes/logic/human_intervention/params.py:/srv/src/nodes/logic/human_intervention/params.py:ro
-      # [09/11/2026, B] sql_query: [ghi chú] nay là BẢN 2 4e3e1de7 của B (đã chốt 12:23; bản trước 25975106 = sql_query.py.truoc_kiem_sql, D ĐẠT bổ sung 2, 06/11 — bao_cao_ket_qua/04_CONG_CU_AGENT_VA_BO_THU_SOAT.md), KHÔNG gắn file đang sửa sql_chi_doc/sql_query.py
+      # [09/11/2026, B] sql_query: [ghi chú] nay là BẢN 2 4e3e1de7 nhóm kỹ thuật (đã chốt 12:23; bản trước 25975106 = sql_query.py.truoc_kiem_sql, D ĐẠT bổ sung 2, 06/11 — bao_cao_ket_qua/04_CONG_CU_AGENT_VA_BO_THU_SOAT.md), KHÔNG gắn file đang sửa sql_chi_doc/sql_query.py
       - ./sua_doi/nodes/agent/sql_query.py:/srv/src/nodes/agent/sql_query.py:ro
       - ./sua_doi/nodes/agent/nho_sql_luot.py:/srv/src/nodes/agent/nho_sql_luot.py:ro   # [ghi chú] sổ kết quả SQL theo lượt
       - ./sua_doi/nodes/agent/kiem_so_sql.py:/srv/src/nodes/agent/kiem_so_sql.py:ro   # BẢN ĐÓNG BĂNG 59cd4414 của hàm B (D Đ2) — KHÔNG gắn thẳng hoi_du_lieu/
@@ -124,18 +124,18 @@ services:
       - ./sua_doi/api/a2a_gateway/boc_assemble.py:/srv/src/api/a2a_gateway/boc_assemble.py:ro   # [ghi chú] bước kiểm sau khi ghép
       - ./sua_doi/api/a2a_gateway/kiem_sau_ghep.py:/srv/src/api/a2a_gateway/kiem_sau_ghep.py:ro   # [ghi chú] bước kiểm sau khi ghép
       - ./sua_doi/api/a2a_gateway/luat_tang.py:/srv/src/api/a2a_gateway/luat_tang.py:ro   # [ghi chú] bước kiểm sau khi ghép
-      # [10:59 06/11/2026, A] vá 10b (D kiểm S4 M2): Operator không đưa file do lượt chạy tạo sang workflow khác
+      # [10:59 06/11/2026, A] vá 10b (đã kiểm S4 M2): Operator không đưa file do lượt chạy tạo sang workflow khác
       - ./sua_doi/services/orchestrator/tools/workflow_tools.py:/srv/src/services/orchestrator/tools/workflow_tools.py:ro
       # [10:27 06/11/2026, A] vá 10 R12 chỗ (3): sửa khi tạm dừng (apply_edit_activity) kiểm sơ đồ mới
       - ./sua_doi/temporal/activities/persist_results.py:/srv/src/temporal/activities/persist_results.py:ro
       # [10:47 06/11/2026, A] vá 11: rào chắn (guardrails) chạy gpt-6-luna thay Claude Sonnet ghi cứng — bản đồ tái tạo dòng 1
       - ./sua_doi/services/custom_guardrail_check/custom_guardrail_check_service.py:/srv/src/services/custom_guardrail_check/custom_guardrail_check_service.py:ro
-      # [16:03 07/11/2026, A] rào chắn CHẶN thật (B viết theo thiết kế D BAO_CAO_KET_QUA 32.3; D kiểm mục 34). Cờ CHAY_THU_RAO_CHAN_CHAN, mặc định tắt = đúng Capitol
+      # [16:03 07/11/2026, A] rào chắn CHẶN thật (B viết theo thiết kế D BAO_CAO_KET_QUA 32.3; đã kiểm mục 34). Cờ CHAY_THU_RAO_CHAN_CHAN, mặc định tắt = đúng Capitol
       - ./sua_doi/nodes/governance/guardrails/node.py:/srv/src/nodes/governance/guardrails/node.py:ro
       - ./sua_doi/services/sandbox/templates.py:/srv/src/services/sandbox/templates.py:ro   # [ghi chú] 2.2a mục mẫu hộp phiên v3
       - ./sua_doi/services/redis/event_persistence.py:/srv/src/services/redis/event_persistence.py:ro   # [ghi chú] TTL lease bộ ghi sự kiện 30 ⇒ 120 (giờ nhảy ⇒ mất sự kiện)
       - ./sua_doi/nodes/governance/evals/node.py:/srv/src/nodes/governance/evals/node.py:ro   # [ghi chú] mọi bài ERROR ⇒ FAILED; lùi: LUI=co gan_evals_loi.sh
-      # [09/11/2026, B] khối Đánh giá: bỏ token M2M khi ENVIRONMENT local (như client.py:84-89; D kiểm ĐẠT BAO_CAO_KET_QUA mục 45) — chay_thu/va_evals/HUONG_DAN_GAN.md
+      # [09/11/2026, B] khối Đánh giá: bỏ token M2M khi ENVIRONMENT local (như client.py:84-89; đã kiểm ĐẠT BAO_CAO_KET_QUA mục 45) — chay_thu/va_evals/HUONG_DAN_GAN.md
       - ./sua_doi/services/platform/evals.py:/srv/src/services/platform/evals.py:ro
       - ./sua_doi/workflow/node/base/agent/node.py:/srv/src/workflow/node/base/agent/node.py:ro
       - ./sua_doi/workflow/node/base/agent/streaming.py:/srv/src/workflow/node/base/agent/streaming.py:ro

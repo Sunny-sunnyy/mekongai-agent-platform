@@ -13,7 +13,7 @@ NUMBERED_HEADING = re.compile(r"\d+(\.\d+)*\.?\s")
 # "MỤC 1…" và thành mục cha của các Điều bên dưới ⇒ tên mục trích nguồn sai (BAO_CAO_C mục 15, Đ1 đêm 24/10)
 LIST_MARKER = re.compile(r"[*•+]|[\-–]\s")   # "*Tuyển dụng" (dính liền) cũng là gạch đầu dòng; "-" / "–" cần dấu cách (tránh số âm "-5 %")
 # Dòng "Điều / Chương … + số" là tiêu đề dù dài và kết thúc bằng dấu câu ("Điều 14: Chi hội nghị, hội thảo, tổng kết cuối năm.", "Điều 29. Tiền nước
-# uống cho học sinh:"). 40 từ: CHỌN SAU KHI XEM MẪU — B kiểm chéo 24/10 thấy tiêu đề "Điều" dài nhất 29 từ trên 16 file Word thật (w01, w02, w04 …,
+# uống cho học sinh:"). 40 từ: CHỌN SAU KHI XEM MẪU — đã kiểm chéo 24/10 thấy tiêu đề "Điều" dài nhất 29 từ trên 16 file Word thật (w01, w02, w04 …,
 # nay là bộ đã thấy); kiểm cuối lần 2 trên file Word mới.
 KEYWORD_HEADING_MAX_WORDS = 40
 KEYWORD_SEPARATOR = re.compile(r"\s*[.:–\-]")

@@ -156,7 +156,7 @@ def _build_user_prompt(review_instructions: str, checkpoint_text: str, khong_cat
             "REVIEW INSTRUCTIONS: (none provided — surface whatever in the "
             "step output needs a human's attention or decision)"
         )
-    # [ghi chú] + N2 của E: bản gốc Capitol CẮT PHẦN GIỮA nội dung dài hơn HITL_REVIEW_DIGEST_MAX_INPUT_CHARS (giữ 1.000 ký tự đầu + phần đuôi)
+    # [ghi chú] + N2 nhóm kỹ thuật: bản gốc Capitol CẮT PHẦN GIỮA nội dung dài hơn HITL_REVIEW_DIGEST_MAX_INPUT_CHARS (giữ 1.000 ký tự đầu + phần đuôi)
     # ⇒ người duyệt đọc bản tóm tắt của một văn bản đã mất đoạn giữa. Chạy Claude (khong_cat=True): gửi NGUYÊN VĂN. Tuyến tính trần tiền: cắt như gốc.
     parts.append(f"CHECKPOINT TEXT:\n{checkpoint_text if khong_cat else _clamp_checkpoint_text(checkpoint_text)}")
     return "\n\n".join(parts)
@@ -202,7 +202,7 @@ async def _invoke_digest(user_prompt: str, session_id: str = "", node_id: str = 
     # ra KHÔNG có trần ⇒ thêm trần token cả lượt + max_tokens mỗi lần. Số đo (18 dòng [DIGEST_USAGE] trong ket_qua/): 1 lần gọi,
     # vào ≤ 4.697, ra ≤ 396. Chạm trần ⇒ lỗi ⇒ build_review_digest trả None (fail-open: người duyệt thấy bản thô).
     # [ghi chú] file mô hình khối bảo Claude (dòng human_intervention_node hoặc mac_dinh) ⇒ bản tóm tắt chạy Claude qua cổng AI,
-    # đè biến HITL_REVIEW_DIGEST_MODEL. Chạy Claude: không gửi max_tokens nhỏ, không trần tổng token (User 19/11); GIỮ 3 lần gọi; đầu vào KHÔNG còn bị cắt giữa
+    # đè biến HITL_REVIEW_DIGEST_MODEL. Chạy Claude: không gửi max_tokens nhỏ, không trần tổng token (người vận hành); GIỮ 3 lần gọi; đầu vào KHÔNG còn bị cắt giữa
     # khi chạy Claude (bản 2 — _build_user_prompt khong_cat). File trống ⇒ theo biến cấu hình như trước. Lỗi ở đây ⇒ build_review_digest trả None (người duyệt thấy bản thô) — như cũ.
     from workflow.node.base.agent.model_resolution import chay_thu_mo_hinh_nguoi_gac
 

@@ -19,13 +19,15 @@ Thư mục này chứa đủ **16 file `.env.example`** tương ứng với cấ
 8. `minio.khoa.env.example` → `minio.khoa.env` (`MINIO_ROOT_USER`/`PASSWORD` = `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`)
 
 ### Nhóm C — API key dịch vụ ngoài (người nhận tự điền, `chmod 600`)
-9. `agentic-backend.khoa.env.example` → `agentic-backend.khoa.env` (`OPENAI_API_KEY`, tuỳ chọn `SERPER_API_KEY`)
-10. `cong_ai.khoa.env.example` → `cong_ai.khoa.env` (`OPENAI_API_KEY` — đồng bộ từ `agentic-backend.khoa.env`)
-11. `e2b.khoa.env.example` → `e2b.khoa.env` (`CHAY_THU_E2B_KHOA`)
-12. `eval.khoa.env.example` → `eval.khoa.env` (`OPENAI_API_KEY`, đúng 1 dòng)
-13. `exa.khoa.env.example` → `exa.khoa.env` (`EXA_API_KEY`)
+> **Mặc định chạy `gpt-6-luna` qua OpenAI API:** `OPENAI_API_KEY` là **bắt buộc**; thông tin AWS Bedrock (`bedrock-046-creds.json`) là **tuỳ chọn** (chỉ cần nếu chuyển cấu hình nóng sang Claude 5.5).
+
+9. `agentic-backend.khoa.env.example` → `agentic-backend.khoa.env` (`OPENAI_API_KEY` — **bắt buộc**, tuỳ chọn `SERPER_API_KEY`)
+10. `cong_ai.khoa.env.example` → `cong_ai.khoa.env` (`OPENAI_API_KEY` — **bắt buộc**, đồng bộ từ `agentic-backend.khoa.env`)
+11. `e2b.khoa.env.example` → `e2b.khoa.env` (`CHAY_THU_E2B_KHOA`, tuỳ chọn nếu dùng khối chạy code/đọc Office từ xa)
+12. `eval.khoa.env.example` → `eval.khoa.env` (`OPENAI_API_KEY` — **bắt buộc** khi dùng đánh giá, đúng 1 dòng)
+13. `exa.khoa.env.example` → `exa.khoa.env` (`EXA_API_KEY`, tuỳ chọn)
 14. `openrouter.khoa.env.example` → `openrouter.khoa.env` (`OPENROUTER_API_KEY`, tuỳ chọn)
-15. `platform-api-openai.khoa.env.example` → `platform-api-openai.khoa.env` (`OPENAI_API_KEY`)
+15. `platform-api-openai.khoa.env.example` → `platform-api-openai.khoa.env` (`OPENAI_API_KEY` — **bắt buộc**)
 16. `qdrant_svc.khoa.env.example` → `qdrant_svc.khoa.env` (`OPENAI_API_KEY`, chỉ dùng nếu bật `qdrant_svc`)
 
 ## 2. Các file trong `CAPITOL_STATE_DIR` (thư mục `state_dir_mau/`)
@@ -38,4 +40,4 @@ Mặc định `CAPITOL_STATE_DIR=${HOME}/.local/share/capitol-platform` (quyền
 - `xem_18403.env` (`XEM_MA`)
 - `minio_eval.env` (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
 - `tran_ngay/<YYYY-MM-DD>.txt` (trần tiền USD trong ngày cho OpenAI/OpenRouter/E2B)
-- `bedrock_046/bedrock-046-creds.json` (STS token Amazon Bedrock nếu dùng Claude qua Bedrock — tự nạp qua script làm mới nội bộ của công ty)
+- `bedrock_046/bedrock-046-creds.json` (**tuỳ chọn** — STS token Amazon Bedrock, chỉ cần nếu chuyển cấu hình nóng `cau_hinh_mo_hinh/` từ mặc định `gpt-6-luna` sang Claude 5.5)

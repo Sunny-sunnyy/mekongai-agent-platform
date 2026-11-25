@@ -1,5 +1,5 @@
 """KHỐI KPI DỰNG SẴN — phần máy chủ trang (đối chiếu kỹ thuật).
-Dữ liệu + luật là của B, MỘT nguồn: chay_thu/kpi_capitol/khoi_dung_san.py (5 khối, bộ sẵn, mẫu, kiem_khoi_dung_san) + workflow_kpi.py (lời dặn,
+Dữ liệu + luật là nhóm kỹ thuật, MỘT nguồn: chay_thu/kpi_capitol/khoi_dung_san.py (5 khối, bộ sẵn, mẫu, kiem_khoi_dung_san) + workflow_kpi.py (lời dặn,
 kiem_payload). File này chỉ NỐI vào trang: không có danh sách khối / ô khoá / chữ lời dặn riêng.
 
 Trang lấy:  ds()            ⇒ danh sách khối dựng sẵn + bộ sẵn + mẫu (kèm mã workflow mẫu đã lưu) + lời dặn / công cụ ĐỂ XEM

@@ -274,11 +274,11 @@ class ModelResolutionMixin:
         - OpenAI: GPT 5.2
         - OpenRouter: Gemini 3.1 Pro Preview
         """
-        # [VÁ chay_thu] xem chú thích đầu file. [SỬA 18/11 sau ca thật hỏng — E] LOẠI khối lấy từ LỚP: lúc chạy thật `self.node_id` của ĐỐI TƯỢNG là mã riêng của
+        # [VÁ chay_thu] xem chú thích đầu file. [ghi chú] LOẠI khối lấy từ LỚP: lúc chạy thật `self.node_id` của ĐỐI TƯỢNG là mã riêng của
         # nút (vd 5ca1e8ec-…), chữ "agent_node" chỉ còn ở thuộc tính lớp ⇒ bản trước đọc self.node_id nên không khối nào được đổi, lặng lẽ chạy luna.
         loai_khoi = getattr(type(self), "node_id", None)
         ep = _chay_thu_mo_hinh_ep(loai_khoi if isinstance(loai_khoi, str) else None, model)
-        # [CHỐNG LẶNG — A] MỌI lượt đều có dòng tiến độ ghi mô hình THẬT + nguồn, kể cả khi không đổi ⇒ đối chiếu được với sổ cổng.
+        # [ghi chú] MỌI lượt đều có dòng tiến độ ghi mô hình THẬT + nguồn, kể cả khi không đổi ⇒ đối chiếu được với sổ cổng.
         if ep:
             await self.emit_progress(f"Mô hình của khối: {ep[0]}{(' — mức suy luận ' + ep[1]) if ep[1] else ''} (nguồn: file mô hình khối; ô model của khối đang ghi '{str(model)[:60]}'; loại khối {loai_khoi}).")
             model = ep[0]

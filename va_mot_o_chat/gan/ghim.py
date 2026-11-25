@@ -94,7 +94,7 @@ def dung() -> tuple[list[dict], list[str]]:
         # (ô nhập chữ bị câu người dùng THAY lúc chạy ⇒ không tính); mã mẫu chung (≥ ½ số thẻ — ví dụ trong lời dặn mẫu) bỏ ở bước sau.
         chu_ai = " ".join(json.dumps(n, ensure_ascii=False) for n in pl.get("nodes", [])
                           if ((n.get("data") or {}).get("struct") or {}).get("node_id") != "text_input_node")
-        # [ghi chú kỹ thuật] mã trong TÊN workflow luôn tính là gắn cứng; mã trong lời dặn khối AI thì trừ đi các mã mà LỜI DẶN KPI CHUẨN (khoi_dung_san.json của B)
+        # [ghi chú kỹ thuật] mã trong TÊN workflow luôn tính là gắn cứng; mã trong lời dặn khối AI thì trừ đi các mã mà LỜI DẶN KPI CHUẨN (khoi_dung_san.json nhóm kỹ thuật)
         # dùng làm VÍ DỤ — lời dặn KPI bản 2 (19/11) lấy "NV03" làm ví dụ ⇒ 5 thẻ KPI chung bị coi nhầm là "chỉ dành cho NV03" (luật ≥ ½ số thẻ không còn bắt
         # được vì 28 thẻ riêng còn lời dặn bản cũ). Mã ví dụ của lời dặn chuẩn + tên workflow có mã ⇒ vẫn gắn cứng (lấy từ tên).
         _nv = lambda chu: set(re.findall(r"(?<![A-Za-z0-9])NV\d{2}(?![A-Za-z0-9])", chu))   # noqa: E731

@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 # ======================================================================================================================================
 # [ghi chú] Khối chạy code (`SandboxMode.ALWAYS`: flexible_code_interpreter_node,
 # skill_code_interpreter_node) chạy qua HỘP PHIÊN (V2 `services/sandbox/hop_phien.py` ⇒ người chạy phiên trên WSL, hộp --network none)
-# thay máy ảo E2B CÓ MẠNG (services/sandbox/manager.py:375-381). Chỉ khi cờ CHAY_THU_HOP_PHIEN bật (mặc định bật, như V1 của B) VÀ khối là
+# thay máy ảo E2B CÓ MẠNG (services/sandbox/manager.py:375-381). Chỉ khi cờ CHAY_THU_HOP_PHIEN bật (mặc định bật, như V1 nhóm kỹ thuật) VÀ khối là
 # ALWAYS; họ Agent IF_FILES giữ nguyên (vá 10 vẫn cấm E2B cho họ đó). Tắt cờ ⇒ đúng Capitol gốc.
 # Rào thêm khi đi hộp phiên (cùng luật V1 — dùng lại hàm của V1, không viết bản thứ hai):
 #   - R12 TRONG khối: có mcp_servers / khối công cụ nối vào ⇒ từ chối (chạy code + đường ra ngoài trong cùng khối; R12 mức workflow

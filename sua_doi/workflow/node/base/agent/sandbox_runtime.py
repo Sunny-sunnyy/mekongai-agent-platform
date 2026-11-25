@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 # ======================================================================================================================================
 # [ghi chú] Khối chạy code (`SandboxMode.ALWAYS`: flexible_code_interpreter_node,
 # skill_code_interpreter_node) chạy qua HỘP PHIÊN (V2 `services/sandbox/hop_phien.py` ⇒ người chạy phiên trên WSL, hộp --network none)
-# thay máy ảo E2B CÓ MẠNG (services/sandbox/manager.py:375-381). Chỉ khi cờ CHAY_THU_HOP_PHIEN bật (mặc định bật, như V1 của B) VÀ khối là
+# thay máy ảo E2B CÓ MẠNG (services/sandbox/manager.py:375-381). Chỉ khi cờ CHAY_THU_HOP_PHIEN bật (mặc định bật, như V1 nhóm kỹ thuật) VÀ khối là
 # ALWAYS; họ Agent IF_FILES giữ nguyên (vá 10 vẫn cấm E2B cho họ đó). Tắt cờ ⇒ đúng Capitol gốc.
 # Rào thêm khi đi hộp phiên (cùng luật V1 — dùng lại hàm của V1, không viết bản thứ hai):
 #   - R12 TRONG khối: có mcp_servers / khối công cụ nối vào ⇒ từ chối (chạy code + đường ra ngoài trong cùng khối; R12 mức workflow
@@ -212,7 +212,7 @@ def _e2b_ds_cho_phep() -> set[str]:
     return {x.split()[0].lower() for x in dong if x.strip() and not x.lstrip().startswith("#") and _re.fullmatch(r"[0-9a-fA-F]{64}", x.split()[0])}
 
 
-# [VÁ chay_thu — B 19/11/2026 va_e2b_file_nguoi_dung; User 19/11: "các file này phục vụ cho vấn đề hỏi đáp, và rag … có thể gửi lên E2B và gửi cho claude qua
+# [VÁ chay_thu — B 19/11/2026 va_e2b_file_nguoi_dung; người vận hành: "các file này phục vụ cho vấn đề hỏi đáp, và rag … có thể gửi lên E2B và gửi cho claude qua
 # bedrock nhé; được gửi hết nhé; vì đây là vấn đề tôi được phép và được quyết định" — AGENTS 3.2] File NGƯỜI DÙNG tải lên (kể cả file thật) được lên E2B.
 # Công tắc CHAY_THU_E2B_FILE ở hộp worker: "gia_lap" (mặc định, thiếu biến = y như trước: chỉ file có sha trong danh sách giả lập) · "nguoi_dung" (file người dùng
 # tải qua trang, đã qua rào C13 ở _ci_ran_truoc_khi_mo: đúng vùng file tải lên của CHÍNH tổ chức chạy lượt + không phải file khối khác sinh + cỡ ≤ TRAN_FILE_TAI).
@@ -220,7 +220,7 @@ def _e2b_ds_cho_phep() -> set[str]:
 #   (1) LOẠI file: chỉ đuôi trong _E2B_DUOI_NGUOI_DUNG (tài liệu + bảng tính — đúng thứ khuôn máy ảo bậc 2 đọc được); (2) TÊN file không giống file khoá / cấu
 #   hình bí mật (.env, *.pem, *.key, credentials…, id_rsa…); (3) NỘI DUNG không chứa mẫu khoá phổ biến (khối khoá riêng PEM, khoá AWS, khoá dạng sk-… / ghp_… /
 #   e2b_…) — soát cả BÊN TRONG file nén Office (xlsx / docx / pptx). Giới hạn (3): khoá nằm trong PDF (dòng chữ bị nén) hay trong ảnh thì không thấy.
-#   (4) [bản 2] mạng ra của máy ảo GIỮ theo quyết định User 19/11 (rủi ro đã nêu); file người dùng lên máy ảo có mạng ra bật ⇒ ghi một dòng log E2B_FILE_NGUOI_DUNG.
+#   (4) [bản 2] mạng ra của máy ảo GIỮ theo quyết định người vận hành (rủi ro đã nêu); file người dùng lên máy ảo có mạng ra bật ⇒ ghi một dòng log E2B_FILE_NGUOI_DUNG.
 # Giá trị lạ của công tắc ⇒ coi như "gia_lap" bị hỏng ⇒ CHẶN mọi file ngoài danh sách (đóng khi lỗi). Không đổi: khoá E2B không vào máy ảo, máy tự tắt ≤ TTL.
 # [ghi chú] thêm ĐÚNG hai
 # đuôi .html + .xlsb (KHÔNG thêm .htm / .xhtml / .xlsm / .mhtml). Danh sách này CHỈ dùng cho đường lên máy ảo E2B; cửa tải file của trang (may_chu._DUOI_NHAN_FILE),

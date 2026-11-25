@@ -2,7 +2,7 @@
 Chạy:  DA_DUYET=co CA=L1,L2,L3 python3 -I chay_thu/sandbox/chay_s5.py        Kết quả: ket_qua/06_11_sang/s5/
   L1 — chạy code: khối Agent có run_python trên don_hang_gia.xlsx; đáp án tính bằng openpyxl TRONG hộp worker (không qua AI).
   L2 — SQL: khách KH-LAN hỏi "đơn của tôi tổng bao nhiêu tiền" ⇒ phải có 696.000 và AI gọi sql_query (dùng sum, không tự cộng).
-  L3 — file đẹp: khối Agent bật make_pdf + make_pptx, dữ liệu "thuế quan EU" đưa sẵn trong câu (không tra web) ⇒ file soát bằng soat.py của B.
+  L3 — file đẹp: khối Agent bật make_pdf + make_pptx, dữ liệu "thuế quan EU" đưa sẵn trong câu (không tra web) ⇒ file soát bằng soat.py nhóm kỹ thuật.
 Trần tiền BẰNG CODE: sổ ket_qua/06_11_sang/s5/so_tien.json cộng dồn mọi lượt S5 (kể cả Operator, giữ kín v2 — ghi qua ghi_tien());
 trước mỗi lượt: đã tiêu ≥ TRAN thì dừng. Giá gpt-6-luna từ giao_dien/bang_gia.json; token đọc đệm tính như token vào thường (cận trên).
 """
@@ -795,7 +795,7 @@ def _thay_bedrock_bang_cache_usage(s: str, br: list[tuple[str, str, float]]) -> 
 
 
 DUYET_KHOI = "human_intervention_node"
-# NEO cả dòng theo khuôn log thật của hộp (bài học K2 của E ở gói tra web): "<ngày> <giờ> - <tên logger> - INFO - <lời>"; logger của file bản tóm tắt =
+# NEO cả dòng theo khuôn log thật của hộp (bài học K2 nhóm kỹ thuật ở gói tra web): "<ngày> <giờ> - <tên logger> - INFO - <lời>"; logger của file bản tóm tắt =
 # nodes.logic.human_intervention.digest (18 / 18 dòng [DIGEST_USAGE] trong log lưu 19/11 đúng khuôn này) ⇒ chuỗi [DIGEST_USAGE] nằm giữa một dòng log khác không được nhận.
 _DG = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[.,]\d+)? - nodes\.logic\.human_intervention\.digest - INFO - "
                  r"\[DIGEST_USAGE\] session=(\S+) node=(\S+) model=(\S+) requests=(\d+) input=(\d+) output=(\d+) cache_read=(\d+) reasoning=(\d+)")
@@ -917,7 +917,7 @@ def _mo_hinh_bang(ten: str) -> dict | None:
         import yaml
         b = yaml.safe_load(MT.BANG_DINH_TUYEN.read_text(encoding="utf-8"))
         ra = {}
-        def _loai(m):   # "bedrock" = nhà cung cấp của mục có `mien_tran: true` trong bảng (bảng của F: bedrock_046) — KHÔNG theo tên
+        def _loai(m):   # "bedrock" = nhà cung cấp của mục có `mien_tran: true` trong bảng (nhóm kỹ thuật: bedrock_046) — KHÔNG theo tên
             return MT.NCC_BEDROCK if b["nha_cung_cap"][m["nha_cung_cap"]].get("mien_tran") is True else str(m["nha_cung_cap"])
         for k, m in b["mo_hinh"].items():
             v = {"ncc": _loai(m), "gia_vao": float(m["gia_vao"]), "gia_ra": float(m["gia_ra"])}

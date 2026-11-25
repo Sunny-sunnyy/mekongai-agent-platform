@@ -141,7 +141,7 @@ def loi_dan(ky: str, ngay_chot: str, ban_luat: str | None = None, trang_thai: st
 
 
 def kiem_danh_muc(tim_khoi, catalog) -> None:
-    """Đ-3a: ô mới phải có trong danh mục đang chạy (bản gắn của C)."""
+    """Đ-3a: ô mới phải có trong danh mục đang chạy (bản gắn nhóm kỹ thuật)."""
     def o(loai):
         return {p["field_id"]: p for p in (tim_khoi(catalog, loai) or {}).get("params", [])}
     a, r, d = o("agent_node"), o(RAO), o("human_intervention_node")
@@ -217,7 +217,7 @@ def kiem_payload(nodes: list[dict], edges: list[dict], can_agent: bool = True) -
         nguon = [e["source"] for e in edges if e["target"] == k and e.get("target_param_id") == "cau_hoi"]
         o = next((p for p in s[k].get("params", []) if p.get("field_id") == "cau_hoi"), {}) or {}
         nguon += [c.get("node_id") for c in ((((o.get("bindable_config") or {}).get("input_port") or {}).get("incoming_connections")) or [])
-                  if c.get("node_id")]   # [ghi chú] danh mục Capitol để sẵn mục rỗng {"node_id": "", "port_id": ""} — không phải nguồn (ca dựng tay của C không có)
+                  if c.get("node_id")]   # [ghi chú] danh mục Capitol để sẵn mục rỗng {"node_id": "", "port_id": ""} — không phải nguồn (ca dựng tay nhóm kỹ thuật không có)
         for x in set(nguon):
             if loai.get(x) != "text_input_node" or truoc.get(x):
                 loi.append(f"Đ-19 ô cau_hoi của Rào chắn nối từ {loai.get(x, x)!r} — chỉ được từ Ô nhập gốc (text_input_node không có dây vào)")

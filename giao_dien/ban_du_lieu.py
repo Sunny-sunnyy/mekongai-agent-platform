@@ -11,7 +11,7 @@ native_tools.py:453), nhưng trang chưa bao giờ điền ô đó ⇒ mọi lư
       2. mã bản chưa thấy qua trang này ⇒ 409 "tải lại file" (máy chủ trang không biết kỳ / ngày chốt của bản đó)
       3. kỳ / ngày chốt của bản ≠ của bản đang bật ⇒ 409: lời dặn Trợ lý KPI ghi kỳ / ngày chốt của bản đang bật (luật D lúc chạy so từng ký tự)
          ⇒ chạy trên bản khác ngày chốt thì AI ghi sai thời điểm. Hỗ trợ bản khác ngày chốt = việc tuần 8 (điền lại lời dặn theo bản).
-      4. hỏi backend bản đó còn không (/api/tools?data_version=, backend trả 404 khi lạ) ⇒ không còn ⇒ 409 (ca V1 của D: dừng trước AI)
+      4. hỏi backend bản đó còn không (/api/tools?data_version=, backend trả 404 khi lạ) ⇒ không còn ⇒ 409 (ca V1 nhóm kỹ thuật: dừng trước AI)
       5. điền ô kpi_data_version ở MỌI agent_node bật tool_kpi + MỌI guardrails_node; Agent không bật tool_kpi KHÔNG điền (ca V3);
          thiếu ô (workflow lưu trước khi vá) ⇒ 409, không chạy thiếu
   Bản đã lưu trong DB không đổi: chỉ điền vào bản sao của lượt (ca V2).

@@ -172,7 +172,7 @@ def crop_figures(file_path, page_index, reading, picture_boxes):
 def drop_duplicate_photos(elements):
     """Trang đã có cặp ảnh – chú thích do figure_caption.py tìm theo hình học (bố cục catalog thời trang) ⇒ bỏ ảnh chụp luna trùng chỗ (≥ 50 % diện tích),
     để một ảnh không thành hai "hình". Biểu đồ luna giữ nguyên. Lỗi ⇒ giữ nguyên elements: bước này chỉ bớt hình, nằm trong khối xử lý lỗi chung của
-    process_pdf (lỗi ở đó làm mất chữ cả file — B kiểm chéo 20/10)."""
+    process_pdf (lỗi ở đó làm mất chữ cả file — đã kiểm chéo 20/10)."""
     try:
         return _without_duplicate_photos(elements)
     except Exception as e:

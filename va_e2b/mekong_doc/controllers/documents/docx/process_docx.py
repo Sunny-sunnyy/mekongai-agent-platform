@@ -53,7 +53,7 @@ def process_docx(file_path):
     footnotes = read_footnotes(document)
     blocks = list(iter_blocks(document.element.body, document))
     # File có dùng style tiêu đề ⇒ tin style, không đoán theo chữ đậm (chữ đậm nhấn mạnh trong đoạn không thành mục). Chỉ tính đoạn CÓ chữ:
-    # một đoạn rỗng mang style tiêu đề (v03, B kiểm cuối lần 2) làm tắt luật "I." / chữ đậm ⇒ cả file thành một mục (vòng 3 Word, đã duyệt 11:3x)
+    # một đoạn rỗng mang style tiêu đề (v03, đã kiểm cuối lần 2) làm tắt luật "I." / chữ đậm ⇒ cả file thành một mục (vòng 3 Word, đã duyệt 11:3x)
     use_styles = any(isinstance(block, Paragraph) and block.text.strip() and style_heading_level(block) is not None for block in blocks)
 
     items = []   # ("heading", cấp, chữ) | ("text", chữ) | ("lead", chữ) | ("table", hàng) — mục dựng ở sections.build_sections (chung với TXT / MD / HTML)
@@ -313,7 +313,7 @@ def outline_level(ppr):
 
 def heading_level(paragraph, text, use_styles):
     """Cấp tiêu đề của một đoạn, None nếu là chữ thường. "Phần / Chương / Mục / Điều + số" luôn là tiêu đề — kể cả file có style tiêu đề:
-    B kiểm chéo 24/10 thấy văn bản thật đặt mức dàn ý tuỳ tiện cho vài "Điều" ⇒ chỉ tin style thì 26 / 31 "Điều" mất mục. File không có style
+    đã kiểm chéo 24/10 thấy văn bản thật đặt mức dàn ý tuỳ tiện cho vài "Điều" ⇒ chỉ tin style thì 26 / 31 "Điều" mất mục. File không có style
     tiêu đề ⇒ luật chữ chung: thêm "I." số La Mã, hoặc cả dòng in đậm; "1." chỉ là tiêu đề khi in đậm (không đậm = danh sách)."""
     keyword = keyword_heading_level(text)
     if keyword is not None:

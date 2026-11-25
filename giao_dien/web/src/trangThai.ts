@@ -1,5 +1,5 @@
 // Từ sự kiện của một lượt chạy (bảng workflow_event) tới mốc t ⇒ trạng thái từng khối. Một nguồn sự thật cho xem trực tiếp lẫn phát lại.
-// Bài học đã chạy thật (04/11, D kiểm):
+// Bài học đã chạy thật (04/11, đã kiểm):
 //  - giờ ghi có lúc đi LÙI 1–1,5 giây (đồng hồ WSL) ⇒ khối sau đã `begin` thì khối trước chắc chắn đã xong (Temporal giao theo tầng);
 //  - khối duyệt: execution_successful tới TRƯỚC awaiting_intervention — nghĩa "đã viết bản tóm tắt", KHÔNG phải "đã duyệt";
 //  - "bỏ qua" không có sự kiện riêng: khối không có `begin` mà lượt đã dừng.

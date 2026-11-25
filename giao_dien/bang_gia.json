@@ -1,5 +1,5 @@
 {
- "_ghi_chu": "Giá USD cho 1 triệu token. Code Capitol KHÔNG có bảng giá USD (chỉ bậc cost_tier; D kiểm 04/11, BAO_CAO_KET_QUA.md mục 12) ⇒ bảng này tự giữ. Mô hình không có ở đây ⇒ trang hiện 'chưa có giá', không hiện 0. cache_read = null ⇒ chưa biết giá đọc đệm, tạm tính như token vào thường (ghi rõ trên trang).",
+ "_ghi_chu": "Giá USD cho 1 triệu token. Code Capitol KHÔNG có bảng giá USD (chỉ bậc cost_tier) ⇒ bảng này tự giữ. Mô hình không có ở đây ⇒ trang hiện 'chưa có giá', không hiện 0. cache_read = null ⇒ chưa biết giá đọc đệm, tạm tính như token vào thường (ghi rõ trên trang).",
  "gpt-6-luna": {
   "input": 0.1,
   "output": 0.5,

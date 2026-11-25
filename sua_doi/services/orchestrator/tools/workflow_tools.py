@@ -7126,7 +7126,7 @@ def _resolve_artifact_for_org(org_id: str):
                 e,
             )
 
-        # [VÁ 10b chay_thu 06/11/2026 — A; D kiểm S4 M2] chat Operator dùng hàm này để đưa mã file do MỘT LƯỢT CHẠY tạo ra làm đầu vào cho
+        # [VÁ 10b chay_thu 06/11/2026 — A; đã kiểm S4 M2] chat Operator dùng hàm này để đưa mã file do MỘT LƯỢT CHẠY tạo ra làm đầu vào cho
         # workflow KHÁC (start_workflow :1795) ⇒ dữ liệu từ khối chạy code đi vòng sang workflow có khối gửi ra ngoài, R12 không thấy.
         # Bản tối thiểu cho máy thử (cùng công tắc d2): không phân giải file do lượt chạy tạo (b) và artifact đã thăng hạng (c); file người dùng
         # tải lên (a, Redis) vẫn dùng được. Tắt: CHAY_THU_R12_OPERATOR=false.

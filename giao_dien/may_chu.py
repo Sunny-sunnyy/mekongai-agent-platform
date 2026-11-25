@@ -35,7 +35,7 @@ from capitol_chuyen_doi import DanhMuc, kiem, sang_capitol, sang_chung, tu_capit
 from doi_chieu import doi_chieu, doi_chieu_khuon, nguon_cong_cu  # cải tiến (1), yêu cầu vận hành 04/11
 import muc_toi_da                                             # [ghi chú kỹ thuật] mức tiền tối đa mỗi loại khối — giữ chỗ trước khi chạy
 import tai_ve                                                 # [ghi chú kỹ thuật] tải file kết quả qua trang (link minio:9000 không mở được từ máy)
-import khoi_kpi                                               # [ghi chú kỹ thuật] khối KPI dựng sẵn: nối dữ liệu + luật của B (kpi_capitol/khoi_dung_san.py) vào trang
+import khoi_kpi                                               # [ghi chú kỹ thuật] khối KPI dựng sẵn: nối dữ liệu + luật nhóm kỹ thuật (kpi_capitol/khoi_dung_san.py) vào trang
 import thu_lai_403                                             # [ghi chú kỹ thuật] run-workflow trả 403 thất thường (quyền chưa commit ở phiên DB khác) ⇒ thử lại đúng 1 lần
 import so_skill                                                # [ghi chú kỹ thuật] ghi sổ MỨC TỐI ĐA cho khối chạy trong hộp phiên (không để lại message_history)
 import hoi_nhanh                                               # [ghi chú kỹ thuật] chế độ "hỏi nhanh" của trang Hỏi KPI: gắn thẳng mẫu KPI hỏi nhanh, không lượt AI định tuyến
@@ -56,7 +56,7 @@ _RUNTIME_DIR = Path(os.environ.get("CAPITOL_RUNTIME_DIR") or (Path(__file__).res
 _KPI_TAI_LEN_URL = os.environ.get("KPI_TAI_LEN_URL", "http://127.0.0.1:18402").rstrip("/")
 SO_KHO = KTL.So(_STATE_DIR / "kho_tai_lieu")
 GOC_DU_LIEU = _STATE_DIR / "trang_du_lieu"   # [ghi chú kỹ thuật] sổ lần tải file KPI + tài liệu người dùng bấm Ẩn (không tên file, không nội dung)
-# Đường tới app RAG: ĐI QUA hộp cổng RAG của B (gắn tổ chức ở cổng — E major 1). Chưa đặt ⇒ mọi đường nạp trả 503, không gọi gì (0 đồng).
+# Đường tới app RAG: ĐI QUA hộp cổng RAG nhóm kỹ thuật (gắn tổ chức ở cổng — E major 1). Chưa đặt ⇒ mọi đường nạp trả 503, không gọi gì (0 đồng).
 # [ghi chú kỹ thuật] nạp / xem kho đi QUA cổng RAG theo tổ chức (B, goi_cong_rag.py): cổng suy user_id từ X-Rag-Org — trang không tự khai.
 # "Đã nối" = env may_chu có RAG_MA + RAG_NAP_MA ($CAPITOL_STATE_DIR/rag_cong.env + rag_nap.env, 600). Trống ⇒ nạp 503, không gọi gì.
 RAG_APP = bool(os.environ.get("RAG_MA") and os.environ.get("RAG_NAP_MA"))
@@ -389,7 +389,7 @@ def _kiem_wf_da_luu(wf: str) -> int | None:
 
 # [ghi chú kỹ thuật] Trước đây trang chỉ kiểm HÌNH workflow (capitol_chuyen_doi.kiem); luật KPI chỉ chạy ở script đo và trang "Hỏi KPI"
 # ⇒ người tự vẽ "Trợ lý KPI ⇒ Ô ra" vẫn Lưu + Chạy được. Nay kiểm ở MÁY CHỦ, cả lúc Lưu lẫn lúc Chạy (workflow do chat / API tạo không qua Lưu của
-# trang). [Lần gắn 3, nhóm phát triển xác nhận theo D] MỘT nguồn luật ở module của B: khoi_dung_san.kiem_khoi_dung_san (workflow KPI chỉ gồm 5 khối dựng sẵn, ô khoá
+# trang). [Lần gắn 3, nhóm phát triển xác nhận theo D] MỘT nguồn luật ở module nhóm kỹ thuật: khoi_dung_san.kiem_khoi_dung_san (workflow KPI chỉ gồm 5 khối dựng sẵn, ô khoá
 # bằng bản chuẩn, lời dặn đúng workflow_kpi.loi_dan) + workflow_kpi.kiem_payload (luật nối) — nối ở giao_dien/khoi_kpi.py, ở đây không còn danh sách riêng.
 def kiem_kpi_payload(payload: dict, luc_chay: bool = False) -> list[str]:
     return khoi_kpi.kiem(_hoi_kpi(), org(), payload, luc_chay)
@@ -496,7 +496,7 @@ def chay(wf: str, text_inputs: dict | None = None, khach: str | None = None, dat
     (bộ ca thử; ô sửa đầu vào trên trang). Capitol vẫn tự tạo phiên bản loại RUN cho lượt đó — đúng như mọi lần bấm chạy."""
     kiem_ma(wf)
     try:
-        dv = ban_du_lieu.doc_ban(data_version)   # [ghi chú kỹ thuật] kiểm dạng TRƯỚC mọi việc (ca V8 của D)
+        dv = ban_du_lieu.doc_ban(data_version)   # [ghi chú kỹ thuật] kiểm dạng TRƯỚC mọi việc (ca V8 nhóm kỹ thuật)
     except ValueError as e:
         return 400, {"loi": str(e)}
     bay_gio = time.time()
@@ -602,7 +602,7 @@ def chay(wf: str, text_inputs: dict | None = None, khach: str | None = None, dat
                 else:
                     o["value"] = str(khach)
         if thieu:
-            # D kiểm (mục 20, D-1 major): workflow lưu TRƯỚC khi danh mục có ô này ⇒ không điền được ⇒ tra đơn im lặng KHÔNG kiểm chủ đơn
+            # đã kiểm (mục 20, D-1 major): workflow lưu TRƯỚC khi danh mục có ô này ⇒ không điền được ⇒ tra đơn im lặng KHÔNG kiểm chủ đơn
             # ⇒ dừng hẳn, không chạy (an toàn hơn chạy thiếu): làm mới danh mục (/api/blocks/refresh) rồi lưu lại workflow.
             return 409, {"loi": f"Khối Agent chưa có ô 'Mã khách' (workflow lưu trước khi vá hướng D): {thieu[:5]} — làm mới danh mục rồi lưu lại workflow."}
     p_tien = payload if chay_lai is None else CL.con_payload(payload, chay_lai["chay_moi"])   # [ghi chú kỹ thuật] khối dùng lại không tốn tiền ⇒ không tính khối hộp phiên của chúng
@@ -680,7 +680,7 @@ def mo_hinh_khoi_that() -> dict:
     """[ghi chú kỹ thuật] Mô hình + mức suy luận ĐANG ĐẶT cho khối kiểu Agent — đọc file mô hình khối MỖI lần (muc_toi_da._doc_ep_mo_hinh, cùng hàm với
     phần tính mức tiền và cùng luật đọc với bản vá trong hộp). Tên trả về là tên GỬI TRÊN DÂY (vd "claude-sonnet-5-5-medium"). Không có dòng nào ⇒ mac_dinh "" =
     khối chạy theo ô model của nó. File sai khuôn ⇒ loi (lúc đó khối AI cũng bị chặn chạy)."""
-    khoi = list(dict.fromkeys(list(muc_toi_da.KHOI_EP_MO_HINH) + list(getattr(muc_toi_da, 'KHOI_HOP_PHIEN', ())) + list(getattr(muc_toi_da, 'KHOI_NGUOI_GAC', ()))))   # [ghi chú kỹ thuật] + họ hộp phiên (+ họ người gác khi gói của B gắn — chưa có thì bỏ qua)
+    khoi = list(dict.fromkeys(list(muc_toi_da.KHOI_EP_MO_HINH) + list(getattr(muc_toi_da, 'KHOI_HOP_PHIEN', ())) + list(getattr(muc_toi_da, 'KHOI_NGUOI_GAC', ()))))   # [ghi chú kỹ thuật] + họ hộp phiên (+ họ người gác khi gói nhóm kỹ thuật gắn — chưa có thì bỏ qua)
     try:
         mac_dinh, bang = muc_toi_da._doc_ep_mo_hinh()
         return {"mac_dinh": mac_dinh, "theo_khoi": bang, "khoi_doi_duoc": khoi, "loi": None}
@@ -711,7 +711,7 @@ def log_tom_tat(s: str) -> dict:
     """Đọc log hộp worker Temporal từ lúc lượt bắt đầu: dòng [DIGEST_USAGE] (vá 7) + 'digest cache hit'. Lượt đã xong ⇒ nhớ kết quả."""
     if s in _log_cache:
         return _log_cache[s]
-    luu = KQ / "giao_dien" / f"tom_tat_{s}.json"          # D kiểm 04/11: nhớ ra file để khởi động lại máy chủ / tạo lại hộp không mất số
+    luu = KQ / "giao_dien" / f"tom_tat_{s}.json"          # đã kiểm 04/11: nhớ ra file để khởi động lại máy chủ / tạo lại hộp không mất số
     if luu.is_file():
         x = json.loads(luu.read_text())
         _log_cache[s] = {"usage": x["usage"], "cache_hit": set(x["cache_hit"]), "fail": x.get("fail", [])}
@@ -853,7 +853,7 @@ def chi_phi(s: str) -> dict:
         from node_result nr join node n on n.id=nr.node_id join workflow_run r on r.id=nr.run_id,
              jsonb_array_elements(coalesce(nr.output_data::jsonb->'metadata'->'message_history', '[]'::jsonb)) m
         where r.session_id='{s}' and m->>'kind'='response'""")
-    # D kiểm 04/11 chiều (BAO_CAO_KET_QUA mục 19, N1 — major, tiền đếm thiếu): khối cùng tầng với Người duyệt CHẠY XONG + trả tiền, nhưng
+    # đã kiểm 04/11 chiều (BAO_CAO_KET_QUA mục 19, N1 — major, tiền đếm thiếu): khối cùng tầng với Người duyệt CHẠY XONG + trả tiền, nhưng
     # Từ chối huỷ cả tầng ⇒ dòng node_result bị ghi SKIPPED, không có message_history ⇒ trước đây trang không cộng tiền khối đó.
     # Bản sao nằm ở sự kiện node_result (workflow_event.event_data.data.metadata.message_history) ⇒ lấy từ đó cho khối chưa có ở trên.
     co_roi = {x["node"] for x in ds}
@@ -905,7 +905,7 @@ def chi_phi(s: str) -> dict:
                 lan.append({"node": nd, "model": None, "call_kind": "side", "measurable": False, "cost_usd": None,
                             "why": "khối duyệt có gọi AI viết bản tóm tắt nhưng không tìm thấy dòng log [DIGEST_USAGE] — lượt chạy trước khi vá 7 (04/11), "
                                    "hoặc log hộp đã mất khi tạo lại hộp ⇒ không đo được"})
-    # D kiểm 04/11 chiều (mục 21, B2 major): khối Che thông tin GỌI AI (RedactionService gọi Agent.run thẳng — 1 lần / lượt theo log) nhưng không lưu
+    # đã kiểm 04/11 chiều (mục 21, B2 major): khối Che thông tin GỌI AI (RedactionService gọi Agent.run thẳng — 1 lần / lượt theo log) nhưng không lưu
     # token ở đâu ⇒ trước đây trang hiện "0" (sai) ⇒ ghi "không đo được" để tổng tiền không bị hiểu là đủ.
     che = xem.sql(f"""select coalesce(json_agg(distinct e.node_instance_id), '[]') from workflow_event e join workflow_run r on r.id=e.run_id
                       join workflow_version wv on wv.id=r.version_id, jsonb_array_elements(wv.payload::jsonb->'nodes') n
@@ -914,7 +914,7 @@ def chi_phi(s: str) -> dict:
     for nd in che:
         lan.append({"node": nd, "model": "gpt-6-luna", "call_kind": "side", "measurable": False, "cost_usd": None,
                     "why": "khối Che thông tin gọi AI (vá 9: gpt-6-luna) nhưng không lưu token ⇒ KHÔNG đo được (không phải 0)"})
-    # D kiểm 04/11 (mục 22, D15): khối agent báo xong (execution_successful) nhưng KHÔNG có node_result — Capitol nuốt lỗi lưu (persist_results.py:687-694,
+    # đã kiểm 04/11 (mục 22, D15): khối agent báo xong (execution_successful) nhưng KHÔNG có node_result — Capitol nuốt lỗi lưu (persist_results.py:687-694,
     # vd ký tự NUL từ trang web) ⇒ lượt vẫn SUCCESS, tiền khối đó mất ⇒ ghi "không lưu được" để người xem biết tổng tiền thiếu.
     mat = xem.sql(f"""select coalesce(json_agg(distinct e.node_instance_id), '[]') from workflow_event e join workflow_run r on r.id=e.run_id
                       join workflow_version wv on wv.id=r.version_id, jsonb_array_elements(wv.payload::jsonb->'nodes') n
@@ -958,11 +958,11 @@ def _ly_do_rao_chan(phien: str) -> str | None:
 
 
 def _goi_app_rag(m: str, duong: str, form: dict | None = None, tep: tuple | None = None, timeout: int = 60):
-    """[ghi chú kỹ thuật] goi_app cho KTL.bat_dau_nap — QUA cổng RAG theo tổ chức (goi_cong_rag.tao_goi_app của B: chỉ 2 đường
+    """[ghi chú kỹ thuật] goi_app cho KTL.bat_dau_nap — QUA cổng RAG theo tổ chức (goi_cong_rag.tao_goi_app nhóm kỹ thuật: chỉ 2 đường
     kho / nạp, uid phải khớp tổ chức, không /all). Tên file đi trong header mã hoá %, không vào URL / nhật ký."""
     if not RAG_APP:
         raise RuntimeError("chưa nối cổng RAG")
-    import goi_cong_rag   # file của B (gan_rag_to_chuc.sh chép vào giao_dien/); nạp lúc gọi ⇒ thiếu file chỉ hỏng đường nạp, trang vẫn bật
+    import goi_cong_rag   # file nhóm kỹ thuật (gan_rag_to_chuc.sh chép vào giao_dien/); nạp lúc gọi ⇒ thiếu file chỉ hỏng đường nạp, trang vẫn bật
     return goi_cong_rag.tao_goi_app(org())(m, duong, form=form, tep=tep, timeout=timeout)
 
 def _hoi_kpi():
@@ -1154,7 +1154,7 @@ class XuLy(BaseHTTPRequestHandler):
             return self._json(xem.ds_workflow(ngay_loc, so_dong, org_loc))
         if p == "/api/kpi/ghep/khuon":   # [ghi chú kỹ thuật] khuôn cột chuẩn (cột trái màn ghép) — sau rào mã mở trang như mọi đường /api
             return self._ghep_kpi("GET")
-        if p == "/api/kpi/dung-san":   # [ghi chú kỹ thuật] khối KPI dựng sẵn + bộ sẵn + mẫu + lời dặn / công cụ ĐỂ XEM (dữ liệu của B, một nguồn)
+        if p == "/api/kpi/dung-san":   # [ghi chú kỹ thuật] khối KPI dựng sẵn + bộ sẵn + mẫu + lời dặn / công cụ ĐỂ XEM (dữ liệu nhóm kỹ thuật, một nguồn)
             o = org()
             return self._json(khoi_kpi.ds(_hoi_kpi(), o, lambda: xem.ds_workflow(None, 2000, o)))
         m = re.match(r"^/api/workflows/([^/]+)$", p)
@@ -1217,7 +1217,7 @@ class XuLy(BaseHTTPRequestHandler):
         if m:
             r = chi_phi(m.group(1))
             r["tool_calls"] = cong_cu_da_goi(m.group(1))
-            # D kiểm 04/11 (MAJOR): tiền Serper không được ghi ở đâu ⇒ đếm lần gọi web_search × giá một lượt (bang_gia.json "serper")
+            # đã kiểm 04/11 (MAJOR): tiền Serper không được ghi ở đâu ⇒ đếm lần gọi web_search × giá một lượt (bang_gia.json "serper")
             gs = GIA.get("serper") or {}
             for tc in [x for x in r["tool_calls"] if x["tool"] == "web_search"]:
                 gia = gs.get("per_query")
@@ -1555,7 +1555,7 @@ class XuLy(BaseHTTPRequestHandler):
                     ds_wf=lambda: so_ban_luu(o),   # [ghi chú kỹ thuật] chỉ đếm bản LƯU (bản RUN của lượt chạy khác không được làm khoá đường chat)
                     kiem_wf=_kiem_wf_da_luu,
                     # [va_chat_chay C 12/11, D ĐẠT] Trợ lý ĐỀ NGHỊ (dòng cuối CHAY: <mã>) — trang tự chạy bằng chay() của nút Chạy (luật + giữ chỗ + trần lượt + sổ)
-                    # [đo thật 14:38] bỏ workflow script đo tự lưu (tên "Mẫu Capitol - …", quy ước của B) + chỉ đưa vào bảng workflow QUA luật lúc Chạy
+                    # [đo thật 14:38] bỏ workflow script đo tự lưu (tên "Mẫu Capitol - …", quy ước nhóm kỹ thuật) + chỉ đưa vào bảng workflow QUA luật lúc Chạy
                     tao_kpi=_tao_kpi_tu_chat,   # [ghi chú kỹ thuật]
                     chay_ho={"ds": lambda: [{"id": w["id"], "ten": w.get("ten")} for w in (xem.ds_workflow(None, 60, o) or [])
                                             if not str(w.get("ten") or "").startswith(("Mẫu Capitol - ", "ĐO — "))],   # tên script đo tự đặt (B: cũ + mới)

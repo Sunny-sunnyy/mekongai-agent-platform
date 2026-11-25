@@ -4,7 +4,7 @@
 #                ⇒ người chạy hộp (WSL) đọc bằng O_NOFOLLOW ⇒ chép bản sao vào /dau_vao/ của hộp không mạng.
 # Thư mục phải TẠO TRƯỚC trên WSL (mkdir -p chay_thu/ket_qua/sandbox_file_tai) — không thì Docker tạo thư mục thuộc root.
 # Git bỏ qua chay_thu/ket_qua/ (đã có).
-# [D kiểm B2b, minor b] cap_drop MKNOD: hộp ab-* (coi như có thể bị chiếm) không tạo được nút thiết bị trong thư mục rw này.
+# [đã kiểm B2b, minor b] cap_drop MKNOD: hộp ab-* (coi như có thể bị chiếm) không tạo được nút thiết bị trong thư mục rw này.
 services:
   ab-api:
     volumes:

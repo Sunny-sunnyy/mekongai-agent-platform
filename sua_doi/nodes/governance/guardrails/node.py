@@ -113,7 +113,7 @@ def _cau_bao_chan(ly_do: list[str]) -> str:
 
 # [ghi chú] CHẾ ĐỘ "code": khối gọi một dịch vụ kiểm bằng code (backend KPI mekongai — phép kiểm
 # kiem_so: số trong câu trả lời phải có nguồn, đúng người), KHÔNG dùng AI. Vì sao ở khối Rào chắn: Capitol không có khối nào "gọi công cụ mà không
-# qua AI"; Rào chắn đã đứng đúng chỗ (sau Agent, trước Người duyệt) và đã có đường DỪNG lượt (NodeOutput.error ⇒ fail-fast, vá 07/11 của B).
+# qua AI"; Rào chắn đã đứng đúng chỗ (sau Agent, trước Người duyệt) và đã có đường DỪNG lượt (NodeOutput.error ⇒ fail-fast, vá 07/11 nhóm kỹ thuật).
 # Luật: chế độ code LUÔN chặn khi trượt (không phụ thuộc cờ CHAY_THU_RAO_CHAN_CHAN — quên cờ không được mở cổng); ĐÓNG KHI LỖI: chưa cấu hình,
 # không gọi được, hết giờ, HTTP ≠ 200, không phải JSON, quá cỡ, thiếu trường ⇒ trượt. Chỉ `dat is True` là đạt.
 # Địa chỉ, kiểu gọi, khoá: CHỈ từ biến môi trường của hộp (không từ payload — payload sửa được ⇒ SSRF / gửi khoá đi nơi khác).
@@ -313,7 +313,7 @@ class GuardrailsNode(BaseNode):
     async def _chay_kiem_sql(self, query: str) -> NodeOutput:
         """[va_kiem_so_sql C 12/11/2026 — đã giao] Chế độ "sql" (workflow "Hỏi dữ liệu bằng lời"): mọi số trong câu trả lời phải có trong kết quả
         công cụ sql_query của CHÍNH lượt này. Kết quả lấy từ sổ do CODE của công cụ ghi (nodes/agent/nho_sql_luot.py, khoá theo self._orgid +
-        self._run_id — thuộc tính hệ thống, không từ ô cài đặt / payload / chữ AI); phép so là hàm của B (kiem_so_sql.kiem_so — một nguồn).
+        self._run_id — thuộc tính hệ thống, không từ ô cài đặt / payload / chữ AI); phép so là hàm nhóm kỹ thuật (kiem_so_sql.kiem_so — một nguồn).
         KHÔNG dùng AI, KHÔNG gọi dịch vụ ngoài. Trượt / không đọc được sổ / câu rỗng / thiếu mã ⇒ DỪNG lượt (câu sai không đi tiếp).
         Đạt ⇒ data = câu trả lời GỐC (chữ) ⇒ khối Xuất chữ phía sau hiện như thường.
         GIỚI HẠN: chỉ chứng minh AI chép đúng kết quả công cụ; KHÔNG chứng minh câu SQL trả lời đúng câu hỏi (trang hiện câu SQL + bảng cạnh đó)."""
@@ -340,7 +340,7 @@ class GuardrailsNode(BaseNode):
                 if l0 and not ly_do and nho_sql_luot.LUAT_0_DONG_O_RAO == "chan":
                     ly_do = l0
                 elif l0 and not ly_do and nho_sql_luot.LUAT_0_DONG_O_RAO == "nhan":
-                    query = "[" + str((kq.get("luat_0_dong") or {}).get("nhan") or "chưa chắc")[:300] + "]\n\n" + query   # nhãn HẰNG của B, code gắn
+                    query = "[" + str((kq.get("luat_0_dong") or {}).get("nhan") or "chưa chắc")[:300] + "]\n\n" + query   # nhãn HẰNG nhóm kỹ thuật, code gắn
             except Exception as e:  # noqa: BLE001 — ĐÓNG KHI LỖI
                 ly_do = [f"không kiểm được ({type(e).__name__})"]   # [D minor] chỉ tên loại lỗi — chữ lỗi Redis có thể mang địa chỉ nội bộ
                 logger.warning("guardrails KIEM_SQL loi=%s", type(e).__name__)

@@ -37,7 +37,7 @@ Tài liệu hướng dẫn cách bật/tắt hệ thống hằng ngày, thao tá
 ### 2.1 Khung chat ("Trợ lý")
 - **Hỏi KPI nhanh:** Gõ câu hỏi tiếng Việt tự nhiên (ví dụ: *"Tháng 10 NV02 được lương kinh doanh bao nhiêu?"*, *"Tổng lương kinh doanh cả đội tháng 10?"*, *"So sánh NV02 và NV04"*).
   - Bộ định tuyến sẽ tự chọn một trong **23 quy trình đang mở** (trong tổng số 25 thẻ khung chat). Nếu chưa rõ ý, khung chat hiện vài nút gợi ý để bấm chọn.
-  - Mọi câu trả lời KPI từ khung chat đều đi qua bước **AI kiểm số** (có đáp án từ công cụ tính) và hiển thị nhãn **tạm tính, chưa có người duyệt** (không dừng chờ người duyệt).
+  - Mọi câu trả lời KPI từ khung chat đều đi qua lớp **kiểm số có đáp án** (theo cấu hình mặc định `gpt-6-luna` dùng bộ luật kiểm số `quyet_dinh = code`, nếu bật Claude Bedrock có thể chuyển sang `quyet_dinh = ai`) và hiển thị nhãn **tạm tính, chưa có người duyệt** (không dừng chờ người duyệt).
 - **Hỏi trên tài liệu kéo thẳng vào chat:** Kéo file (`.pdf`, `.docx`, `.xlsx`, `.xlsm`, `.xls`, `.csv`, `.png`, `.jpg`/`.jpeg`, `.html`/`.htm`, `.json`, `.txt`, `.md`/`.markdown`) vào khung chat (file tạm được giữ 24 giờ).
   - PDF/Word có lớp chữ được đọc thẳng kèm dẫn `[trang N]` / `[đoạn N]`.
   - PDF dạng ảnh chụp (không có lớp chữ), ảnh rời, HTML, JSON, bảng tính sẽ đi qua cổng RAG `19453`.
@@ -76,9 +76,40 @@ Kho bàn giao tích hợp sẵn thư mục `kpi_agent/` tự đứng được (�
   bash scripts/with_env.sh uv run python -m kpi_agent.cli run workflows/kpi_thuong_nvbh_raw.yaml --cutoff 2026-10-31
   ```
 - **Thay đổi cấu hình nóng cho hệ thống (không cần tạo lại container):**
-  - Đổi mô hình AI của khối: sửa tại chỗ `cau_hinh_mo_hinh/mo_hinh_khoi.txt` (mặc định `claude-sonnet-5-5 / medium`).
+  - Đổi mô hình AI của khối: sửa tại chỗ `cau_hinh_mo_hinh/mo_hinh_khoi.txt` (mặc định đang comment `# mac_dinh = ...` để chạy **`gpt-6-luna`**).
   - Đổi nơi chạy code (`e2b` hoặc `may`): sửa tại chỗ `cau_hinh_mo_hinh/noi_chay_khoi.txt`.
-  - Công tắc lớp kiểm số KPI: sửa tại chỗ `cau_hinh_mo_hinh/kiem_so_kpi.txt` (`quyet_dinh = ai`, `luat_code_chan = khong`).
+  - Công tắc lớp kiểm số KPI: sửa tại chỗ `cau_hinh_mo_hinh/kiem_so_kpi.txt` (mặc định đi cùng `gpt-6-luna` là `quyet_dinh = code`, `luat_code_chan = khong`).
+
+---
+
+## 3b. Hướng dẫn sử dụng `gpt-6-luna` (mặc định) và chuyển đổi mô hình (Luna ↔ Claude Bedrock)
+
+Hệ thống bàn giao mặc định chạy **`gpt-6-luna` qua OpenAI API** (không đòi hỏi tài khoản AWS Bedrock khi dựng máy mới) và cho phép chuyển nóng sang **Claude 5.5 (Sonnet/Opus) qua AWS Bedrock** hoặc lùi ngược lại bất cứ lúc nào mà **không cần tạo lại container**.
+
+### 1. Ba file cấu hình nóng phải đồng bộ khi chạy `gpt-6-luna` (cấu hình mặc định)
+
+| File cấu hình (`cau_hinh_mo_hinh/`) | Giá trị khi chạy `gpt-6-luna` | Ý nghĩa & lý do bắt buộc đồng bộ |
+|---|---|---|
+| `mo_hinh_khoi.txt` | Comment dòng `mac_dinh` (`# mac_dinh = claude-sonnet-5-5 / medium`, không để dòng hiệu lực nào) | Khi không có dòng `mac_dinh` hiệu lực, mọi khối Agent / tạo file / phân tích chạy theo ô model đã lưu trong workflow (`gpt-6-luna` đi qua Cổng AI tới OpenAI API). |
+| `mo_hinh_operator.txt` | Comment dòng Claude (`# claude-sonnet-5-5`, không để dòng hiệu lực nào) | Trợ lý dựng workflow trên trang chạy bằng `gpt-6-luna` thay vì Claude. |
+| `kiem_so_kpi.txt` | `quyet_dinh = code`<br>`luat_code_chan = khong` | **Bắt buộc:** lớp AI kiểm số (`sua_doi/nodes/agent/kiem_so_ai.py`) ghim cứng `MO_HINH_GHIM = "claude-sonnet-5-5-medium"` để gọi Bedrock. Nếu giữ `quyet_dinh = ai` khi máy chỉ có `OPENAI_API_KEY`, lớp kiểm số sẽ lỗi gọi và đóng chặn mọi câu trả lời KPI. |
+
+### 2. Lưu ý vận hành khi chạy `gpt-6-luna`
+- **Giá tham khảo & trần tiền ngày USD:** `gpt-6-luna` có đơn giá `0,10 USD` / 1M token vào, `0,50 USD` / 1M token ra, và `0,01 USD` / 1M token đọc cache (`cache_read`), đi thẳng qua **trần tiền ngày USD** tại `${CAPITOL_STATE_DIR}/tran_ngay/<YYYY-MM-DD>.txt` (mặc định `2.0 USD`). Khi tổng chi tiêu OpenAI + OpenRouter + E2B + Exa chạm trần ngày, Cổng AI sẽ từ chối (HTTP `429`) cho tới khi quản trị viên nâng trần ngày.
+- **Trần token mỗi lượt khối:** Khối Agent thông thường giới hạn `120.000` token vào / `16.000` token ra; hộp phiên đọc tài liệu / tạo file giới hạn `200.000` token vào / `24.000` token ra (chống vòng lặp hoặc ngữ cảnh phình quá mức).
+- **Tránh để cuộc trò chuyện quá dài khi không có Bedrock:** Cấu hình nền của `agentic-backend` đang đặt `CONTEXT_COMPACTION_MODEL=claude-opus-4-7` (được định tuyến sang Bedrock trong `cong_ai/dinh_tuyen.yaml`). Nếu cuộc chat kéo quá dài tới ngưỡng phải tóm gọn ngữ cảnh mà máy chưa cấu hình `bedrock-046-creds.json`, bước tóm gọn sẽ lỗi — vì vậy nên bấm **"Cuộc mới"** để mở phiên chat mới sau mỗi vài chục lượt hỏi đáp dài.
+
+### 3. Cách chuyển sang Claude 5.5 qua AWS Bedrock và cách lùi nhanh về `gpt-6-luna`
+> **Lưu ý an toàn:** Chỉ sửa 3 file dưới đây **tại chỗ** (lưu đè nội dung, không xoá rồi tạo lại file để tránh mất liên kết bind-mount của container) và chỉ sửa khi **không có lượt workflow nào đang chạy**. Thay đổi có hiệu lực ngay ở lượt kế tiếp, **không cần khởi động lại container**.
+
+- **Chuyển sang Claude Sonnet 5.5 / Opus 5.5 (khi đã đặt `${CAPITOL_STATE_DIR}/bedrock_046/bedrock-046-creds.json`):**
+  1. Trong `cau_hinh_mo_hinh/mo_hinh_khoi.txt`: bỏ dấu `#` ở dòng `mac_dinh = claude-sonnet-5-5 / medium` (hoặc chọn `claude-opus-5-5 / medium`).
+  2. Trong `cau_hinh_mo_hinh/mo_hinh_operator.txt`: bỏ dấu `#` ở dòng `claude-sonnet-5-5`.
+  3. Trong `cau_hinh_mo_hinh/kiem_so_kpi.txt`: đổi `quyet_dinh = code` thành `quyet_dinh = ai`.
+- **Lùi nhanh về `gpt-6-luna` (0 giây, không cần khởi động lại):**
+  1. Đặt `#` trước dòng `mac_dinh = ...` trong `cau_hinh_mo_hinh/mo_hinh_khoi.txt`.
+  2. Đặt `#` trước dòng `claude-sonnet-5-5` trong `cau_hinh_mo_hinh/mo_hinh_operator.txt`.
+  3. Đổi `quyet_dinh = ai` về `quyet_dinh = code` trong `cau_hinh_mo_hinh/kiem_so_kpi.txt`.
 
 ---
 

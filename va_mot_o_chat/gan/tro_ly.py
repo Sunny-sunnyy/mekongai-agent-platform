@@ -157,7 +157,7 @@ def ra_ngoai_hop_le(payload, cach=None):
 
 
 # [ghi chú kỹ thuật] thẻ HÀNH ĐỘNG "xuất kết quả vừa trả lời" — không phải workflow; chỉ đưa vào danh sách định tuyến
-# khi cuộc chat ĐÃ có một câu trả lời KPI (kho.da_chay). Dạng file đọc bằng CODE từ chữ câu; xuất bằng hàm của B (va_xuat_ket_qua.xuat — 0 AI, không tính lại).
+# khi cuộc chat ĐÃ có một câu trả lời KPI (kho.da_chay). Dạng file đọc bằng CODE từ chữ câu; xuất bằng hàm nhóm kỹ thuật (va_xuat_ket_qua.xuat — 0 AI, không tính lại).
 THE_XUAT = {"ma": "xuat_ket_qua", "ten_tim": "Xuất kết quả vừa trả lời ra file",
             "lam_gi": "Xuất KẾT QUẢ VỪA TRẢ LỜI ở lượt trước trong cuộc trò chuyện ra file Excel / Word / PDF / PowerPoint — dùng đúng bảng số đã kiểm, không tính lại.",
             "khi_nao_dung": "Người dùng nhờ xuất / tải / gửi file / đổi sang dạng khác cho kết quả VỪA trả lời (vd 'xuất ra excel', 'word nữa', 'cho bản pdf').",
@@ -522,7 +522,7 @@ def _xuat(cau, conv, dep, dang):
     try:
         kq_x = dep["xuat"](ph, dang, kho.cau_cuoi.get(conv))   # [ghi chú kỹ thuật] kèm câu vừa hỏi; hàm trả (tên, byte[, thông tin])
         ten, raw, tt_x = (kq_x[0], kq_x[1], kq_x[2] if len(kq_x) > 2 and isinstance(kq_x[2], dict) else {})
-    except Exception as e:  # noqa: BLE001 — LoiXuat của B mang lời thường; lỗi khác ⇒ câu chung
+    except Exception as e:  # noqa: BLE001 — LoiXuat nhóm kỹ thuật mang lời thường; lỗi khác ⇒ câu chung
         chu = str(e) if type(e).__name__ == "LoiXuat" and str(e) else CHU["loi"]
         dep["ghi"](f"TRO-LY xuất {dang} lỗi {type(e).__name__}"); kho.them(conv, "tro_ly", chu)
         return 200, {"loai": "loi", "chu": chu}
@@ -612,7 +612,7 @@ def danh_sach_viec(dep, mo_dau="Mình làm được các việc dưới đây", 
 
 def _tu_xuat_file(out, g, phien, cau, conv, dep):
     """[ghi chú kỹ thuật] Thẻ có cờ xuất file (ghim) và lượt đã TRẢ LỜI (không phải chờ duyệt / lỗi) ⇒ tự xuất Excel
-    NHÁP từ gói số đã qua kiểm của chính lượt (bộ dựng của B qua dep["xuat"]; 0 đồng AI, không lượt mới). Thành công ⇒ thêm ô tep + một câu nói rõ file là bản nháp
+    NHÁP từ gói số đã qua kiểm của chính lượt (bộ dựng nhóm kỹ thuật qua dep["xuat"]; 0 đồng AI, không lượt mới). Thành công ⇒ thêm ô tep + một câu nói rõ file là bản nháp
     chưa có người duyệt. Không xuất được ⇒ GIỮ câu trả lời, thêm một dòng lý do thật. Không có bộ xuất / thẻ không xuất file / lượt chưa trả lời ⇒ trả nguyên."""
     if not (isinstance(out, dict) and out.get("loai") == "tra_loi" and g.get("xuat_file") and dep.get("xuat") and phien):
         return out
@@ -922,7 +922,7 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
             kho.da_chay.get(conv, {}).pop(khoa, None)      # lượt hỏng / bị dừng ⇒ bỏ câu đã nhớ: lần hỏi sau chạy lượt mới
         kho.them(conv, "tro_ly", out["chu"], dt=TLC.DT_TRA_LOI if f_tl else None)
         return 200, kho.nho_cuoi(conv, out, cau, dep.get("org"))
-    # [ghi chú kỹ thuật] cache câu trả lời DÙNG CHUNG (cache_tra_loi của B): câu y hệt + cùng lịch sử + cùng workflow / phiên bản + vân tay hộp KPI ⇒ trả lại phiên cũ, KHÔNG chạy
+    # [ghi chú kỹ thuật] cache câu trả lời DÙNG CHUNG (cache_tra_loi nhóm kỹ thuật): câu y hệt + cùng lịch sử + cùng workflow / phiên bản + vân tay hộp KPI ⇒ trả lại phiên cũ, KHÔNG chạy
     ca = dep.get("cache")
     if ca:
         ph_cu = ca["lay"](cau_k, g["uuid"], v.get("so"), kho.lich_su(conv)[:-1])

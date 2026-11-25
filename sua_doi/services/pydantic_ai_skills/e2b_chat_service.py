@@ -108,7 +108,7 @@ SKILL_SANDBOX_DIR = "/home/user/skills"
 
 # [ghi chú]
 # Cờ CHAY_THU_HOP_PHIEN (mặc định BẬT; false / 0 / no / off ⇒ đúng Capitol gốc: E2B + Anthropic):
-#   - hộp = HopPhienManager (V2 của C, services/sandbox/hop_phien.py) thay SandboxManager E2B (có mạng mặc định — manager.py:375-381);
+#   - hộp = HopPhienManager (V2 nhóm kỹ thuật, services/sandbox/hop_phien.py) thay SandboxManager E2B (có mạng mặc định — manager.py:375-381);
 #   - mô hình = gpt-6-luna; mô hình khác ⇒ BÁO LỖI (gốc lặng lẽ đổi về Claude — _resolve_anthropic_model);
 #   - có mcp_servers / khối công cụ ⇒ TỪ CHỐI (chạy code + đường ra ngoài trong cùng khối — R12 trong khối);
 #   - skill giải nén TRÊN agentic-backend (zipfile trong bộ nhớ, kiểm từng tên) rồi upload_file từng file — không unzip trong hộp;
@@ -125,7 +125,7 @@ def _hop_phien_bat() -> bool:
 # (nodes/output/*/node.py: E2BSkillsChatService(build_skill_config(), …, emit_progress=self.emit_progress)) ⇒ lấy khối từ __self__, loại từ LỚP của khối
 # (bài học 18/11: node_id của ĐỐI TƯỢNG lúc chạy thật là mã riêng của nút, chữ loại khối chỉ còn ở lớp). Không lần ra loại ⇒ KHÔNG đổi (luna) và nói rõ ở dòng tiến độ.
 # MỌI rào của hộp phiên giữ nguyên với Claude: từ chối mcp_servers, kiểm file vào theo tổ chức, khoá file ra theo tổ chức, không nhận .html, không nén ngữ cảnh,
-# rào 14 lần gọi, mỗi trả lời ≤ 1 lời gọi công cụ. [User 19/11 "bỏ trần luôn"] với Claude 5.5: KHÔNG trần tổng token vào / ra của lượt, KHÔNG kẹp max_tokens
+# rào 14 lần gọi, mỗi trả lời ≤ 1 lời gọi công cụ. [người vận hành "bỏ trần luôn"] với Claude 5.5: KHÔNG trần tổng token vào / ra của lượt, KHÔNG kẹp max_tokens
 # (cài đặt mô hình y như nhánh Claude gốc của Capitol; cổng AI gửi mức đầu ra tối đa của mô hình).
 
 

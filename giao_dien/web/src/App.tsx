@@ -45,7 +45,7 @@ export default function App() {
   const [chatMo, setChatMo] = useState({ mo: false, to: false, gan: false });
   useEffect(() => { const h = () => setCanMa(true); window.addEventListener("xuong-can-ma", h); return () => window.removeEventListener("xuong-can-ma", h); }, []);
   // [ghi chú kỹ thuật] khối KPI dựng sẵn: dữ liệu + luật ở máy chủ (một nguồn với
-  // script của B); trang chỉ hiện. Khoá ô ở đây là HIỂN THỊ — máy chủ kiểm lại lúc Lưu / Chạy.
+  // script nhóm kỹ thuật); trang chỉ hiện. Khoá ô ở đây là HIỂN THỊ — máy chủ kiểm lại lúc Lưu / Chạy.
   const [kpi, setKpi] = useState<KpiDungSan | null>(null);
   useEffect(() => { api.kpiDungSan().then(setKpi).catch(() => {}); }, []);
   const [tabTrai, setTabTrai] = useState<"khoi" | "wf" | "luot">("khoi");
@@ -635,7 +635,7 @@ export default function App() {
                 <h4 style={{ marginTop: 14 }}>Workflow của tổ chức</h4>
               </div>
             )}
-            {/* [ghi chú kỹ thuật] mẫu "Hỏi dữ liệu bằng lời" của B (workflow tên "Hỏi dữ liệu thử N — …"): nhóm RIÊNG, tách khỏi Mẫu KPI, ghi rõ dữ liệu thử */}
+            {/* [ghi chú kỹ thuật] mẫu "Hỏi dữ liệu bằng lời" nhóm kỹ thuật (workflow tên "Hỏi dữ liệu thử N — …"): nhóm RIÊNG, tách khỏi Mẫu KPI, ghi rõ dữ liệu thử */}
             {tabTrai === "wf" && dsWf.some((w) => MAU_HOI_DL.test(w.ten)) && (
               <div className="nhom kpi-san thu">
                 <h4>Hỏi dữ liệu (thử) · {dsWf.filter((w) => MAU_HOI_DL.test(w.ten)).length} workflow làm sẵn</h4>

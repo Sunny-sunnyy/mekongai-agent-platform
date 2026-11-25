@@ -1,4 +1,4 @@
-"""Khối hỏi kho bảng (collections_node) trên trang 18400 — chỉ cho chọn dataset thuộc ĐÚNG tổ chức của trang (đối chiếu kỹ thuật) của E;
+"""Khối hỏi kho bảng (collections_node) trên trang 18400 — chỉ cho chọn dataset thuộc ĐÚNG tổ chức của trang (đối chiếu kỹ thuật) nhóm kỹ thuật;
 ca ghi trước: tài liệu thiết kế nội bộ mục (15) D1–D4).
 
 Vì sao cần lớp này dù khối gốc đã tra theo tổ chức của lượt (AB nodes/datasets/structured/node.py:64-90: list_datasets(orgid) rồi
@@ -7,7 +7,7 @@ không qua form của trang. Kiểm ở /api/check + Lưu + chay() ⇒ chặn TR
 
 Danh sách dataset của tổ chức: GET /collections/{org}?data-type=structured của platform-api — chỉ ĐỌC DynamoDB (routes/collections.py:2292-2436
 bản 1.82.0: list_collections(orgid); không token người dùng ⇒ không chạy nhánh tự tạo kho Sources), không gọi AI. Cổng máy 18301 không mở
-đường này (Caddyfile, danh sách cho phép của B) ⇒ đi bằng `docker exec capitol-platform-api python` gọi 127.0.0.1:80 trong hộp (cùng kiểu
+đường này (Caddyfile, danh sách cho phép nhóm kỹ thuật) ⇒ đi bằng `docker exec capitol-platform-api python` gọi 127.0.0.1:80 trong hộp (cùng kiểu
 chat_operator gọi psql). Không đọc được ⇒ CHẶN (lệch phía an toàn), không đoán.
 Giá trị ô datasets đúng khuôn khối gốc (node.py:116-118): [{"option_id": <mã dataset>, "option_display_name": <tên>}, …], 1–5 phần tử
 (muc_toi_da KB_TRAN_DATASET = 5 ⇒ > 5 không có mức ⇒ trang chặn ở bước tiền; ở đây báo sớm hơn, cùng con số).

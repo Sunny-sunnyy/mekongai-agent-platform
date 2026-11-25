@@ -5,5 +5,5 @@
 #                    Mặc định khong = code chỉ ghi (người vận hành 20/11: "AI chặn, code chạy kèm chỉ ghi").
 # KHÔNG có file này ⇒ như quyet_dinh = code. File có mà dòng sai khuôn / thiếu dòng quyet_dinh ⇒ khối DỪNG với lỗi rõ (không tự chọn).
 # AI chấm không chạy được (lỗi gọi / quá giờ) ⇒ câu trả lời bị giữ lại với lời báo rõ — KHÔNG tự chuyển về code.
-quyet_dinh = ai
+quyet_dinh = code
 luat_code_chan = khong

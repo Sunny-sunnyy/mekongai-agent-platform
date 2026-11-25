@@ -24,7 +24,7 @@ from sandbox.chay_s5 import TRAN, da_tieu, ghi_tien, tien_luot  # noqa: E402
 
 BO = Path(os.environ.get("KPI_TEST_QUESTIONS_FILE", ""))
 SHA_BO = "d4a17ba26f88"
-# [ghi chú] bộ câu khác (vd M3b GIỮ KÍN của D): M3_BO=<.jsonl> + M3_BO_SHA16=<16 hex> BẮT BUỘC đi cùng; script KHÔNG in câu hỏi.
+# [ghi chú] bộ câu khác (vd M3b GIỮ KÍN nhóm kỹ thuật): M3_BO=<.jsonl> + M3_BO_SHA16=<16 hex> BẮT BUỘC đi cùng; script KHÔNG in câu hỏi.
 if os.environ.get("M3_BO") or os.environ.get("M3_BO_SHA16"):
     if not (os.environ.get("M3_BO") and re.fullmatch(r"[0-9a-f]{16}", os.environ.get("M3_BO_SHA16", ""))):
         raise SystemExit("M3_BO và M3_BO_SHA16 (16 hex) phải đặt cùng nhau")

@@ -174,7 +174,7 @@ def _dem_trang_pdf_tho(than: bytes) -> int | None:
     """Số trang PDF, không thư viện ngoài. Đếm trên phần chữ thô CỘNG phần giải nén của các "dòng đối tượng nén" (/ObjStm — PDF hiện nay hay giấu cây trang
     trong đó; giải bằng zlib chuẩn, có trần cỡ chống bom nén). CHỈ tin khi hai cách đếm KHỚP: số đối tượng /Type /Page = /Count lớn nhất của nút /Type /Pages.
     [ghi chú kỹ thuật] MỌI chữ /ObjStm trong file phải ứng với MỘT dòng nén đã giải được — sót một dòng (từ điển có << >> lồng, bộ lọc lạ…) là có thể sót cây trang
-    thật (ca của E: 300 trang giấu trong dòng nén + cây mồi 1 trang ở chữ thô ⇒ bản trước trả 1). Lệch / thiếu / mã hoá / giải lỗi / vượt trần ⇒ None."""
+    thật (ca nhóm kỹ thuật: 300 trang giấu trong dòng nén + cây mồi 1 trang ở chữ thô ⇒ bản trước trả 1). Lệch / thiếu / mã hoá / giải lỗi / vượt trần ⇒ None."""
     import zlib
     chu = [than]; tong = 0; giai = 0
     if b"/Encrypt" in than:

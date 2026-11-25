@@ -1,14 +1,14 @@
 """SỔ KẾT QUẢ SQL THEO LƯỢT — C 12/11/2026, đã giao ("đưa phép so số của text-to-SQL thành rào CHẶN THẬT"). BẢN SOẠN, CHƯA GẮN.
-Vì sao cần: phép so của B (kiem_so_sql.kiem_so) cần "các kết quả công cụ sql_query của lượt". Khối Rào chắn chạy SAU khối Agent, là khối khác,
+Vì sao cần: phép so nhóm kỹ thuật (kiem_so_sql.kiem_so) cần "các kết quả công cụ sql_query của lượt". Khối Rào chắn chạy SAU khối Agent, là khối khác,
 chỉ nhận CHỮ qua dây ⇒ không thấy kết quả công cụ. Nếu lấy kết quả từ chữ AI viết thì AI tự làm nguồn cho mình. Nên:
   khối Agent: MỖI lần công cụ sql_query trả về, CODE (không phải AI) ghi {cau_sql, ket_qua} vào Redis của bộ chạy thử, khoá theo tổ chức + mã lượt
               (WorkflowRun.id — thuộc tính hệ thống của khối, giống cách công cụ KPI gửi X-Kpi-Run-Id).
-  khối Rào chắn chế độ "sql": đọc sổ của ĐÚNG lượt mình (self._run_id + self._orgid) rồi gọi kiem_so của B.
+  khối Rào chắn chế độ "sql": đọc sổ của ĐÚNG lượt mình (self._run_id + self._orgid) rồi gọi kiem_so nhóm kỹ thuật.
 ĐÓNG KHI LỖI: ghi sổ hỏng ⇒ công cụ vẫn trả kết quả cho AI nhưng sổ thiếu ⇒ số trong câu trả lời không có nguồn ⇒ Rào chặn. Đọc sổ hỏng ⇒ ném ⇒ Rào chặn.
 GIỚI HẠN (ghi cho D): (1) Temporal chạy lại khối Agent trong CÙNG lượt ⇒ sổ có cả kết quả của lần chạy trước (nguồn rộng hơn một chút, vẫn là kết quả
 công cụ thật của lượt). (2) Ai ghi được vào Redis nội bộ thì làm giả được sổ — cùng mức tin với câu trả lời duyệt của khối Người duyệt (cũng qua Redis).
-(3) Phép so chỉ chứng minh AI CHÉP ĐÚNG kết quả công cụ, không chứng minh câu SQL đúng câu hỏi (xem đầu file kiem_so_sql.py của B).
-Một nguồn luật: hàm so là của B — chay_thu/hoi_du_lieu/kiem_so_sql.py, GẮN vào hộp ở /srv/src/nodes/agent/kiem_so_sql.py (không chép).
+(3) Phép so chỉ chứng minh AI CHÉP ĐÚNG kết quả công cụ, không chứng minh câu SQL đúng câu hỏi (xem đầu file kiem_so_sql.py nhóm kỹ thuật).
+Một nguồn luật: hàm so là nhóm kỹ thuật — chay_thu/hoi_du_lieu/kiem_so_sql.py, GẮN vào hộp ở /srv/src/nodes/agent/kiem_so_sql.py (không chép).
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ _MA = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")          # cùng dạng _MA_HE_THO
 TTL_GIAY = 6 * 3600                                    # lượt có chờ người duyệt vẫn còn sổ; hết hạn tự xoá
 TRAN_LAN = 40                                          # số lần gọi tối đa được ghi mỗi lượt (lần thứ 41 trở đi không ghi ⇒ số của nó không có nguồn)
 TRAN_BYTE = 400_000                                    # một bản ghi (kết quả tối đa 200 dòng của công cụ) — lớn hơn ⇒ ghi dấu "quá cỡ", không ghi dữ liệu
-# [đã soát 12/11, Đ3] LUẬT 0 DÒNG của B (kiem_0_dong): câu SQL cuối trả rỗng mà chưa dò cột đang lọc ⇒ chưa được kết luận "không có". Phép so số không bắt
+# [đã soát 12/11, Đ3] LUẬT 0 DÒNG nhóm kỹ thuật (kiem_0_dong): câu SQL cuối trả rỗng mà chưa dò cột đang lọc ⇒ chưa được kết luận "không có". Phép so số không bắt
 # được loại này (câu sai không có số). Ở khối Agent: LUÔN là lý do cho AI làm lại 1 lần. Ở khối Rào chắn — đã chốt sau khi D đo bằng bộ câu mới:
 #   "ghi" chỉ ghi vào bảng kết quả kiểm + log, câu vẫn đi tiếp;   "nhan" gắn dòng nhãn hằng NHAN_CHUA_CHAC lên đầu câu trả lời;   "chan" dừng lượt.
 # [A CHỐT 12:21 12/11] lần gắn đầu = "nhan" (không chặn oan, người đọc vẫn được báo; "ghi" để câu "không có" sai đi tiếp không dấu hiệu — không chấp nhận).
@@ -87,9 +87,9 @@ async def doc(org: str, run_id: str, client=None) -> list[dict]:
 
 
 def kiem(cau_tra_loi: str, ban_ghi: list[dict], cau_hoi: str = "") -> dict:
-    """Phép so của B trên sổ của lượt ⇒ {"dat", "so_la", "so_kiem", "ly_do", "so_lan_sql", "so_lan_ok"}. Hàm THUẦN (thử được ngoài hộp)."""
+    """Phép so nhóm kỹ thuật trên sổ của lượt ⇒ {"dat", "so_la", "so_kiem", "ly_do", "so_lan_sql", "so_lan_ok"}. Hàm THUẦN (thử được ngoài hộp)."""
     try:
-        from nodes.agent.kiem_so_sql import kiem_so       # trong hộp: file của B gắn vào đây
+        from nodes.agent.kiem_so_sql import kiem_so       # trong hộp: file nhóm kỹ thuật gắn vào đây
     except ImportError:                                    # ngoài hộp (bộ thử): chay_thu/hoi_du_lieu ở sys.path
         from kiem_so_sql import kiem_so
     kq = [b.get("ket_qua") for b in ban_ghi if isinstance(b.get("ket_qua"), dict)]
@@ -107,7 +107,7 @@ def kiem(cau_tra_loi: str, ban_ghi: list[dict], cau_hoi: str = "") -> dict:
 
 
 def _luat_0_dong():
-    """(hàm kiem_0_dong, nhãn hằng) của B — một nguồn ở file công cụ sql_query bản 2. Trong hộp: nodes.agent.sql_query; ngoài hộp: qua kiem_so_sql của B."""
+    """(hàm kiem_0_dong, nhãn hằng) nhóm kỹ thuật — một nguồn ở file công cụ sql_query bản 2. Trong hộp: nodes.agent.sql_query; ngoài hộp: qua kiem_so_sql nhóm kỹ thuật."""
     try:
         from nodes.agent.sql_query import NHAN_CHUA_CHAC, kiem_0_dong
     except ImportError:

@@ -325,7 +325,7 @@ def _sua_khuon(idx: int, kt: str, items: list[str], canh_bao: list) -> list[str]
     co_so = re.compile(r"\d")
     # "là một con số" = ngắn, chỉ số + đơn vị (12%, 4,8%, 696.000₫, 3 tỷ, x2…). Bên phải là câu có số ("Lộ trình về 0% trong 7 năm") thì KHÔNG đổi
     # (đổi sẽ đưa cả câu lên chữ to) — chỉ báo.
-    # D kiểm 06/11 (bộ giữ kín mới): "con số" quá hẹp ⇒ mở rộng VỪA ĐỦ: dấu trước (~ ≈ < > + − ±, x, $ €), tối đa 2 đơn vị ("tỷ đồng",
+    # đã kiểm 06/11 (bộ giữ kín mới): "con số" quá hẹp ⇒ mở rộng VỪA ĐỦ: dấu trước (~ ≈ < > + − ±, x, $ €), tối đa 2 đơn vị ("tỷ đồng",
     # "triệu USD"), "/năm"…, "+" sau ("10+"), "x" sau ("1,5x"). Vẫn là MỘT con số ngắn — câu có số không khớp.
     don_vi = r"(?:%|₫|đ|đồng|vnd|vnđ|usd|\$|€|eur|k|m|b|tr|tỷ|triệu|nghìn|ngàn|năm|tháng|tuần|ngày|giờ|phút|lần|x|điểm|người|khách|đơn|sp)"
     la_so = re.compile(rf"(?:[~≈<>+\-–−±]|x)?\s*[$€]?\s*\d[\d.,\s]*(?:\s*{don_vi}){{0,2}}(?:\s*/\s*(?:năm|tháng|tuần|ngày|giờ))?\s*\+?", re.I)
@@ -387,7 +387,7 @@ def _doi_kieu(idx: int, kt: str, items: list[str], canh_bao: list) -> str:
 
 def _tach_gach(dn: list[str], canh_bao: list) -> list[str]:
     """Lượt AI thật 06/11: AI gộp nhiều gạch đầu dòng vào MỘT phần tử nối bằng " - " ⇒ tách ra.
-    D kiểm 06/11: tách nhầm một câu thường ⇒ CHỈ TÁCH KHI CHẮC: phần tử là gạch đầu dòng ("- " / "• " / "* " ở đầu), có ≥ 2 dấu nối (- – —)
+    đã kiểm 06/11: tách nhầm một câu thường ⇒ CHỈ TÁCH KHI CHẮC: phần tử là gạch đầu dòng ("- " / "• " / "* " ở đầu), có ≥ 2 dấu nối (- – —)
     đứng giữa khoảng trắng, và MỌI phần đều có dạng "Nhãn: mô tả" (đúng dạng AI gộp 06/11). Còn lại mà vẫn có ≥ 2 dấu nối ⇒ CHỈ báo, không tách."""
     out = []
     noi = r"\s+[-–—]\s+"
@@ -1532,7 +1532,7 @@ class _LechTong(Exception):
 
 
 def _so_le(v) -> int:
-    """Số chữ số thập phân ĐÚNG như giá trị công cụ trả (repr ngắn nhất của float) — để hiện đúng, không làm tròn thêm (luật User 09/11)."""
+    """Số chữ số thập phân ĐÚNG như giá trị công cụ trả (repr ngắn nhất của float) — để hiện đúng, không làm tròn thêm (luật người vận hành)."""
     try:
         d = Decimal(repr(v)) if isinstance(v, float) else Decimal(v)
     except (InvalidOperation, ValueError):

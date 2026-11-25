@@ -222,7 +222,7 @@ def kiem_r12(workflow_payload) -> None:
     for e in workflow_payload.edges:
         a, b = tim(e.source_node_id or e.source), tim(e.target_node_id or e.target)
         if a is None or b is None:
-            # D kiểm S4 (m1): dây trỏ mã khối lạ từng bị bỏ qua im lặng ⇒ A run_python ⇒ WordPress qua dây mã lạ vẫn QUA. Không biết khối
+            # đã kiểm S4 (m1): dây trỏ mã khối lạ từng bị bỏ qua im lặng ⇒ A run_python ⇒ WordPress qua dây mã lạ vẫn QUA. Không biết khối
             # là gì thì không chứng minh được an toàn ⇒ từ chối (chỉ khi workflow có khối chạy code — kiểm ở dưới).
             dau_la.append(f"dây {e.id} trỏ tới khối không có trong sơ đồ")
             continue

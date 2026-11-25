@@ -1,5 +1,5 @@
 // [ghi chú kỹ thuật] "Đang dùng bản dữ liệu nào" — một chỗ cho cả trang (tab Dữ liệu KPI bật, nút Chạy + ô hỏi trợ lý gửi kèm, thẻ kết quả so).
-// Cố ý CHỈ trong bộ nhớ: tải lại trang ⇒ về "bản lúc bật" (ca V10 của D — tránh chạy nhầm bản cũ mà không biết).
+// Cố ý CHỈ trong bộ nhớ: tải lại trang ⇒ về "bản lúc bật" (ca V10 nhóm kỹ thuật — tránh chạy nhầm bản cũ mà không biết).
 import { useSyncExternalStore } from "react";
 
 export type BanDuLieu = { dv: string; period?: string; cutoff?: string } | null;

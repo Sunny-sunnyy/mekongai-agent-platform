@@ -1,5 +1,5 @@
 """[ghi chú] Khối PowerPoint (pptx_chat_node) / Word (docx_chat_node) chạy bằng
-CÔNG CỤ XUẤT FILE ĐẸP CỦA MÌNH thay cho E2B + Claude. Gắn ở: /srv/src/nodes/output/_file_dep_khoi.py (CHƯA gắn — chờ D kiểm).
+CÔNG CỤ XUẤT FILE ĐẸP CỦA MÌNH thay cho E2B + Claude. Gắn ở: /srv/src/nodes/output/_file_dep_khoi.py (CHƯA gắn — chờ đã kiểm).
 
 Gốc Capitol [code, agentic-backend release-4.10.0]: khối dựng E2BSkillsChatService (powerpoint_chat/node.py:76, word_doc_chat/node.py:78)
 ⇒ Claude VIẾT CODE python-pptx / python-docx trong hộp E2B (có mạng mặc định), chat nhiều lượt chờ người, rồi tải file từ hộp lên S3 với khoá

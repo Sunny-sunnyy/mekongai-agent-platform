@@ -113,7 +113,7 @@ def _doc_bang(p: Path = BANG_DINH_TUYEN) -> dict:
     ncc, mh, dt = b["nha_cung_cap"], b["mo_hinh"], b["dinh_tuyen"]
     for ten, n in ncc.items():
         assert n["kieu"] in (_KIEU_NCC if TIEN_BEDROCK else ("responses", "chat")) and n["goc"].startswith("https://") and n["khoa"], f"nhà cung cấp {ten} sai"
-        assert not n.get("mien_tran") or n["kieu"] == "bedrock_messages", f"chỉ bedrock_messages mới được đặt mien_tran ({ten})"   # như cong.py của F
+        assert not n.get("mien_tran") or n["kieu"] == "bedrock_messages", f"chỉ bedrock_messages mới được đặt mien_tran ({ten})"   # như cong.py nhóm kỹ thuật
     for ten, m in mh.items():
         assert m["nha_cung_cap"] in ncc and float(m["gia_vao"]) > 0 and float(m["gia_ra"]) > 0 and int(m["tran_ra"]) > 0 and m.get("nguon"), f"mục {ten} sai"
     gia: dict[str, tuple[float, float]] = {}

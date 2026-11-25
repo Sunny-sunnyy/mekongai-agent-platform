@@ -43,7 +43,7 @@ def conflicting_ocr_numbers(ocr_text, vlm_text):
     vlm_all, ocr_all = numbers_in(vlm_text), numbers_in(ocr_text)
     only_ocr = sorted(n for n in _comparable_numbers(ocr_text) if n not in vlm_all)
     only_vlm = sorted(n for n in _comparable_numbers(vlm_text) if n not in ocr_all)
-    # Ghép 1–1 (như phép đo của B): một số luna chỉ "giải thích" một số Tesseract — hai số Tesseract khác nhau gần cùng một số luna có thể là hai số thật (luna sót một)
+    # Ghép 1–1 (như phép đo nhóm kỹ thuật): một số luna chỉ "giải thích" một số Tesseract — hai số Tesseract khác nhau gần cùng một số luna có thể là hai số thật (luna sót một)
     bad, used = set(), set()
     for a in only_ocr:
         b = next((b for b in only_vlm if b not in used and _near_number(a, b)), None)

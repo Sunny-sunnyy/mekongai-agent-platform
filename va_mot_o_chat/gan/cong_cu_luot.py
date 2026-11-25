@@ -1,7 +1,7 @@
-"""[ghi chú kỹ thuật] Đọc ĐỦ các lần gọi công cụ của MỘT lượt (để bộ dựng file của B in phần đầu file đúng nội dung
+"""[ghi chú kỹ thuật] Đọc ĐỦ các lần gọi công cụ của MỘT lượt (để bộ dựng file nhóm kỹ thuật in phần đầu file đúng nội dung
 câu vừa hỏi). Nguồn: Postgres của Capitol — node_result.output_data → metadata → message_history (phần "tool-call" có tham số, phần "tool-return" có kết quả).
 Khác may_chu.cong_cu_da_goi (cắt 400 ký tự để HIỆN): ở đây KHÔNG cắt — vượt chốt cỡ thì trả danh sách rỗng kèm lý do (không đưa dữ liệu thiếu vào file).
-Dữ liệu này do hộp ab-worker ghi (coi là có thể bị sửa) ⇒ bộ dựng của B GỌI LẠI công cụ ở hộp KPI bằng đúng tham số rồi so; module này chỉ CHUYỂN, không bảo chứng.
+Dữ liệu này do hộp ab-worker ghi (coi là có thể bị sửa) ⇒ bộ dựng nhóm kỹ thuật GỌI LẠI công cụ ở hộp KPI bằng đúng tham số rồi so; module này chỉ CHUYỂN, không bảo chứng.
   doc(phien, sql) ⇒ ([{"ten", "tham_so": dict, "ket_qua": dict | list | chữ}], lý do rỗng | None)   — sql = xem_workflow.sql; phien đã qua kiem_ma (UUID)."""
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import re
 _MA = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 _TEN = re.compile(r"[a-z][a-z0-9_]{2,60}")
 NOI_BO = {"final_result", "report_input_issue"}          # công cụ nội bộ của khung agent — không phải công cụ KPI
-SO_LAN_TOI_DA, CO_TOI_DA = 20, 1_500_000                 # bộ dựng của B nhận ≤ 20 mục (quá ⇒ coi sai khuôn, không xuất) và chỉ in 6 lần tra đầu; tổng ≤ 1,5 MB JSON (gói chốt 2 MB)
+SO_LAN_TOI_DA, CO_TOI_DA = 20, 1_500_000                 # bộ dựng nhóm kỹ thuật nhận ≤ 20 mục (quá ⇒ coi sai khuôn, không xuất) và chỉ in 6 lần tra đầu; tổng ≤ 1,5 MB JSON (gói chốt 2 MB)
 
 
 def cau_sql(phien: str) -> str:
@@ -56,7 +56,7 @@ def doc(phien: str, sql) -> tuple[list, str | None]:
         ts = _json(g.get("args"))
         kq = _json(tra.get(khoa))
         if (khoa in hong or khoa not in tra or not isinstance(ten, str) or not _TEN.fullmatch(ten) or ten in NOI_BO or not isinstance(ts, dict)
-                or not isinstance(kq, (dict, list))):   # bộ dựng của B chỉ nhận kết quả dạng dict / list (kết quả là chữ trơn ⇒ bỏ)
+                or not isinstance(kq, (dict, list))):   # bộ dựng nhóm kỹ thuật chỉ nhận kết quả dạng dict / list (kết quả là chữ trơn ⇒ bỏ)
             continue
         ra.append({"ten": ten, "tham_so": ts, "ket_qua": kq})
     ly_do = None

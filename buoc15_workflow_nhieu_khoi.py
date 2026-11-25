@@ -139,7 +139,7 @@ def chay(org, catalog, ca, mo_hinh_kho) -> dict:
         ghi(f"[b15 {ca}] Lưu bị từ chối: {str(luu)[:400]}")
         return {"ca": ca, "luu_http": code, "luu": luu}
     wf = (luu.get("workflow") or {}).get("id") or luu.get("workflow_id") or luu.get("id")
-    # [đã chạy 04/11, D kiểm độc lập sửa nhận định của A] server GIỮ NGUYÊN mã khối mình gửi (node.node_instance_id = mã gửi lên,
+    # [đã chạy 04/11, đã kiểm độc lập sửa nhận định nhóm kỹ thuật] server GIỮ NGUYÊN mã khối mình gửi (node.node_instance_id = mã gửi lên,
     # 7/7 khối). Lần 1 hỏng vì câu dò so mã khối với node_result.node_id — cột này là khoá dòng của bảng `node`, KHÔNG phải
     # mã khối ⇒ không bao giờ khớp ⇒ không gửi duyệt. Đọc lại mã theo tên khối từ phiên bản đã lưu cho chắc, rồi dò qua bảng `node`.
     ma = json.loads(psql("select coalesce(json_object_agg(n->'data'->'struct'->>'name', n->>'id'),'{}') from workflow_version wv, "

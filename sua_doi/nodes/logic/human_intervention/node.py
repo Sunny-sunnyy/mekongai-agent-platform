@@ -1137,7 +1137,7 @@ class HumanIntervention(NodeRelayMixin, BaseNode):
                 self._validated_params.get("auto_approve_on_timeout", False)
             )   # [ghi chú] bỏ "and not kpi" (C 10/11: KPI hết giờ ⇒ dừng dù bật): nay chế độ
             #     KPI + ô bật + hết hạn ⇒ đi tiếp theo nhánh TỰ DUYỆT bên dưới (không ghi "đã duyệt" vào lõi, file là bản NHÁP có nhãn). Ô tắt ⇒ hết hạn vẫn DỪNG như cũ.
-            if kpi and auto_approve and not 30 <= timeout <= 3600:   # hạn chờ lạ ở chế độ KPI ⇒ không tự duyệt (luật kiểm workflow của C cũng chặn; đây là lớp trong khối)
+            if kpi and auto_approve and not 30 <= timeout <= 3600:   # hạn chờ lạ ở chế độ KPI ⇒ không tự duyệt (luật kiểm workflow nhóm kỹ thuật cũng chặn; đây là lớp trong khối)
                 raise ValueError("chế độ KPI: bật tự duyệt khi quá hạn thì hạn chờ phải từ 30 tới 3600 giây")
             if kpi:
                 await self._kpi_xoa_tra_loi_cu()

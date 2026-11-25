@@ -400,7 +400,7 @@ def _dem_ky_tu_gia_tri(v) -> int:
     return len(str(v))
 
 
-# [ghi chú] bản của F: ký tự // 4 (= 0,25 token / ký tự). ĐO THẬT 18/11 trên Sonnet 5.5 qua Bedrock: 1 lời gửi tiếng Việt có dấu +
+# [ghi chú] bản nhóm kỹ thuật: ký tự // 4 (= 0,25 token / ký tự). ĐO THẬT 18/11 trên Sonnet 5.5 qua Bedrock: 1 lời gửi tiếng Việt có dấu +
 # JSON kết quả công cụ dài 29.879 ký tự = 18.615 token ⇒ 0,623 token / ký tự (1,61 ký tự / token) ⇒ // 4 ước THIẾU ~2,5 lần ⇒ tóm gọn hội thoại chạy quá
 # muộn, có thể tràn cửa sổ. Hệ số mặc định 0,75 = 0,623 × 1,2 lề (ước DƯ thì chỉ tóm gọn sớm hơn — an toàn). MỚI 1 điểm đo: đo lại khi có ≥ 30 lời gửi
 # (sổ cổng có token thật). Đổi không cần sửa code: biến CONG_AI_DEM_TOKEN_MOI_KY_TU.
@@ -430,7 +430,7 @@ def _sang_bedrock_body(a: dict, m: dict, tran_ra: int) -> dict:
             for msg in than["messages"]
         ]
 
-    # Suy luận & mức effort: ưu tiên mức trong bảng (A chỉnh 1 dòng ở dinh_tuyen.yaml), nếu bảng để trống thì cho phép effort hợp lệ từ client
+    # Suy luận & mức effort: ưu tiên mức trong bảng (đã chỉnh 1 dòng ở dinh_tuyen.yaml), nếu bảng để trống thì cho phép effort hợp lệ từ client
     eff_bang = m.get("effort")
     out_cfg_goc = than.pop("output_config", None)
     out_cfg: dict = {}
@@ -971,6 +971,6 @@ async def suc_khoe():
         "da_tieu": da_tieu(),
         "chay_s5_va_dang_giu": s5,
         "dang_goi": {"so": len(DANG_GOI), "usd": round(sum(DANG_GOI.values()), 6)},
-        "dang_goi_mien_tran": len(DANG_GOI_MIEN_TRAN),   # giữ là SỐ (bộ thử của F so == 0)
+        "dang_goi_mien_tran": len(DANG_GOI_MIEN_TRAN),   # giữ là SỐ (bộ thử nhóm kỹ thuật so == 0)
         "dang_goi_mien_tran_usd": round(sum(DANG_GOI_MIEN_TRAN.values()), 6),
     }

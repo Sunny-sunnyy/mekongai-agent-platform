@@ -30,11 +30,12 @@ Tài liệu này ghi minh bạch tình trạng thực tế của **Bản bàn gi
 - **Hai khoản phụ (`19.026.300 đ` thưởng thêm và `11.868.854 đ` 1% gia vị):** Đã được `kpi_agent` tính nhưng chưa có nguồn đối chiếu độc lập ngoài hệ thống. Khoản **Hội viên** và **Thưởng vượt doanh số** chưa tính ra tiền ở tháng 10.
 - **Khối Người duyệt & duyệt sau:** Khung chat trả ngay kết quả nháp (không chờ duyệt). Trên khung vẽ, nếu lượt có khối Người duyệt quá hạn không ai bấm, hệ thống tự đi tiếp ra bản nháp có nhãn và **chưa có tính năng "duyệt sau"** cho lượt đã quá hạn.
 
-### 2.3 Lớp kiểm số, khung chat, nút Tải Excel & RAG
+### 2.3 Lớp kiểm số, mô hình mặc định (`gpt-6-luna`), khung chat, nút Tải Excel & RAG
+- **Lớp kiểm số theo cấu hình mặc định `gpt-6-luna` (`quyet_dinh = code`):** Lớp AI kiểm số (`sua_doi/nodes/agent/kiem_so_ai.py`) ghim cứng `claude-sonnet-5-5-medium` (AWS Bedrock), nên ở cấu hình mặc định chạy `gpt-6-luna` hệ thống sử dụng bộ luật kiểm số bằng code (`quyet_dinh = code`). Bộ luật mới đã đạt `27/27` câu thật không lọt số sai, nhưng kiểm chặt hơn AI kiểm số (có thể chặn một số câu diễn giải phức tạp) và **chỉ kiểm con số, chưa kiểm nghĩa** (câu đúng số nhưng lạc ý vẫn có thể qua). Muốn bật `quyet_dinh = ai` cần cấu hình thêm AWS Bedrock.
+- **Tóm gọn ngữ cảnh hội thoại dài khi chạy Luna không có Bedrock:** Biến `CONTEXT_COMPACTION_MODEL=claude-opus-4-7` đang định tuyến sang Bedrock trong `cong_ai/dinh_tuyen.yaml`; nếu hội thoại chat quá dài chạm ngưỡng tóm gọn mà máy không dùng Bedrock, hệ thống sẽ báo lỗi bước tóm gọn (cách xử lý: bấm "Cuộc mới" trước khi phiên quá dài).
 - **Nút "Tải Excel" dưới câu trả lời KPI trong khung chat:** Trên bản mã nguồn đóng gói ở Bản 1, điều kiện hiển thị nút vẫn kiểm tra bảng markdown trong văn bản (`tro_ly.py` bản trước khi vá), nên một số câu trả lời KPI hiển thị bảng qua thẻ kết quả cấu trúc (`the`) có thể chưa hiện nút "Tải Excel" ngay dưới câu trả lời (vẫn tải được file qua nút *"Xem file của lượt"* hoặc gõ yêu cầu xuất file).
-- **Lớp AI kiểm số chỉ kiểm tra con số, chưa kiểm nghĩa:** Một câu trả lời dùng đúng con số từ công cụ nhưng diễn giải lạc ý câu hỏi vẫn có thể đi qua.
-- **Bộ định tuyến khung chat:** Một số câu hỏi sát ngưỡng (như so sánh hai nhân viên) đôi khi vẫn hỏi lại nút xác nhận; một số nhãn mô tả khối trên giao diện khung vẽ vẫn giữ tên gốc trong `khoi_dung_san.json` (`"Kiểm số bằng code"` dù cấu hình thực tế dùng AI kiểm số).
-- **Tính toán trên bảng tính bất kỳ từ khung chat:** Code AI viết chạy trên E2B và tính trên toàn bộ file `.xlsx`/`.csv`, nhưng con số kết quả **chưa đi qua lớp AI kiểm số** như luồng KPI.
+- **Bộ định tuyến khung chat:** Một số câu hỏi sát ngưỡng (như so sánh hai nhân viên) đôi khi vẫn hỏi lại nút xác nhận; một số nhãn mô tả khối trên giao diện khung vẽ vẫn giữ tên gốc trong `khoi_dung_san.json` (`"Kiểm số bằng code"`).
+- **Tính toán trên bảng tính bất kỳ từ khung chat:** Code AI viết chạy trên E2B và tính trên toàn bộ file `.xlsx`/`.csv`, nhưng con số kết quả **chưa đi qua lớp kiểm số** như luồng KPI.
 - **Hỏi đáp tài liệu & đọc hình:**
   - Chưa hỗ trợ định dạng cũ `.doc`, `.ppt`, `.pptx`, `.xlsb`, `.ods` (hệ thống từ chối kèm hướng dẫn lưu lại sang `.docx`/`.pdf`/`.xlsx`); định dạng `.xls` cũ chưa được kiểm thử đủ rộng.
   - Với PDF kéo thẳng vào khung chat, hình/biểu đồ chỉ được phân tích khi câu hỏi có từ khoá nhắc tới hình/biểu đồ (chờ 1–2 phút để RAG mô tả hình rồi hỏi lại), và câu trả lời chưa nhúng lại ảnh biểu đồ.
@@ -43,7 +44,7 @@ Tài liệu này ghi minh bạch tình trạng thực tế của **Bản bàn gi
 ### 2.4 Chạy code trên E2B & tài khoản ngoài
 - **Máy ảo E2B có đường ra Internet** theo cấu hình hiện tại (khi cho phép chạy với file thật); rào bảo vệ chính là lọc đuôi file, giới hạn ≤ 20 MB, dò chuỗi giống khoá trước khi gửi lên máy ảo, không đưa API key máy chủ vào máy ảo, và máy ảo tự huỷ sau 180 giây.
 - **Chưa kiểm thử lượt thực tế:** PowerPoint dùng file mẫu riêng của người dùng, lượt chạy E2B dài quá 180 giây, và khối Nghiên cứu sâu tra web trực tiếp qua trang.
-- **Khoá Amazon Bedrock tạm thời:** Nếu sử dụng STS token tạm (~6 giờ), quản trị viên cần làm mới định kỳ bằng script công ty trước khi hết hạn.
+- **Khoá Amazon Bedrock tạm thời (tuỳ chọn):** Chỉ liên quan nếu chuyển cấu hình sang Claude 5.5 qua Bedrock; nếu dùng STS token tạm (~6 giờ), quản trị viên cần làm mới định kỳ trước khi hết hạn.
 
 ---
 
@@ -53,6 +54,6 @@ Trong quá trình nghiên cứu nền tảng Capitol AI, đội ngũ có sử d�
 
 - **Chính sách đóng gói Bản 1:** Bộ dữ liệu ~97 GB này **KHÔNG đưa vào GitHub và KHÔNG nén đẩy lên Google Drive** vì dung lượng quá lớn và chứa nhiều file hệ thống/nhật ký cũ của nền tảng gốc (đặc biệt thư mục `capitol2/secrets/` tuyệt đối không sao chép hoặc phát tán).
 - **Khi cần lấy lại dữ liệu gốc từ R2:**
-  1. Liên hệ người quản lý dự án / đầu mối kỹ thuật qua **kênh bảo mật nội bộ của công ty** để được cấp thông tin xác thực S3/token truy cập đọc vào bucket **`capitol2`** trên Cloudflare R2.
-  2. **Tuyệt đối không lưu thông tin xác thực R2** (Access Key ID, Secret Access Key, Endpoint token) vào repository Git, biến mẫu `.env.example`, hay tài liệu `.md`.
+  1. Liên hệ người quản lý dự án / đầu mối kỹ thuật qua **kênh bảo mật nội bộ của công ty** để được cấp thông tin xác thực S3/token truy cập vào bucket **`capitol2`** trên Cloudflare R2 (**khuyến nghị cấp token chỉ đọc — read-only** khi bàn giao nội bộ, tuyệt đối không chia sẻ rộng token có quyền ghi `write`).
+  2. **Tuyệt đối không lưu thông tin xác thực R2** (Access Key ID, Secret Access Key, Endpoint token hay thông tin tài khoản) vào repository Git, biến mẫu `.env.example`, hay tài liệu `.md`.
   3. Dùng công cụ chuẩn S3 (như `rclone` hoặc `aws s3` trỏ endpoint Cloudflare R2) để tải có chọn lọc đúng phân vùng cần thiết về ổ đĩa ngoài kho Git, và luôn loại trừ thư mục `secrets/`.

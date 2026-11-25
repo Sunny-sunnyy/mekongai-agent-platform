@@ -192,7 +192,7 @@ class CustomGuardrailCheckService:
 
             _ = model_settings
             # [ghi chú] file mô hình khối bảo Claude ⇒ Rào chế độ AI chạy Claude qua cổng AI (mức suy luận theo file / bảng cổng —
-            # không gửi "thinking" kiểu cũ của bản gốc). Chạy Claude: KHÔNG gửi max_tokens nhỏ, KHÔNG trần token đầu ra (User 19/11 "bỏ trần … max token");
+            # không gửi "thinking" kiểu cũ của bản gốc). Chạy Claude: KHÔNG gửi max_tokens nhỏ, KHÔNG trần token đầu ra (người vận hành "bỏ trần … max token");
             # GIỮ số lần gọi (1 + 1 lần sửa khuôn) và rào ≤ 5 luật; rào cỡ tin 64.000 byte chỉ còn cho luna (bản 2, xem dưới). File trống ⇒ luna y như trước.
             from workflow.node.base.agent.model_resolution import chay_thu_loi_ro_nguoi_gac as _loi_ro
             from workflow.node.base.agent.model_resolution import chay_thu_mo_hinh_nguoi_gac

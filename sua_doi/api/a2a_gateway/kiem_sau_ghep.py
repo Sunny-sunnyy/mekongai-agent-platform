@@ -9,7 +9,7 @@ truyền vào dạng hàm (trong hộp capitol-ab-api: transform_advanced_to_bac
 Gộp 4 lớp (mỗi lớp đã có nguồn chuẩn — bản này CHÉP luật để chạy được trong hộp, đổi nguồn thì đổi đây):
   1. luật hộp (= tài liệu kỹ thuật kiem_cau_truc 5780072b): Agent run_python ≤ 1 dây file / chỉ .csv .xlsx / chỉ file tải lên;
      Agent không run_python không nhận file; khối tài liệu / chạy code không nhận file khối khác sinh; ≤ 1 khối hộp phiên mỗi tầng;
-     (luật của e_kiem_hop.py 6f37e562 của E trùng các luật trên — không chép lần hai)
+     (luật của e_kiem_hop.py 6f37e562 nhóm kỹ thuật trùng các luật trên — không chép lần hai)
   2. R12 (sua_doi/workflow/r12_kiem.py fc467e3f) — gọi qua tham số r12;
   3. câu KPI phải có khối Kiểm số: Agent bật tool_kpi ⇒ phải có khối Rào (guardrails_node) che_do_kiem = "code" đứng sau Agent, và mọi khối kết
      quả (text_output / markdown_output) chỉ nhận từ khối Rào đó (hình chạy được từ chat — giao_dien/chat_chay.py du_dieu_kien);

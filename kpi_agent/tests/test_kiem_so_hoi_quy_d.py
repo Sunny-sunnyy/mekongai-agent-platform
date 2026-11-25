@@ -1,7 +1,7 @@
 """Ca hồi quy kiem_so từ lượt soát 0 AI (``, 26 ca).
 Vì sao giữ trong pytest: @10 từng làm hỏng ";" (câu tiền sai của NV06 dưới tiêu đề NV05 lọt) mà bộ test lúc đó không bắt — lỗi thật, D tìm ra.
 Mỗi câu SAI tiền có câu ĐÚNG cùng hình. Dữ liệu: cùng fixture giả với `test_owner_check.py` (số tự đặt, mã che NVxx); ca ";" thứ ba đổi số
-(bản D dùng hai số trùng tổng tiền thật theo mã che — số thật từng ô không commit). Ca đã ghi là GIỚI HẠN ở @12 (`bao_cao/04_TRO_LY_HOI_DAP.md`) ⇒ xfail kèm lý do."""
+(bản D dùng hai số trùng tổng tiền thật theo mã che — số thật từng ô không commit). Ca đã ghi là GIỚI HẠN ở @12 (`tài liệu nội bộ`) ⇒ xfail kèm lý do."""
 import pytest
 
 from kpi_agent.agent.kiem_so import kiem_so
@@ -15,10 +15,10 @@ TEAM = {"employees": [{"employee_id": f"NV{i:02d}", "business_salary": 1000000 +
 TWO = {"employees": [{"employee_id": "NV05", "kpi_amounts": {"PC_BT": 3200000}}, {"employee_id": "NV06", "kpi_amounts": {"PC_BT": 4100000}}]}
 PAIR = {"employees": [{"employee_id": "NV02", "kpi_amounts": {"PC_BT": 6300000}}, {"employee_id": "NV04", "kpi_amounts": {"PC_BT": 9900000}}]}
 
-LIMIT_KPI_AFTER = pytest.mark.xfail(strict=True, reason="giới hạn @12 (lỗi nhỏ 4 của D): KPI đứng SAU câu phủ định không xét — không vá")
+LIMIT_KPI_AFTER = pytest.mark.xfail(strict=True, reason="giới hạn @12 (lỗi nhỏ 4): KPI đứng SAU câu phủ định không xét — không vá")
 LIMIT_KPI_AFTER_TRUE = pytest.mark.xfail(strict=True, reason="giới hạn @12 (lỗi nhỏ 4, chiều ngược): KPI đứng SAU câu phủ định đọc thành "
                                         "'chưa ai có tiền PC_ON' ⇒ câu ĐÚNG bị chặn oan — không vá")
-LIMIT_UNLESS = pytest.mark.xfail(strict=True, reason="giới hạn @12 (lỗi nhỏ 5 của D): 'trừ khi' bị coi là loại trừ ⇒ chặn oan — không vá")
+LIMIT_UNLESS = pytest.mark.xfail(strict=True, reason="giới hạn @12 (lỗi nhỏ 5): 'trừ khi' bị coi là loại trừ ⇒ chặn oan — không vá")
 
 
 @pytest.mark.parametrize("answer, source, money_wrong", [

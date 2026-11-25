@@ -23,7 +23,7 @@ class GPT5Service(OpenAIService):
         "gpt-5-mini-2025-08-07",
         "gpt-6-luna",          # mô hình suy nghĩ: KHÔNG gửi temperature (gửi có thể bị từ chối) — CHƯA KIỂM bằng lượt thật
     )
-    # Mức suy nghĩ cho gpt-6-luna (none / low / medium — User 04/11). Mặc định "low" như agentic-backend máy thử (chay_thu/sua_doi/README.md).
+    # Mức suy nghĩ cho gpt-6-luna (none / low / medium — người vận hành). Mặc định "low" như agentic-backend máy thử (chay_thu/sua_doi/README.md).
     _REASONING_EFFORT = {"gpt-6-luna": __import__("os").environ.get("EVAL_LUNA_REASONING_EFFORT", "low")}
 
     async def aquery(

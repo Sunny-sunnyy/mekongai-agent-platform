@@ -31,7 +31,7 @@ Trình duyệt người dùng (http://127.0.0.1:18400)
    │
    ├──▶ [3] Cổng AI tập trung (capitol-cong-ai :8090 nội bộ)
    │       └── Đọc bảng định tuyến mô hình, giữ khoá API, ghi sổ từng lời gọi
-   │       └── Gọi Claude Sonnet/Opus qua Amazon Bedrock, OpenAI / OpenRouter
+   │       └── Mặc định chạy `gpt-6-luna` qua OpenAI API (tuỳ chọn chuyển sang Claude Sonnet 5.5 / Opus 5.5 qua AWS Bedrock) + OpenRouter (định tuyến khung chat)
    │
    ├──▶ [4] Các dịch vụ chuyên biệt
    │       ├── kpi_agent (đóng băng bản 252dc30a) + cổng chuyển tiếp tải file (:18402) + xem bảng (:18403)

@@ -56,7 +56,7 @@ export type Check = { y: { kieu: string; gia_tri: string; nguon: "cong_cu" | "da
 export type Cost = { checks?: Record<string, Check>; inputs?: Record<string, string>; tool_calls?: ToolCall[]; calls: Call[]; total: { main: number; side: number; tool?: number; tokens_in: number; tokens_out: number; unmeasured_calls: number; unpriced_calls: number; bedrock?: number };
   // [ghi chú kỹ thuật] tiền theo SỔ của phiên (máy chủ đọc dòng sổ) — có cả khi Capitol không ghi token cho khối Chạy code / làm file
   so?: { usd_tinh_tran: number; usd_bedrock_tham_khao: number; token_vao: number; token_ra: number; so_dong: number; gio?: string } | null };
-// [ghi chú kỹ thuật] khối KPI dựng sẵn (dữ liệu của B qua GET /api/kpi/dung-san): ô nào người dùng được sửa, ô nào ẩn, ô nào chỉ xem
+// [ghi chú kỹ thuật] khối KPI dựng sẵn (dữ liệu nhóm kỹ thuật qua GET /api/kpi/dung-san): ô nào người dùng được sửa, ô nào ẩn, ô nào chỉ xem
 export type KpiKhoi = {
   ma: string; ten: string; mo_ta: string; khoi_goc: string; o_day: string[]; o_an: string[]; o_khoa: string[]; ghi_chu: Record<string, string>;
   sua_duoc: Record<string, { nhan: string; kieu: "chu" | "so_nguyen"; toi_da?: number; tu?: number; toi?: number }>;
@@ -143,7 +143,7 @@ const loc = (ngay?: string, so?: number) => {
   return s ? "?" + s : "";
 };
 
-// [ghi chú kỹ thuật] "chạy lại từ khối" — hợp đồng API của B (va_chay_lai/gan/HOP_DONG_API.md 14:22)
+// [ghi chú kỹ thuật] "chạy lại từ khối" — hợp đồng API nhóm kỹ thuật (va_chay_lai/gan/HOP_DONG_API.md 14:22)
 export type ChayLaiXem = { workflow_id: string; phien_nguon: string; khoi_chon: string[]; single_step: boolean; chay_moi: string[]; dung_lai: string[];
   lech: Record<string, string>; sau_dung_lai_cu: string[]; muc_toi_da: number; phien_ban: number };
 export type ChayLaiThan = { workflow_id: string; phien_nguon: string; khoi: string[]; single_step?: boolean };

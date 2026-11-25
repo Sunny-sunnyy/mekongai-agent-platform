@@ -1,4 +1,4 @@
-"""goi_app cho trang 18400 (giao_dien/kho_tai_lieu.py của C) đi QUA hộp cổng RAG thay vì gọi thẳng app mekongai 127.0.0.1:1945.
+"""goi_app cho trang 18400 (giao_dien/kho_tai_lieu.py nhóm kỹ thuật) đi QUA hộp cổng RAG thay vì gọi thẳng app mekongai 127.0.0.1:1945.
 B 17/11/2026 (nhóm phát triển xác nhận; C_KE_HOACH_TRANG_RAG.md mục 1–2). Chạy trong tiến trình may_chu (máy chủ, ngoài hộp).
 
 Chỉ dịch ĐÚNG 2 đường kho_tai_lieu.bat_dau_nap dùng; đường khác ⇒ ValueError (không bao giờ /collections/all):
