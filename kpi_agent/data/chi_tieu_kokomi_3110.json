@@ -1,0 +1,26 @@
+{
+ "source": {
+  "page": "saved_resource.html",
+  "page_sha256": "8c3327212c9ccb20a6e2674e1d8933117db621528db6ac62d9b9405076d56112",
+  "raw": "RAW DATA.xlsx",
+  "raw_sha256": "19aded1ca4b5740a6a793b8316bd0f4ae87db949f860419bff66bc6bc72c05c5",
+  "note": "tab Thưởng thêm (D.bon, khoản 'Mì Kokomi 90', trường t — triệu đ ⇒ đồng), số chốt 31/10/2026"
+ },
+ "unit": "đồng",
+ "targets": {
+  "14SF.MT0187": 10200000,
+  "14SF.MT0188": 12200000,
+  "14SF.MT0189": 7300000,
+  "19SF.MT5822": 23800000,
+  "24SF.MT17302": 16600000,
+  "24SF.MT17304": 8100000,
+  "25SF.MT19081": 25400000,
+  "25SF.MT19664": 25700000,
+  "25SF.MT19665": 11000000,
+  "25SF.MT19668": 17400000,
+  "26SF.MT22416": 15000000,
+  "26SF.MT22672": 12200000,
+  "26SF.MT22673": 2200000,
+  "26SF.MT23327": 25100000
+ }
+}

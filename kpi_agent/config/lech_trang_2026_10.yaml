@@ -1,0 +1,16 @@
+# Lệch ĐÃ BIẾT giữa số của mình và trang theo dõi của đội (trang sếp gửi, số chốt 31/10) — kỳ 2026-10.
+# Nguồn: (11/11: luật = công văn > chữ sổ Tracking — trang chỉ để kiểm)
+# + + KIEM_TRANG_TRACKING_C.md (sửa chữ PC_BT, PC_ON 11/11). Dùng bởi scripts/tao_trang_tracking.py: ô nào lệch trang ⇒ ⚠ + chú thích theo khoá KPI / khoản dưới đây;
+# lệch ở khoá không có trong file này ⇒ "chưa rõ lý do — chưa ai kiểm". Chữ lý do không chứa tên NV; khoá riêng một ô dùng mã che.
+period: "2026-10"
+# Mốc 7 (17/11, B — chuẩn mới 16/11: trang sếp là đúng, lõi đổi theo trang): ca so trang RAW 31/10 ⇒ 112 / 112 ô KPI + 140 / 140 ô Thưởng thêm
+# khớp ⇒ BỎ mọi lý do cũ (lịch sử: git log -p file này — Turnover / LPPC / PC_ON ngoài tuyến [N1], Turnover/NV05 · T06 · "07" hoá đơn trễ [N2],
+# PC_BT cách đếm [N3]). Ô lệch trở lại ⇒ trang hiện "chưa rõ lý do — chưa ai kiểm" (cố ý: lệch mới phải có người xem, không dùng lại lý do cũ).
+reasons: {}
+
+# 12/11 (E — tab "Chi tiết" điểm bán thuộc tuyến, backend/outlets.py): ghi chú hiện dưới bảng, KHÔNG phải lý do của ô nào ở tab Theo dõi ⇒ khoá riêng
+# ngoài `reasons`. File này CHỈ giữ số của TRANG (đọc từ tab "Chi tiết" của trang, file phân tích 10/11) + lời; số của MÌNH do backend điền từ tổng
+# đang hiện (người kiểm 12/11: chữ cứng "ở đây … đ" sẽ lệch với màn khi đổi ngày chốt / file đơn hàng).
+# 13/11 (E — dòng 13 bài 15b): ĐÃ GIẢI — trang cộng doanh số SAU chiết khấu, gồm cả hoá đơn xuất trễ (đếm lại bằng script riêng: khớp 2.501 / 2.501 điểm)
+# ⇒ backend tính thêm tiền "như trang" (outlets.py `page_*`) và so tổng với số dưới; chỉ giữ SỐ của trang (lời do backend viết).
+outlet_sales_page_total: 10144849688

@@ -1,0 +1,27 @@
+# Workflow tính thưởng NVBH tháng 10/2026 — bước 1 nền tảng workflow (mục 2).
+# Khuôn học Capitol (chủ đề 02): nodes = các khối (id riêng của file + type = tên khối trong danh bạ BLOCKS); edges = dây, ghi MỘT nơi duy nhất.
+# Dây luôn đi từ khối đứng TRƯỚC trong file sang khối đứng SAU (bộ chạy chạy theo thứ tự file, từ chối dây ngược).
+# Ngày chốt KHÔNG ở đây — là tham số mỗi lượt chạy. Đường file tính từ gốc repo.
+workflow: kpi_thuong_nvbh
+nodes:
+  - {id: rules,    type: load_rules,    params: {path: kpi_agent/config/rules_2026_10.yaml}}
+  - {id: targets,  type: read_targets,  params: {path: "sample_data/thang_10/Chi tieu NVBH.xlsx"}}
+  - {id: tracking, type: read_tracking, params: {path: sample_data/thang_10/Tracking.xlsx}}
+  - {id: check,    type: check_data}
+  - {id: kpi,      type: compute_kpi}
+  - {id: bonus,    type: compute_bonus, params: {npp_turnover_pct: null}}
+  - {id: duyet,    type: review_gate}    # bước 3: giám sát soát bảng thưởng ("Đã soát") — chưa soát thì khối sau không chạy
+  # bước 3: xuất Excel / MD / TXT — chỉ khi cổng duyệt đã mở (bỏ tải nháp). Ô formats GHI RÕ như compute_bonus: trang 2b điền mặc định khi lưu
+  # ⇒ thiếu ô trong file thì lưu lại từ trang ra mã băm khác ⇒ bản tính mới, mất "Đã soát" (test_workflow_edit t1 / t3 bắt 10/11)
+  - {id: xuat,     type: export_files,  params: {formats: [xlsx, md, txt]}}
+edges:
+  - {from_node: targets,  from_port: targets,  to_node: check, to_port: targets}
+  - {from_node: tracking, from_port: tracking, to_node: check, to_port: tracking}
+  - {from_node: targets,  from_port: targets,  to_node: kpi,   to_port: targets}
+  - {from_node: tracking, from_port: tracking, to_node: kpi,   to_port: tracking}
+  - {from_node: rules,    from_port: rules,    to_node: kpi,   to_port: rules}
+  - {from_node: kpi,      from_port: results,  to_node: bonus, to_port: results}
+  - {from_node: rules,    from_port: rules,    to_node: bonus, to_port: rules}
+  - {from_node: targets,  from_port: targets,  to_node: bonus, to_port: targets}
+  - {from_node: bonus,    from_port: bonuses,  to_node: duyet, to_port: bonuses}
+  - {from_node: duyet,    from_port: bonuses,  to_node: xuat,  to_port: bonuses}

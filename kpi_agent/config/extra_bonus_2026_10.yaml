@@ -1,0 +1,145 @@
+# "Thưởng thêm" khoản 01–06 + Meat 7.1–7.3 (thêm 11/11 — khối cuối file) — tháng 10/2026, đường RAW DATA (13:38 10/11/2026).
+# Nguồn luật (bản 10/11): chữ in trên trang sếp "Tracking KPI Lam Phương", tab "Thưởng thêm" (#thuong), số chốt 31/10/2026 — KHÔNG có trong công văn 21–011026
+# ⇒ TỪ 11/11 thứ tự nguồn là: công văn > chữ luật in trên sổ Tracking (sheet "Thưởng thêm ") > trang chỉ để KIỂM (xem khối "ĐỔI 11/11" dưới).
+# (sample_data/thang_10/PHAN_TICH_TRANG_SEP_10_11.md mục 1.2). Trang chỉ có %, không có tiền ⇒ tiền tính theo chữ luật in trên trang.
+# 7 / 7.1–7.3 (TPCB, Meat N1–N3): 10/11 để sau (trang không có số tiền) ⇒ ĐÃ DỰNG 11/11 (T071–T073, cổng 07 — khối "Meat 7.1–7.3" cuối file).
+# Tiền thưởng thêm TÁCH RIÊNG khỏi tổng 8 KPI (tổng 8 KPI không đổi vì file này — mốc 7: 152.360.000 đ) — file này không đụng rules_2026_10_raw.yaml.
+# Mỗi khoản có `label` chép nguyên chữ trang — compute_extra_bonus.validate so số trong label với số của khoản (chặn lỗi gõ 20 thành 2).
+
+period: "2026-10"
+
+# Lựa chọn của nhóm kỹ thuật + B / C / E lúc 13:35–13:37 10/11/2026 theo uỷ quyền; User đổi được ---
+# (a) "Đạt ≥ N: X đ/đơn vị" ⇒ trả cho MỌI đơn vị khi đạt ngưỡng (30 thùng ⇒ 180.000 đ), không phải phần vượt — công văn khi trả phần vượt thì ghi
+#     rõ phép trừ (7.2 "2% × [Doanh số thực đạt − Doanh số chỉ tiêu 100%]"); chữ trang không có phép trừ ⇒ ngưỡng là điều kiện.
+pay_all_units_when_reached: true
+# (b) Thưởng 05 Homey dùng CÙNG dữ liệu với KPI 6 (ASO_Focus_2) nhưng là chương trình khác (trang hiện ở hai tab) ⇒ trả cả hai; ghi rõ "cùng dữ liệu".
+# (c) Kokomi 300k / 500k là BẬC, không cộng dồn (≥ 108 % ⇒ 500k) — như mọi KPI nhiều mức ở công văn 5.2.
+# (d) ASO (số điểm bán) — định nghĩa là THAM SỐ TỪNG KHOẢN (`aso_rule`, A 13:41 10/11). Ứng viên ghi trước khi đếm (A 13:37): moq_8_1 · min_amount 150000 · any;
+# đã đếm (13:41): không cái nào ra đúng 249 / 59. A gom ý ⇒ "đồng ý cả gói" giữa 13:48 và 13:49 10/11 (User đổi ⇒ chỉ đổi `aso_rule`):
+#       03 = min_amount 150000 — ngưỡng CHỌN SAU KHI ĐỌC dữ liệu trang (cột "Nước mắm CC" tab Chi tiết: đúng 249 cửa hàng ≥ 150.000 đ); RAW ra 245 ⊂ tập trang
+#            (lệch 4 cửa hàng — 10/11 C suy: RAW thiếu đơn Shipped tháng 10; SAI — 11/11 chiều đã giải: lệch do PHẠM VI NHÓM, xem khoản T03).
+#       04 = (bản 10/11, đã THAY 11/11) moq_8_1 chỉ "Xốt Chinsu" = 64, lệch trang 5 NV.
+# ĐỔI 11/11 ( luật nguồn sếp: công văn > chữ luật in trên sổ Tracking > trang chỉ để kiểm
+# đã đếm, giả thuyết ghi TRƯỚC khi đếm): sổ `sample_data/thang_10/Tracking.xlsx` sheet "Thưởng thêm "
+#   IN SẴN điều kiện ASO — trước 11/11 chưa ai đọc chữ này nên 10/11 gọi "≥ 2 hộp / đơn" là "khớp do dò":
+#       Q1 (03) "Điều kiện ASO tối thiểu 150,000 đồng/đơn hàng" · W1 (04) "Nhóm Xốt Gia vị Chinsu … ASO tối thiểu 2 hộp/đơn hàng" ·
+#       AC1 (05) "(Điều kiện ASO tối thiểu 2 túi/đơn hàng)".
+#       04 = min_qty_per_order 2, nhóm "Xốt Chinsu" + "Xốt nhà hàng Chinsu" = 59 = trang 14 / 14 NV. Phạm vi 2 kiểm chứng tìm SAU khi thấy số (chỉ "Xốt Chinsu"
+#            ra 44, lệch 9 NV); căn cứ chữ đi kèm: chữ sổ đếm bằng HỘP, và trong RAW chỉ 2 nhóm này bán theo hộp (SKU DESC "8hộp x 10túi"; mayonnaise,
+#            muối ớt là chai) — bảng MOQ công văn cũng ghi đơn vị "Hộp" cho đúng 2 nhóm này, "Chai" cho mayonnaise / muối ớt.
+#       05 = min_qty_per_order 2 (chữ sổ) = 393 = moq_8_1 cũ = trang 14 / 14 NV (đơn Homey 2,9 kg gần như luôn ≥ 2 túi).
+#       03 = min_amount_per_order 150000 (chữ sổ "trên MỘT đơn"). Trên RAW 31/10 cách tháng cũ và cách từng đơn ra CÙNG 245, cùng 3 NV lệch trang
+# (lúc đó tưởng 4 cửa hàng RAW thiếu đơn; thật ra thiếu một nhóm hàng — đã thêm ở khoản T03) — đổi để tháng sau đúng chữ sổ (kiểu mới ở core/ ⇒ vân tay bản tính đổi, User bấm "Đã soát" lại 1 lần).
+#   Các kiểu:
+#     moq_8_1           = điểm bán có ≥ 1 dòng nhóm hàng cờ MOQ_FLAG = Y của DMS (công văn 8.1 — như ASO_ALL / KPI 4–6), doanh số > 0
+#     min_amount        = tổng doanh số nhóm hàng tại điểm bán trong tháng ≥ value (đồng)
+#     min_amount_per_order = có ít nhất MỘT đơn mà tổng doanh số nhóm hàng trong đơn đó ≥ value (đồng)
+#     min_qty_per_order = có ít nhất MỘT đơn mà tổng số đơn vị lẻ (cột TOTAL PIECES — hộp / chai / túi) nhóm hàng ≥ value
+#     any               = tổng doanh số nhóm hàng tại điểm bán > 0
+# Lọc điểm bán ngoài tuyến (MCP) — chỉ khoản đếm cửa hàng (ASO); số thùng / doanh số KHÔNG lọc tuyến — công văn 6.2 áp cho KPI (QĐ-09 11/11 chỉ đổi 8 KPI,
+# Thưởng thêm theo chữ sổ; C / nhóm kỹ thuật đo có / không lọc ra y hệt T01–T06)
+exclude_outlets_outside_mcp: true
+
+# Nhóm hàng theo cột RAW `DMS OBJ` (hoặc mã `SKU CODE`). Tên nhóm phải có trong RAW — không có ⇒ dừng (gõ sai tên không thành 0 lặng lẽ).
+items:
+  T01:
+    title: "Thưởng 01: Bia Sư Tử Trắng"
+    label: "Đạt ≥20 thùng: 6.000đ/thùng"
+    measure: cases           # cột RAW TOTAL CASES (1 thùng = 24 lon)
+    dms_obj: ["Bia White Lion"]
+    min: 20
+    pay_per_unit: 6000
+  T02:
+    title: "Thưởng 02: Bia Red Ruby"
+    label: "Đạt ≥20 thùng: 6.000đ/thùng"
+    measure: cases
+    dms_obj: ["Bia Red Ruby", "Bia Red Ruby Cao Cấp"]    # trang 74 thùng = cả hai nhóm (đã đếm 13:2x 10/11)
+    min: 20
+    pay_per_unit: 6000
+  T03:
+    title: "Thưởng 03: ASO nước mắm cao cấp"
+    label: "Đạt ≥15 ASO: 10.000đ/ASO"
+    measure: aso
+    aso_rule: {kind: min_amount_per_order, value: 150000}   # chữ sổ ô Q1 "150,000 đồng/đơn hàng" (11/11) — xem (d)
+    # Công văn không có danh sách "nước mắm cao cấp", sổ ô Q1 chỉ ghi "Nước mắm cao cấp" ⇒ PHẠM VI THEO TRANG theo dõi của đội (11/11 chiều).
+    # 10/11 đã chọn 5 nhóm theo tên ⇒ 245 cửa hàng (trang 249, khớp 11/14 NV) — khi đó tưởng RAW thiếu đơn Shipped. 11/11 nhóm kỹ thuật đếm (giả thuyết
+    # ghi trước): + "Nước chấm Nam Ngư pha sẵn" ⇒ 249 = trang, khớp 14/14 NV ⇒ lệch do PHẠM VI NHÓM, không phải thiếu đơn.
+    dms_obj: ["Nước mắm Chinsu Cá Hồi", "Nước mắm Chinsu Cá Cơm Biển Đông", "Nước mắm Chinsu Cá Cơm Biển Đông 365",
+              "Nước mắm Nam Ngư Chai thủy tinh", "Nước mắm Nam Ngư Nhãn Vàng", "Nước chấm Nam Ngư pha sẵn"]
+    min: 15
+    pay_per_unit: 10000
+    # Giới hạn đi CẠNH dòng khoản này trong kết quả công cụ get_extra_bonus (để AI không bỏ) — chữ không có số (số trong chữ thành "nguồn" của rào kiểm số)
+    limit_note: "Nhóm hàng 'nước mắm cao cấp' lấy theo trang theo dõi của đội (công văn và sổ không liệt kê nhóm) — số cửa hàng khớp trang từng nhân viên."
+  T04:
+    title: "Thưởng 04: ASO xốt Chinsu"
+    label: "Đạt ≥5 ASO: 10.000đ/ASO"
+    measure: aso
+    aso_rule: {kind: min_qty_per_order, value: 2}   # chữ sổ ô W1 "2 hộp/đơn hàng" (11/11) — xem (d)
+    # 2 nhóm bán theo HỘP của "Nhóm Xốt Gia vị Chinsu" (ô W1) — phạm vi tìm SAU khi thấy số, căn cứ chữ ở (d); không gồm mayonnaise / muối ớt (bán theo chai)
+    dms_obj: ["Xốt Chinsu", "Xốt nhà hàng Chinsu"]
+    min: 5
+    pay_per_unit: 10000
+  T05:
+    title: "Thưởng 05: ASO Homey Jeju 2.9kg"
+    label: "Đạt ≥10 ASO: 10.000đ/ASO"
+    measure: aso
+    aso_rule: {kind: min_qty_per_order, value: 2}   # chữ sổ ô AC1 "2 túi/đơn hàng" (11/11); 393 = cách KPI 6 trên RAW 31/10 — xem (d)
+    sku_code: ["04HP00639"]   # CÙNG mã hàng KPI 6 (aso_focus_2_skus) — lựa chọn (b): trả cả hai
+    same_data_as: ASO_Focus_2
+    min: 10
+    pay_per_unit: 10000
+  T06:
+    title: "Thưởng 06: Doanh số Mì Kokomi 90"
+    label: "100%: 300k; ≥108%: 500k"
+    measure: sales_pct_of_target   # Sales Before Discount (như KPI 1) ÷ chỉ tiêu riêng từng NV
+    dms_obj: ["Mì Kokomi Đại 90", "Mì trộn Kokomi Đại 90"]   # KHÔNG gồm "Mì Kokomi Đại 90 thường ngày (có thịt)" — trang 313,49 tr = đúng 2 nhóm này
+    # Chỉ tiêu chỉ có trên trang (bon, "t" theo tên NV, triệu đ) ⇒ scripts/tach_chi_tieu_kokomi.py tách sang file này (Git bỏ qua — mã NV thật)
+    targets_file: kpi_agent/data/chi_tieu_kokomi_3110.json
+    # mốc 7 N2 (16/11, trang sếp là chuẩn): trang 313,49 tr = CỘNG 3 dòng hoá đơn xuất sau 22:00 02/11 (NV05, 2,3 tr) — công văn 6.1 loại
+    include_late_invoice: true
+    tiers:
+      - {min: 100, amount: 300000, label: "100%: 300k"}
+      - {min: 108, amount: 500000, label: "≥108%: 500k"}
+  # Meat 7.1–7.3 (11/11, B) ----------
+  # Luật = chữ sổ Tracking sheet "Thưởng thêm " ô AU1 / BA1 / BG1 (B mở đọc 11/11). Chỉ tiêu = TRANG 31/10 (scripts/tach_chi_tieu_meat.py: khoản
+  # "TPCB (điều kiện)" = 07, "Meat N1–N3" = 7.1–7.3; 11/11 theo luật số liệu nền "bản mới nhất cùng phạm vi", như Kokomi) — sổ 2/11 sheet ẩn
+  # "Data thuong them " có cùng 4 khối nhưng 07 khác trang (849,51 tr ↔ 808,78 tr; dùng sổ thì NV12 7.1 mất 61.500 đ). Cổng P1 (11/11, từ chữ trang "Điều kiện 100%/105% để xét thưởng Meat"): mức k
+  # trả khi CẢ % riêng ≥ k VÀ % TPCB (cả SUB DIV Processed Meats, chỉ tiêu khối "07") ≥ k. Doanh số = Sales Before Discount dòng bán, không lọc tuyến.
+  # Mốc 7 N2 (16/11): cổng 07 CỘNG dòng hoá đơn trễ (ô 07 NV05 trang = mình + 2.800.000 đ trễ); doanh số riêng 7.1–7.3 giữ bỏ (cộng hay bỏ đều khớp trang).
+  # Giới hạn: sổ không ghi cách làm tròn tiền (code: tới đồng, nửa lên); cách đọc khác của cổng — P2 +61.500 đ, P0 +2,79 tr cả đội.
+  T071:
+    title: "Thưởng 7.1: Doanh số Xúc xích Cao Bồi, Xúc xích Heo cao bồi xì xèo, Hotdog Ponnie"
+    label: "Mức 01 đạt 100%: 2,5% x doanh số thực đạt; Mức 02 đạt 105%: 5%; tối đa 1,5 triệu đồng"
+    measure: sales_rate_of_target
+    dms_obj: ["Hotdog Ponnie", "Xúc Xích Cao Bồi", "Xúc xích Heo cao bồi xì xèo"]
+    targets_file: kpi_agent/data/chi_tieu_meat_3110.json
+    targets_key: "7.1"
+    tiers:
+      - {min: 100, rate_pct: 2.5}
+      - {min: 105, rate_pct: 5}
+    cap: 1500000
+    gate: {targets_key: "07", sub_div: Processed Meats, same_tier: true, include_late_invoice: true}
+  T072:
+    title: "Thưởng 7.2: Doanh số Xúc Xích Cao Bồi Đũa Phép, Chân gà Ponnie, Snack Ponnie, Xúc xích Ponnie Cao Cấp, Xúc Xích Cao Bồi Lắc"
+    label: "Mức 01 đạt 100%: 7,5% x doanh số thực đạt; Mức 02 đạt 105%: 15%; tối đa 1,5 triệu đồng"
+    measure: sales_rate_of_target
+    dms_obj: ["Snack Ponnie", "Chân gà Ponnie", "Xúc Xích Cao Bồi Lắc", "Xúc xích Ponnie Cao Cấp", "Xúc Xích Cao Bồi Đũa Phép"]
+    targets_file: kpi_agent/data/chi_tieu_meat_3110.json
+    targets_key: "7.2"
+    tiers:
+      - {min: 100, rate_pct: 7.5}
+      - {min: 105, rate_pct: 15}
+    cap: 1500000
+    gate: {targets_key: "07", sub_div: Processed Meats, same_tier: true, include_late_invoice: true}
+  T073:
+    title: "Thưởng 7.3: Doanh số Xúc Xích Cao Bồi Xốt Lắc, Xúc Xích Cao Bồi Cuốn Cuốn"
+    label: "Mức 01 đạt 105%: 0,5% x doanh số thực đạt; tối đa 1 triệu đồng"
+    measure: sales_rate_of_target
+    # tên nhóm đúng như RAW (mục 3 viết tắt "Cao Bồi Xốt Lắc", "Cao Bồi Cuốn Cuốn" — không có trong RAW — chữ sổ BG1 ghi đủ như dưới)
+    dms_obj: ["Xúc Xích Cao Bồi Xốt Lắc", "Xúc Xích Cao Bồi Cuốn Cuốn"]
+    targets_file: kpi_agent/data/chi_tieu_meat_3110.json
+    targets_key: "7.3"
+    tiers:
+      - {min: 105, rate_pct: 0.5}
+    cap: 1000000
+    gate: {targets_key: "07", sub_div: Processed Meats, same_tier: true, include_late_invoice: true}

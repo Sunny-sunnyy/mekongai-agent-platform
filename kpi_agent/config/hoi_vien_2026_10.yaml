@@ -1,0 +1,8 @@
+# Tab "Hội viên" — PHẦN DOANH SỐ, kỳ 2026-10 (backend/membership.py). Chỉ ghi NGUỒN danh sách khách + nền; không có luật tiền nào
+# (hạng khách, nhiệm vụ Duy trì / Mở mới, tiền thưởng theo công văn 408: CHƯA có dữ liệu ⇒ chưa dựng).
+# So với trang theo dõi của đội 13/11: nền 417 / 417 khách, ngày viếng thăm 417 / 417; sổ có 417 khách + 1 dòng TỔNG cuối bảng (ô mã "(blank)") — bỏ qua.
+period: "2026-10"
+workbook: "sample_data/thang_10/Tracking.xlsx"   # sổ theo dõi của đội — chỉ có trên máy, Git bỏ qua
+sheet: "Hoi Vien Masan"
+header_row: 9
+columns: {customer: "Outlet Code", name: "Tên điểm bán", employee_name: "Tên nhân viên", baseline: "Chỉ tiêu", visit: "Viếng thăm"}

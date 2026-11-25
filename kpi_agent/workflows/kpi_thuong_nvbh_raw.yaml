@@ -1,0 +1,25 @@
+# Workflow tính thưởng NVBH tháng 10/2026 — ĐƯỜNG RAW DATA.
+# Giống kpi_thuong_nvbh.yaml, chỉ khác: luật rules_2026_10_raw.yaml (theo công văn + trang sếp) và khối read_raw (RAW DATA + MCP từ trang sếp) thay read_tracking.
+# Workflow chính đổi sang file này khi số khớp và. Ngày chốt là tham số mỗi lượt.
+workflow: kpi_thuong_nvbh_raw
+nodes:
+  - {id: rules,    type: load_rules,    params: {path: kpi_agent/config/rules_2026_10_raw.yaml}}
+  - {id: targets,  type: read_targets,  params: {path: "sample_data/thang_10/Chi tieu NVBH.xlsx"}}
+  - {id: tracking, type: read_raw,      params: {path: "sample_data/thang_10/RAW DATA.xlsx", mcp_path: sample_data/thang_10/mcp_trang_sep_3110.json}}
+  - {id: check,    type: check_data}
+  - {id: kpi,      type: compute_kpi}
+  - {id: bonus,    type: compute_bonus, params: {npp_turnover_pct: null}}
+  - {id: duyet,    type: review_gate}
+  - {id: xuat,     type: export_files,  params: {formats: [xlsx, md, txt]}}
+edges:
+  - {from_node: rules,    from_port: rules,    to_node: tracking, to_port: rules}
+  - {from_node: targets,  from_port: targets,  to_node: check, to_port: targets}
+  - {from_node: tracking, from_port: tracking, to_node: check, to_port: tracking}
+  - {from_node: targets,  from_port: targets,  to_node: kpi,   to_port: targets}
+  - {from_node: tracking, from_port: tracking, to_node: kpi,   to_port: tracking}
+  - {from_node: rules,    from_port: rules,    to_node: kpi,   to_port: rules}
+  - {from_node: kpi,      from_port: results,  to_node: bonus, to_port: results}
+  - {from_node: rules,    from_port: rules,    to_node: bonus, to_port: rules}
+  - {from_node: targets,  from_port: targets,  to_node: bonus, to_port: targets}
+  - {from_node: bonus,    from_port: bonuses,  to_node: duyet, to_port: bonuses}
+  - {from_node: duyet,    from_port: bonuses,  to_node: xuat,  to_port: bonuses}

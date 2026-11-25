@@ -1,0 +1,10043 @@
+{
+ "source": {
+  "page": "saved_resource.html",
+  "page_sha256": "8c3327212c9ccb20a6e2674e1d8933117db621528db6ac62d9b9405076d56112",
+  "raw": "RAW DATA.xlsx",
+  "raw_sha256": "19aded1ca4b5740a6a793b8316bd0f4ae87db949f860419bff66bc6bc72c05c5",
+  "note": "tab Chi tiết (D.ct) của trang sếp — điểm bán thuộc MCP, số chốt 31/10/2026"
+ },
+ "mcp": {
+  "14SF.MT0187": {
+   "129515": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "129814": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130362": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130363": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "130371": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130375": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130376": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130379": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130384": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130385": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130386": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130387": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130478": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130479": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130484": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130488": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130508": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130696": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130775": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130777": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130850": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130853": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130933": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130937": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130938": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "131046": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "131055": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2058383": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2084724": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2153355": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2153366": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2153379": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2160480": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2223717": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2226195": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2228970": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2269476": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2269570": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2482894": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2485004": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2553034": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2553679": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "2596705": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2625922": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2684946": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2736524": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2744494": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2746086": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2767244": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2782965": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2788795": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2825926": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2851884": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "3067658": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3132445": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3199023": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "505415": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99911273": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999129299": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999150095": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99915579": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99915744": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999165028": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999165493": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999165670": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999165704": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999165743": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999165778": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999166218": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999166396": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999166476": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999170159": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999170808": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999170838": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999172936": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999173066": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999173699": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999173991": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999175707": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999177864": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999177944": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999183127": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999185265": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999186216": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999192629": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99919762": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999199348": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999199831": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999199937": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999211636": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99923300": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99923612": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999241726": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999241772": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999275668": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999280551": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999282896": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999283048": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999283137": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999283253": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999290797": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999294962": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999298146": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999298866": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999299751": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999300354": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99931090": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99931107": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999318554": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999325999": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999326192": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999366417": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "99941641": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999430877": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99945590": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99945639": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99945886": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99946620": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999467355": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99947340": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99947352": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999486264": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999486434": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999488733": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999500357": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99950202": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99950283": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999503312": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999506244": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999525885": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999544410": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999544462": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999544499": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999544681": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999544922": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999545032": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999545245": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999545598": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999545847": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999545954": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999545974": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999545994": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999546009": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999546095": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999546205": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999546300": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99961306": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999621246": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999628548": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999628569": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999629548": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99962987": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999631214": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999632748": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999632796": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999633003": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999647743": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999649018": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999651781": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999653436": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999653502": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999670718": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99970837": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999711596": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999733274": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999752963": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999759306": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999762940": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99989332": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99992088": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99992149": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99993449": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99994440": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99995778": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   }
+  },
+  "14SF.MT0188": {
+   "129752": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "129788": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "129789": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130086": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130477": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130498": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130502": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130516": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130517": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130520": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130521": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130522": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130524": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130525": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130526": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130529": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130531": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130532": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130534": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130536": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130541": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130542": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130543": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130545": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130546": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130547": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130548": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130549": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130550": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130551": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130552": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130553": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130554": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130691": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130692": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "130762": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130764": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130765": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130768": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130774": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130778": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130779": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130782": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130784": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130787": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130791": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130812": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130855": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130993": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "131024": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2070082": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2084720": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2103569": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "2138066": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2160498": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2223721": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2223725": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2223731": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2225991": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2226007": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2269467": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2504054": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2567119": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2667746": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2667779": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2703308": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2779411": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2905817": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2908556": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3034804": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3034814": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3034907": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3035747": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3035750": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3035752": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3035755": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3035760": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3049881": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "3067660": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3067661": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3080428": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3109360": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3130158": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3132688": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "505335": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99912473": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99912520": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999144951": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99916421": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99916452": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99916642": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999175575": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999175596": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999175641": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999179965": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999180021": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999180038": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999186421": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191528": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99919806": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999198400": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999198440": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99920264": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99920304": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99920872": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999218248": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999232715": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99923893": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999257785": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999264403": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "99926863": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999282793": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999282849": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999282878": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999285455": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999291888": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999296226": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999296850": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999297182": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999297303": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99929873": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99931169": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99931173": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99931175": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999314514": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999314563": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999314599": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999314625": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999316701": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999322654": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326577": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999348816": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99936309": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999386855": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999387036": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99942112": {
+    "channel": "On",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "99944605": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99944632": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999456644": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999457686": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999472065": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99947812": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999486226": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999486325": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999486383": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999486446": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999486523": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999495118": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999504431": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999512631": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999513374": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999515224": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999515316": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999515549": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999524467": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999524576": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999528163": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999528228": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999528330": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999534698": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999534726": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999536434": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999536505": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999536577": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999537146": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999537645": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999537850": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999538461": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999539088": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999539901": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999540044": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999540523": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999540618": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999540786": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999616131": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999629595": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999630501": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999630551": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999632476": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99965471": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99965480": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99965548": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99967141": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99967336": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999673522": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999673536": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999673571": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99967427": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99967474": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999678708": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999720729": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999721027": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999721053": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999723469": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999740509": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999753208": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999757265": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99978174": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99978218": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99979651": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99982246": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   }
+  },
+  "14SF.MT0189": {
+   "130027": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130845": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130863": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130864": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130865": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130867": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130868": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130869": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130880": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130881": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130893": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130918": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130922": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130923": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "131021": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2063743": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2153354": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2160937": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2160945": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2160960": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2223720": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2223727": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2226197": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "2228983": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2292691": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2292696": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2300457": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2360455": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2467923": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2509020": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2531515": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2589791": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2589842": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2669525": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2673065": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2736523": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2743204": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2788809": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2825921": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3074622": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "3077753": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3128868": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3131128": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3131129": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3132643": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3142683": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3171819": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "505338": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999140604": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999152946": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999153110": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999163143": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999163283": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999164113": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165278": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165293": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165310": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999166014": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999172869": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999172901": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99917608": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999177520": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999178016": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999178857": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999182331": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999182448": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999186098": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999189378": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99919805": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99919857": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999211556": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999219159": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99922237": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999223503": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999227923": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99923649": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99924031": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999242444": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99925410": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99925598": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99926088": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99926110": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999279625": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99928253": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999291704": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99929302": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999299655": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99929967": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999299686": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99931282": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999314618": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999315128": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999315166": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999315196": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999320772": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999323557": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999327266": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999327350": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99934011": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999350327": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999352202": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999366447": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "99938734": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99938748": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999388654": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99939770": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99941432": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999414423": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999444949": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99944536": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999459379": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99946261": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99946599": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99946658": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999470219": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99947123": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99947143": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999477840": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99947914": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99948022": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99948413": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99948492": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99948667": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999488739": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999489436": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999489926": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999492961": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999493023": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999494670": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999495559": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999498016": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99950231": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999503929": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999526373": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999534694": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999534966": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999535629": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999536101": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999541446": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999544063": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999544290": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999545372": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999615962": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999628740": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999629710": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99963186": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999632907": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999647778": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999653457": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999752539": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999755615": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   }
+  },
+  "19SF.MT5822": {
+   "130085": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130620": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "130700": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130701": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130702": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130703": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130707": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130708": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130709": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130710": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130711": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130712": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130713": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130714": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130717": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130719": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130721": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130722": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130725": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130731": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130733": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130734": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130736": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130737": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130741": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130742": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130743": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130744": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130746": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130747": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130749": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130753": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130756": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2043689": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2160472": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2160502": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2160929": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2223729": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2223737": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2226002": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2277239": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2277241": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2277250": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2300463": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2360452": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2482893": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2547926": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2664859": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2669524": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2682973": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2682979": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2686493": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2728464": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2767252": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2779397": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2797681": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2797682": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2800037": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2811576": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2906644": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3036870": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3043423": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3049882": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3070121": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3074627": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3131078": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3131098": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3171928": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3199870": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3199871": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3199888": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "3199895": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "505303": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "506968": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "507034": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999166762": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999169740": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999169753": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999182768": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999183172": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999183223": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999185221": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999185610": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999194050": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99919683": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99920610": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99920807": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99921930": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999220885": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999221869": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999239251": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999239972": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999240054": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999240114": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999263267": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999264684": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999283052": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999283236": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999291749": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999291835": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999291952": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999292073": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999292320": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999292489": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999311991": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999322128": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999322945": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326042": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99932983": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99933033": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99934604": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999352296": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99935694": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99943493": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99943559": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99944272": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99946680": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99947142": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99950248": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999512106": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999512335": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999513600": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999513658": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99951846": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999526548": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999536249": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999536317": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999613939": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999614215": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999614612": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999615095": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999617380": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999617614": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999617744": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999629527": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999629898": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999632997": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999633088": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999633110": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99966412": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999717613": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999718136": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999720891": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999721072": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99978555": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99990965": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   }
+  },
+  "24SF.MT17302": {
+   "129902": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130693": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "130802": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130807": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "130942": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130945": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130970": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130976": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130994": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "131013": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "131017": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "131061": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "131065": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2097009": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2098606": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "2160475": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2187916": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2228975": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2266212": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2269459": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "2269493": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2466810": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2513873": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2647504": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2669523": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2736519": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2767248": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2767251": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2788800": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2825919": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3021116": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "3054862": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3055014": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3067657": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3067659": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3128424": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3128791": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3171873": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "3178438": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3178813": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3179493": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3179742": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3179814": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3180167": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3180173": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3180683": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3182966": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3183722": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3183949": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3184776": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3185221": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3185337": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3186086": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3186335": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3186777": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3186866": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3198957": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "3199037": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "3199868": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "505359": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999100592": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99911773": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99911814": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99911839": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999125769": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999125807": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999125854": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999125965": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999144111": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999144142": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999144204": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999144275": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999144289": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999144339": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999144498": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999149290": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999149378": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999167001": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999167009": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999167038": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999167087": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999173526": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999173576": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999173620": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999176883": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999177081": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999177122": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999177190": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999177228": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999178623": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999178638": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999178786": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999178978": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99918295": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999183515": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999183674": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999183692": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999187161": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999189122": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999189180": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999189210": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999189512": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999189549": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999189642": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999189726": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191281": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999191327": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999191499": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999191557": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999191643": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999191701": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191800": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99919704": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99919748": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99919876": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999202198": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999204853": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999204899": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999204967": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999217716": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999217753": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999217809": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999218476": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999218515": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999218577": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999218603": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99923899": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99923936": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999242081": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99924732": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999248588": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99926274": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99926340": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999265736": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999266029": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999266150": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999279103": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999282875": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999282929": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999283018": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999283186": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999283382": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999283433": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999283533": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99928562": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999293545": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999293728": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999296887": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999297851": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999299898": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999301740": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999301885": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999308974": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999310356": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999310450": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999313198": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999315387": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999316730": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999316779": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999317308": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999317618": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999317638": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999318676": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999322614": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999326458": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326806": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999326831": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999326859": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999326870": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999326883": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999327257": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999387340": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999387403": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999387427": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999387518": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999387647": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99943319": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99943586": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99943607": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999445034": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99945524": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999456710": {
+    "channel": "On",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "99946765": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999473495": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999473776": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999473889": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99948206": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99948222": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999487191": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999487412": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999487714": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999502312": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999502405": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99950241": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999502547": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999502813": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99950294": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99950453": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99950899": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "99951032": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999514394": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999514876": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999524192": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999535207": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999535312": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999535890": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999536277": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999544124": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99956764": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99960720": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "99960805": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "99961065": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99962208": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999630751": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999635669": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999635694": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999678717": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999682892": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99970154": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999721115": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999727853": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999727860": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99975317": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   }
+  },
+  "24SF.MT17304": {
+   "130824": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130842": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130866": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130870": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130871": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130873": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130874": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130876": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130877": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2063746": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2109477": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "2153374": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2221651": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2225981": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2225987": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2228985": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2512226": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2526269": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2536490": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2543811": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2590962": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2667745": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2673088": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2680244": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2680248": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2728357": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2728425": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "2779409": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2788784": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2788798": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2811578": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2816441": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2816444": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2816445": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3128431": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3128453": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3128780": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3128904": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3141643": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3200533": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999102159": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999120849": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999120924": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999120973": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999120982": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999144711": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999158692": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999158794": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999165458": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999165510": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999165559": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999165604": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999165669": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999165705": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999165801": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999167602": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999168302": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168344": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168379": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168403": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168451": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168483": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999168498": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168514": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168535": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168541": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999169862": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999169869": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999169873": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999179222": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999186918": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99918920": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99919052": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "99919186": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99919223": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99919295": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999198161": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99920405": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99920485": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99920819": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99920860": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "99920893": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99920939": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99921045": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999219461": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999219478": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999223273": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999223446": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999225970": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999225998": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999226093": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99923108": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99923196": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99923265": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99923328": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999251515": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99925267": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99925368": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99925403": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99925455": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99925487": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99925525": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99925580": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999256526": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999256601": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999256694": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99926417": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99926915": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999283669": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99928795": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99928897": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99928908": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99931112": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99931126": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99931133": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99931143": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99931147": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99931177": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99932182": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999326581": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326612": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326636": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99933188": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99934631": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934659": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99936090": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99937590": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999387291": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999388206": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999391009": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99939109": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99939245": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99939257": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999419538": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99942114": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99943284": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99943315": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99944588": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99944860": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99944975": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999456524": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99945719": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999464607": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99946815": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99947186": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999481531": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999481688": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999487701": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999492129": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999504656": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999507764": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99951691": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999526366": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999539846": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999545597": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999550421": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999618416": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999678206": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999751500": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999751831": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999755914": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999757837": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999760779": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999768041": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99989926": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   }
+  },
+  "25SF.MT19081": {
+   "130338": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130339": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "131003": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2070078": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2096951": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2097004": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2153362": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2153364": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2153365": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2187920": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2187926": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2223718": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2226000": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2226004": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2226012": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2277264": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2432076": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2432094": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2508781": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2511716": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2513010": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2513012": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2519425": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2547911": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2550608": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2558436": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2558437": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2684947": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2690266": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2728486": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2736520": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "2760153": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2782961": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2788783": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2863147": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2863148": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2888125": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3040809": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3054860": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3054868": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3054873": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3131127": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3135010": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3172040": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3172118": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3178036": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3178423": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3178798": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3178815": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3178833": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3179220": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3179485": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3180231": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3180521": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3181073": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3181086": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3181520": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3181607": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3182384": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3183644": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3185012": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3185875": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3187039": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3199048": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "507020": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999122069": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999126583": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999139743": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999149717": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999149884": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999158786": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999158800": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999159404": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999159447": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999159724": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999159763": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999161520": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999161672": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999161691": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999173651": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999173761": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999174099": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999176149": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999177162": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999183413": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999183474": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999186949": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999186972": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999190659": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999190908": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191034": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191266": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99919999": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99920116": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99920146": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99920216": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99920282": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999226666": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999233320": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999244372": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99924839": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99924905": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99924936": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99924962": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99924988": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99925011": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99925035": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99925214": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99925952": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99926420": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99926458": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99926696": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999269525": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999269780": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99927177": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99927210": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999280946": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999282897": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999282928": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999286332": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999286396": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999288114": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999289430": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999289638": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999289853": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999289925": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999289978": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999290595": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999290650": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999292155": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999292888": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999293240": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99929733": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99929754": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999297721": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999298219": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99929832": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999298510": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999299207": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999299273": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999301366": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999301395": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999301422": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999301448": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999301473": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999301510": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999301687": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99930469": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99930514": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999311424": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999311493": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999315200": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999315734": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999315924": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999315954": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999317310": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999317335": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999322192": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999322231": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999323891": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999326586": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99932968": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99933022": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99933038": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99933057": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99933097": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99937861": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999384817": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999392729": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999399627": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99941625": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99943482": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99943542": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99943579": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99943609": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999449451": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999466920": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99946946": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99946983": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99947004": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99947022": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "99947067": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99947090": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999471507": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999480892": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999495815": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999504062": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999513411": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999513559": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999525398": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999525630": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999525780": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999525933": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999526107": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999535292": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999535384": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999535474": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999535565": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999536185": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999537131": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999548706": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999629671": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999635597": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999654750": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999654809": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999662441": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999677843": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999677879": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999757498": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999760942": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99976157": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99987134": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "99989785": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   }
+  },
+  "25SF.MT19664": {
+   "130082": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130364": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130370": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130393": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130493": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130537": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130540": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130690": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130694": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130697": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130699": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130799": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130801": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130851": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130856": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130859": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130888": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "131032": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2096949": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2138049": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2138055": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2153360": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2224296": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2269458": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2269529": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2269577": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2505572": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2517050": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2522843": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2522874": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2779404": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2788796": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2816443": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2847351": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2863144": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2888122": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "3043425": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3077747": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3096243": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "3129663": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3131070": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3141863": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "506455": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999105571": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999118054": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999118318": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999118388": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999118462": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999118732": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99912159": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999122424": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999122465": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999122624": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999122655": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999122805": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99912674": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99912734": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999150961": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999151032": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999153031": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999161098": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999161128": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999176242": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999176298": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999176619": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99918245": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999182527": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99918330": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999189377": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999189435": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999191496": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191716": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191867": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191912": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191950": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999192275": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99920199": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99920260": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999217245": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999234056": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999282918": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999283755": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999291674": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999291855": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999299721": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999303793": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999303865": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999303965": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99930573": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999310414": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999316674": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999317395": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999317407": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99931766": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999319105": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999325548": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999334737": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99939259": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99943540": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99943551": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999449992": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99945845": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99945871": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99945956": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99946003": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999464285": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999469700": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999470572": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999470617": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999470911": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99947181": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99947189": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999478624": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999478663": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999478729": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999493433": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999505678": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999507292": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999509200": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999510657": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999512522": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99951502": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99951506": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99952068": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999524131": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999536585": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999537376": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999538512": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999538999": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999539103": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999542641": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999542715": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999548523": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999554859": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999614547": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999622196": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99962658": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999629563": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999629866": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999632696": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999638363": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999646817": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999667922": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999667953": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999668350": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999670648": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999671413": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999692172": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999692242": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999725317": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999727383": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999739545": {
+    "channel": "On",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999739857": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99975425": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999766733": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99996032": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   }
+  },
+  "25SF.MT19665": {
+   "130006": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130705": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130716": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130738": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130739": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130740": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130755": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130758": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2160474": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2160506": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2225968": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2225972": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2225977": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2226001": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2226014": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2228976": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2269583": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2525557": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2592378": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2592383": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2743205": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "2758735": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2767246": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2788778": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2790064": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2811572": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2908555": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3023083": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3028638": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3131123": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3132538": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3132654": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3141652": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3141654": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3141820": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3141823": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3141878": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3141901": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3141905": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3142710": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3142724": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3199007": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3199019": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "3199022": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "507101": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999129631": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999129839": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999133943": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999134128": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999144190": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999150113": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999150405": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999156265": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99915882": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99915898": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99915972": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999166869": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999166941": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999166961": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999167003": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999167023": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999167924": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999167971": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999168042": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999168091": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999168140": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999168227": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999168408": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999168421": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999170853": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999174229": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999174245": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999175765": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999176520": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999176723": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999179442": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999179560": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99917959": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999179633": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99918172": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99918335": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999186053": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999213763": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999214028": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999214842": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999214881": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999215010": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999215044": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999215149": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999215206": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999215285": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999215485": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215525": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215561": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215604": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215638": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215661": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215671": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215718": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215733": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215752": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215778": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215821": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215844": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215871": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215896": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215912": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215937": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215950": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999215970": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999244547": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99924765": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999266074": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999266119": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99926860": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999275826": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999276023": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99927633": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99927646": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99927686": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99927750": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99927788": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99927851": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99927876": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99927928": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99927962": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99928001": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999280435": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999283257": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999283424": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999299993": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999300699": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999300744": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999300836": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999300890": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99930105": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999301336": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999301609": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99931127": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999315593": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999315662": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999315731": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999317788": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999317807": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999321231": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999329527": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999329938": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999345257": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99937334": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99937513": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99937784": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99937801": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99937847": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99937851": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99937884": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999387496": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999411191": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99941435": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99941543": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99941735": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99944768": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99945513": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99945693": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999458799": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999462515": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999470748": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99947161": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999481275": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999481352": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999481442": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999498535": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99950479": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999506180": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999506412": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999506891": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999512454": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999513665": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999526437": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999526691": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999528272": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999539186": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99962804": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999630607": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999630631": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999632937": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999673342": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999673458": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999737623": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999760662": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999767693": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99995514": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   }
+  },
+  "25SF.MT19668": {
+   "130619": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130621": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130623": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130627": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130631": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130671": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "2138071": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2153356": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2160975": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2223715": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2225988": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2226010": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "2269472": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2269490": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2467921": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "2480342": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2480344": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2557252": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2625919": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2663285": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2758741": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2888129": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2908550": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3096238": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3131104": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3131131": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3178076": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3178644": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3178709": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3178831": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3179861": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3180082": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3180310": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3180599": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3180998": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3181257": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3181334": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3181948": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3182143": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3182326": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3183188": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3183265": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3183365": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3185202": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3185411": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3185748": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3185839": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3186243": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "505318": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "505321": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999101030": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99911488": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999115011": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99911522": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99911570": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99911594": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99911633": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99911639": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99911643": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999123082": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999128281": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999146887": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999152989": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99915532": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99915659": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99915964": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99916110": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999161850": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999167091": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999167284": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99917174": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999173167": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999173276": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999173455": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999173676": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999173752": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999176648": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999177045": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999177059": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999177186": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99917905": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999179122": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999179162": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99918382": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999186555": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999186962": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187007": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187077": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187153": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187191": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187225": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187289": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187349": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187499": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187561": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999190774": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191476": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999191681": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999192057": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99919773": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999199320": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999199862": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999199922": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999201634": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999202581": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999202759": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999202848": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999203263": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999204427": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999204726": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999204780": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999205057": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999205084": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999205138": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999205420": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999208457": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99920945": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99920956": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999214599": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999214655": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999214747": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999214853": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999215017": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999215156": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999215428": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999221111": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999221130": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999221140": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999221169": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999221201": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999221762": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999222228": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999222251": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999222335": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999222498": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999222555": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999222565": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999223621": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "99922829": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99922944": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "99922967": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99924307": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99925878": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99925882": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99927832": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999283102": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999283357": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999283472": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999283624": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999283801": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999283868": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999293015": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99929625": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999301160": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999311477": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999311718": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999317527": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999322591": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326793": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99938757": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999400556": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99942197": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99942366": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99942483": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99943859": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999456575": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99946019": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999463764": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99946597": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999472755": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999473220": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999473310": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999480811": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999504225": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999504337": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999504358": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999504466": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999504764": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999504934": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999507310": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999507665": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999507881": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999515093": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999525783": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999621705": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999630477": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99969717": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999738455": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999756103": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99978180": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99985289": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99998321": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   }
+  },
+  "26SF.MT22416": {
+   "129476": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130070": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "130504": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130538": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130813": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130818": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130829": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130854": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130887": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130897": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "130898": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130899": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130904": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "130909": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130915": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "130916": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "131049": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "131051": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2058375": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2084723": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2084727": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2138062": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2153370": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2160512": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2160990": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2225989": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2226005": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2226013": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2269487": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2357347": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2357352": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2398090": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2547922": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "2588097": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2589461": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2669526": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2739399": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2758740": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2788791": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2788797": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2788804": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2788806": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2790065": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2811551": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2858918": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2863165": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "3029059": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3043422": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3173137": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "3175649": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3199011": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "506895": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "506914": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "507087": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999122605": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999123999": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "99915270": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999155710": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999156368": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99916245": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99916400": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999165227": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999170087": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999170115": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999170873": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999173900": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999173929": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999174050": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999177159": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99918171": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999185205": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999185650": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999185801": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999186205": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999186709": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999186791": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999187114": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999191901": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999192611": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999197059": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99919798": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999198710": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999198852": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999198898": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999198976": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99919908": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999199561": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999199828": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999205102": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999205223": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999205477": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99920759": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999230272": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999242419": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999242973": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999262302": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999262372": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999283400": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999283797": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99928816": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999291809": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999295973": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999296122": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999296500": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99929715": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999297555": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999300186": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999303307": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99931085": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999311208": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99931144": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999315660": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999315833": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999316841": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999320187": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999320239": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999326497": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326588": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326754": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999326782": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999326924": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999327263": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99933631": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999384509": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99938642": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99938691": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999388117": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999420611": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99945006": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999462068": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999462155": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999462488": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999465637": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99947285": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999473475": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999473567": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99947412": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99947961": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99948004": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999490709": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999490980": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99949114": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999494708": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999496534": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999497486": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999502704": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999502779": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99950496": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999505376": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999540279": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999540827": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999545642": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999546469": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999548048": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999549206": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999549251": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999549659": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999556487": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99960978": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999617517": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999622214": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999622439": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999628304": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999628994": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999631167": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999631188": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999634178": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999637262": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999646977": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999685184": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999704623": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999710809": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999717671": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999727682": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999737847": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999763815": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999764518": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99989793": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99992839": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   }
+  },
+  "26SF.MT22672": {
+   "129570": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "129983": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130018": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "130093": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130831": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130890": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "130891": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "130987": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2160482": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2225964": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2228646": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2269580": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2509012": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2509024": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2525556": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2686490": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2728496": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2758739": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2788785": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2788787": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2814823": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2858916": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "3043421": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3133573": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99912695": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99912773": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99912806": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99912857": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99912883": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99913000": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999157841": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999157863": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999164897": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999164984": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165197": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165219": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165249": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165308": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165344": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999165358": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999173905": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999174001": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999174036": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999174184": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999174304": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99917688": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999182461": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999182740": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999186897": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999186961": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187039": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999187142": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999188256": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999188285": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999188352": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999188388": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99919722": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999197422": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999197567": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999197642": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999197795": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999210836": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999216138": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999216183": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999216219": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999216262": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999216284": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999216342": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999216365": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999242284": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99924484": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99925284": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99925467": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99925497": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99925521": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999262409": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999262456": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999284259": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999284330": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999284359": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999284397": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999288196": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999292891": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999294011": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999298284": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999304652": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999311077": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99931357": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999314812": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999318841": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999319468": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999321952": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999325410": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "99932627": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99932640": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999327492": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99932973": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99933313": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99933346": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99934222": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99935671": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99935695": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99935731": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99935782": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99935817": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99935874": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99936425": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99936508": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99938000": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999387568": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999387601": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99938809": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99938932": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99940762": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99940779": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999417672": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999419046": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999419146": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99942778": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99942803": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999447104": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999449103": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999457141": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99945869": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999465321": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999465360": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999465518": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999470084": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999470120": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99948709": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999488069": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999505177": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999511902": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999512131": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999513351": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99952382": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99952402": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99952463": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999535996": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999548557": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999556238": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99962322": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999630071": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999630303": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99965933": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999662041": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999683134": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999710343": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999713291": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999727831": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999735769": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999757912": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999764208": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99993203": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99993269": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99997056": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   }
+  },
+  "26SF.MT22673": {
+   "130329": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130330": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130331": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130333": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130334": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130336": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "130358": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2211742": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2269457": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2331807": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2331822": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2520064": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2547927": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2811565": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2811571": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2816970": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2816971": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2863149": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "2873037": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2873038": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2888123": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "3021111": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3054864": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3054870": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3077720": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3080602": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "3135002": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3178919": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3179357": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3180724": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3181674": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3182834": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3183817": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3184006": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3184898": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3185274": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3186734": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "3192789": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "3192795": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "504488": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999112217": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99911395": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999116557": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999124818": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999124921": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999125103": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999125121": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999127834": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999128081": {
+    "channel": "On",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999146518": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999146855": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999146960": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999147332": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999147520": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999147607": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999147748": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999147935": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999183369": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999183425": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999183607": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999183757": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999191520": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999217956": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999218197": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999218950": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999219062": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999219174": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999224612": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99927477": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99928101": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99928189": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99928219": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99928271": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99928469": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999288025": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999292425": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999292671": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999292823": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999308648": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999323477": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999323523": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999323579": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999323632": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999323699": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999323736": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999323954": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999324228": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999325251": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999325302": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999325914": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999325927": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999326005": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326040": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326088": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326649": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326888": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999326929": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99933622": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99933857": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99934181": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934243": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99934292": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99934355": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999343989": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934470": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999345077": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99934511": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934528": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934575": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934647": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934702": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934803": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99935443": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99935834": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99937363": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99937404": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99937482": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99939408": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999420573": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999449150": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999456234": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999456689": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999461782": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99947055": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99947071": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99947178": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99947196": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999474809": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999483031": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99948775": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999501816": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999502158": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999505133": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999505188": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999505247": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99951083": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999527714": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999527777": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999527972": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999528312": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999534956": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999534982": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99953573": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999678242": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999715999": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999720548": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999720591": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999726362": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999759533": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99996836": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   }
+  },
+  "26SF.MT23327": {
+   "129994": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130948": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130949": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130950": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130955": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130959": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130961": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130962": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130963": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130964": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130969": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130972": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "130973": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130975": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130977": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "130978": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "130981": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "131060": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "2178201": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2178203": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2178206": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "2219711": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2221700": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2223730": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2228944": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2228973": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2240953": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2240954": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2269506": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2269517": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2269525": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "2360456": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2413469": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2522835": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2522846": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2522852": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "2538362": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "2746089": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2779412": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2825920": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "2873024": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2873029": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "2873041": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "2873042": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3025184": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3025185": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3043424": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3109358": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3109359": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3109361": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3130181": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3131120": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3133126": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "3141858": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "3178540": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3178992": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3179109": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3179545": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3181137": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3181593": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3182122": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3183173": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3184070": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3184907": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3185187": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "3186028": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "3186400": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "506983": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999102131": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999102231": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999118923": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999119597": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999120921": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999127163": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99912756": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999130484": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999144890": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999145149": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999161974": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99916617": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99916731": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999175317": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999176888": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999176941": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999176994": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999177423": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999177477": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999177552": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999182305": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999185862": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999185928": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,Thứ 6,"
+   },
+   "999186139": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999186253": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999188703": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999189760": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999190219": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "999193916": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999194047": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999194096": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999194162": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999194421": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999201401": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999201427": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999205013": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999207479": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999207918": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999208445": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999208578": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99921105": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999211168": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999211276": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99921217": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99922018": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99922470": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99923126": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99923198": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99923242": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99923323": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999233247": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99923405": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99925428": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "999255129": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999257976": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999258056": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999258145": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999258178": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999258378": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999279195": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99928192": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999294996": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999295857": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999299616": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999299782": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999299976": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999304969": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999308712": {
+    "channel": "Off",
+    "visit_day": "Thứ 2,"
+   },
+   "999310193": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999317512": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "999319567": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999319734": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99932540": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99932620": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999329374": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999344655": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99934865": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99935050": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "999352255": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999354562": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999354902": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999355494": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999367929": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "999370740": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "999388126": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99942430": {
+    "channel": "Off",
+    "visit_day": "Thứ 5,"
+   },
+   "99942588": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99943801": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99943825": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "99943867": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999452106": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999464632": {
+    "channel": "On",
+    "visit_day": "Thứ 2,Thứ 5,"
+   },
+   "999471529": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "999472139": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99947564": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999482897": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999493741": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999493789": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999494446": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999505052": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999505111": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999505421": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999505899": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999506150": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "99951125": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999511710": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999524550": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999524796": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999527219": {
+    "channel": "On",
+    "visit_day": "Thứ 2,"
+   },
+   "999549514": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999549542": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999549595": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "999616626": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "999627696": {
+    "channel": "On",
+    "visit_day": "Thứ 3,"
+   },
+   "999633849": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "999686031": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99978054": {
+    "channel": "Off",
+    "visit_day": "Thứ 6,"
+   },
+   "99978153": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99978441": {
+    "channel": "Off",
+    "visit_day": "Thứ 3,"
+   },
+   "99980993": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99981044": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99981351": {
+    "channel": "On",
+    "visit_day": "Thứ 4,"
+   },
+   "99983286": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99983538": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99983591": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99983607": {
+    "channel": "On",
+    "visit_day": "Thứ 5,"
+   },
+   "99985632": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99987496": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99987551": {
+    "channel": "Off",
+    "visit_day": "Thứ 7,"
+   },
+   "99990180": {
+    "channel": "On",
+    "visit_day": "Thứ 7,"
+   },
+   "99993538": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99997049": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   },
+   "99997173": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,Thứ 7,"
+   },
+   "99998895": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99999122": {
+    "channel": "On",
+    "visit_day": "Thứ 6,"
+   },
+   "99999781": {
+    "channel": "Off",
+    "visit_day": "Thứ 4,"
+   }
+  }
+ }
+}

@@ -1,0 +1,21 @@
+# Chương trình gắn kết "1 % gia vị" — kỳ 2026-10 (/2026; kế hoạch + giả thuyết ghi trước:
+# Nguồn luật: chữ trang theo dõi của đội (trang sếp gửi, số chốt 31/10) — không có trong công văn số 21. Chữ luật GỐC là công văn 442 (sếp gửi thêm 11/11 tối;
+# A mở cả công văn lẫn file này: khớp 110 %, 1 %, trần 1 tr, nền T6–T8 chia 3 — dòng 33; E chưa tự mở 442):
+#   "Chương trình gắn kết 1% gia vị: Hạt nêm, Nước tương Chinsu (Tỏi ớt, Nấm), Nước mắm Nam Ngư Đệ II, Siêu tiết kiệm"
+#   "Thưởng 1% = 1% doanh số tích lũy gia vị khi KH đạt ≥110% doanh số nền tảng (T6–T8 chia 3), tối đa 1.000.000đ/KH"
+# Tiền trả cho KHÁCH (điểm bán), không phải cho NV [trước là suy luận D / C; nay có chữ công văn 442 — cùng file phân loại, dòng 71] ⇒ hiện riêng, KHÔNG cộng vào lương 8 KPI / Thưởng thêm.
+period: "2026-10"
+rule_text: "Thưởng 1% = 1% doanh số tích lũy gia vị khi KH đạt ≥110% doanh số nền tảng (T6–T8 chia 3), tối đa 1.000.000đ/KH"
+# Nhóm hàng theo cột RAW `DMS OBJ` (giả thuyết G1) — tên phải có trong RAW, không có ⇒ dừng
+dms_obj: ["Hạt nêm Chinsu", "Hạt nêm Chinsu siêu tiết kiệm", "Nước tương Chinsu Tỏi ớt", "Nước tương Chinsu Nấm",
+          "Nước mắm Nam Ngư Đệ II", "Nước mắm Nam Ngư siêu tiết kiệm", "Nước mắm Nam Ngư siêu tiết kiệm Can"]
+sales_column: "Sales After Discount"   # G2 — khác KPI 1 (Before): "doanh số tích lũy" của khách là tiền khách trả (D dò khớp trang 1.351 / 1.351)
+threshold_pct: 110                     # đạt khi doanh số ≥ 110 % nền tảng
+rate_pct: 1                            # thưởng = 1 % doanh số
+cap_per_customer: 1000000              # trần mỗi khách (đồng)
+# Nền tảng + danh sách khách: sổ Tracking sheet "1% gia vi" (dòng tiêu đề 11, dữ liệu từ dòng 12; cột A mã KH, C tên NV, D "Chỉ tiêu" = nền T6–T8 chia 3)
+baseline:
+  file: "sample_data/thang_10/Tracking.xlsx"
+  sheet: "1% gia vi"
+  header_row: 11
+  columns: {customer: "Outlet Code", employee_name: "Tên nhân viên", baseline: "Chỉ tiêu"}

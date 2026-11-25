@@ -1,0 +1,157 @@
+# Luật thưởng lương kinh doanh ĐDKD đội Mix lẻ — tháng 10/2026 (cách A: YAML + hàm Python đọc).
+# Nguồn: công văn số 21–011026/INC-KD-MSC-NET-MBD-CDGT ngày 01/10/2026, mục 5.1 (tỷ trọng, tiền 100 %), 5.2 (mốc),
+# 2.3 (LPPC theo miền), 7 (thưởng vượt). Mỗi mốc có `label` chép nguyên chữ công văn — rules.py so số trong label
+# với số của mốc để chặn lỗi gõ (vd 95 gõ thành 59); `printed_amount` chép số tiền in sẵn ở mục 5.2 / 2.3 — rules.py
+# kiểm amount_100 × pay_ratio = printed_amount (chặn lỗi gõ tỷ lệ tiền, vd 0,80 thành 0,08).
+# Tháng sau đổi luật: chép file thành rules_2026_11.yaml rồi sửa số; chạy test để kiểm khuôn.
+# BẢN CHO ĐƯỜNG RAW DATA (10/11): chép NGUYÊN rules_2026_10.yaml, chỉ khác khối `assumptions` (theo công văn + trang sếp). Mốc / tiền phải giống hệt —
+# test_load_raw.py so hai file trừ assumptions. Khi workflow chính đổi sang RAW ⇒ gộp về một file.
+
+period: "2026-10"
+business_salary_total: 14540000   # B. Lương kinh doanh khi đạt 100 % cả 8 KPI
+
+working_days:
+  # "Ngày công chuẩn: tổng số ngày trong tháng trừ Chủ nhật và ngày nghỉ lễ theo quy định Nhà nước" (mục 2.2)
+  exclude_sundays: true
+  holidays: []                    # tháng 10/2026 không có ngày lễ quốc gia
+
+assumptions:
+  # Chỗ công văn mơ hồ — THEO CÔNG VĂN + TRANG SẾP 10/11 ("sếp giao gì thì tôi cũng đã gửi cho bạn đầy đủ rồi, không cần chờ sếp nữa").
+  # Trang sếp = "Tracking KPI Lam Phương" (số chốt 31/10; phân tích sample_data/thang_10/PHAN_TICH_TRANG_SEP_10_11.md).
+  turnover_basis: before_discount        # công văn "tổng doanh số bán ra"; trang sếp KPI 1 = Sales Before Discount (khớp 14/14 NV)
+  aso_focus_2_scope: sku_list            # công văn: một mã túi 2,9 kg; trang sếp KPI 6 chỉ đếm mã đó (393, khớp 14/14). Sổ Tracking lọc cả nhóm
+  aso_focus_2_skus: ["04HP00639"]        # "Nước giặt xả Homey đậm đặc hương hoa trà Jeju tinh tế 4túi x 2.9kg" (RAW DATA tháng 10)
+  # Bậc 3a: giá trị THEO THÁNG mà trước đây ghi cứng trong code (core/load_raw.py) — tháng sau đổi nhóm / mã thì sửa ở file luật của kỳ đó.
+  # Thiếu khoá ⇒ dừng nêu tên khoá (không có mặc định). Giá trị dưới = đúng giá trị code đã dùng cho tháng 10 ⇒ số không đổi.
+  aso_focus_2_label: "Nước giặt xả Homey túi 2,9 kg"   # tên nhóm mã KPI 6 trong chữ "cách đếm" (mã không phải tên đọc được)
+  aso_focus_groups: ["Trà Búp Non Tea 365"]            # KPI 5 — ô lọc pivot DMS OBJ (thay bằng aso_focus_skus + aso_focus_label nếu tháng đó theo mã)
+  counted_status: [Invoiced, Shipped]                  # chú thích trang sếp: "đơn đã xuất hóa đơn và đơn Shipped" (RAW tháng 10 chỉ có Invoiced)
+  invoice_deadline: {day: 2, hour: 22}                 # công văn 6.1: xuất hoá đơn trước 22h ngày 02 của THÁNG SAU kỳ
+  lppc_excluded_subdiv: [Processed Meats, Beer]        # KPI 3: trang sếp ghi "LPPC (trừ Meat & Bia)" — ô lọc pivot SUB DIV
+  lppc_meat_subdiv: Processed Meats                    # KPI 8 LPPC_Meat — ngành (SUB DIV)
+  exclude_outlets_outside_mcp: true      # công văn 6.2: "Khách hàng hợp lệ: Outlet phải nằm trong danh mục MCP của ĐDKD đó" — chữ công văn áp cho MỌI KPI
+                                         # ("VẪN CHẤP NHẬN tính Turnover, PC, ASO_ALL… trái tuyến. Điều kiện: KH thuộc MCP của chính ĐDKD").
+                                         # Lệch trang đã biết: NV08 PC_ON 65 (trang 67) — 2 đơn ở cửa hàng không thuộc MCP của ai (trang tính cả).
+                                         # MCP = tab "Chi tiết" trang sếp (sample_data/thang_10/mcp_trang_sep_3110.json — scripts/tach_mcp_trang_sep.py).
+  # ĐỔI 11/11 (QĐ-09 — theo chữ công văn 6.2, mục 2b), thay
+  # " 10/11 (giữa 10:47 và 10:49): CHỈ 5 KPI đếm cửa hàng; Turnover / PC_BT / LPPC không lọc (trang sếp KPI 1 khớp 14/14 khi không lọc)":
+  # lọc MỌI KPI. RAW 31/10 (C ghi ca trước khớp): 112 ô tiền không đổi (126.660.000); 6 ô thực hiện đổi — NV04 Turnover / PC_BT / LPPC,
+  # NV08 Turnover, NV14 Turnover / PC_BT (13 dòng ở cửa hàng ngoài MCP) ⇒ lệch trang sếp thêm ⇒ giới hạn "trang khác" (trang không lọc 3 KPI này).
+  # Chỉ dữ liệu RAW lọc được (khối pivot Tracking không có mã cửa hàng ⇒ dừng). Thiếu khoá ⇒ chỉ 5 KPI đếm cửa hàng (như 10/11).
+  # ĐỔI 16/11 (mốc 7 N1 — chuẩn mới, lời: "dựa vào kết quả chính xác ở file Tracking KPI Team Lam Phương của sếp … suy ngược ra công thức";
+  # đợt 16/11 mục 5; BANG_LECH_TRANG_T10.md mục 2–3), thay QĐ-09 ở trên: trang KHÔNG lọc tuyến ở Turnover / PC_BT / LPPC / PC_ON
+  # (bỏ lọc ⇒ Turnover 13/14 → 14/14 cùng N2, LPPC 14/14, PC_ON 14/14), CÓ lọc ở 4 KPI dưới (bỏ lọc ASO_ALL ⇒ 14/14 tụt 11/14). Câu hỏi sếp số 4.
+  mcp_filter_kpis: [ASO_ALL, ASO_Focus, ASO_Focus_2, LPPC_Meat]
+  # LPPC / LPPC_Meat: dòng hàng tặng (FREE ITEM FLAG = Y) KHÔNG là "line" — 10/11; căn cứ 8.1 "Số lượng MUA tối thiểu"
+  # (hàng tặng không phải hàng mua); công văn KHÔNG nói thẳng. So mù trang sếp: khớp LPPC 12/14, Meat 13/14. PC_BT / PC_ON không áp.
+  lppc_lines_exclude_free_items: true
+  # PC_BT / PC_ON (và mọi khối đếm line / PC): dòng hàng tặng KHÔNG là line đạt MOQ — ĐỔI 11/11 ( theo chữ công văn 8.1 "Số lượng MUA tối thiểu";
+  # sau QĐ-09), thay "PC_BT / PC_ON không áp" (10/11). ASO đếm cửa hàng theo doanh số MOQ — không đổi ở đây.
+  moq_lines_exclude_free_items: true
+  # LPPC / LPPC_Meat: cửa hàng có ≥ 2 đơn CÙNG đạt trong 1 ngày ⇒ 1 PC (công văn) — "Total line" lấy line của 1 đơn (đơn nhiều line nhất) hay cộng cả hai:
+  # CHỮ CÔNG VĂN MƠ HỒ, chọn theo trang sếp (thử đúng 2 cách) — "one" khớp NV04 6,591 / NV11 6,344, "all" không khớp.
+  lppc_same_day_lines: one
+  # Mốc 7 N2 (16/11, chuẩn mới: trang sếp đúng — đợt 16/11 mục 5 — BANG_LECH_TRANG_T10 mục 2–3): trang CỘNG dòng hoá đơn xuất sau
+  # 22:00 ngày 02/11 (công văn 6.1 loại) vào Turnover + PC_BT (Turnover NV05 chỉ khớp khi cộng; PC_BT 14/14 cần cộng); LPPC_Meat NV05 chỉ khớp
+  # khi KHÔNG cộng ⇒ không có trong danh sách. KPI khác: cộng hay bỏ đều khớp trang ⇒ giữ bỏ theo chữ 6.1. Câu hỏi sếp số 2.
+  late_invoice_kpis: [Turnover, PC_BT]
+  # Mốc 7 N3 (16/11, chuẩn mới: trang sếp đúng — BANG_LECH_TRANG_T10 nhóm N3, độc lập 16:30): trang đếm PC_BT = đơn Off có ≥ 1 mã đạt MOQ,
+  # KHÔNG tính Bia, tối đa 1 đơn / ngày / cửa hàng (14/14 NV). Công văn 2.2 ghi "ít nhất 4 line", không loại Bia (trước 16/11 mình theo công văn: 4).
+  # Không có văn bản cho cách của trang ⇒ câu hỏi sếp số 3 (c).
+  pc_bt_min_lines: 1
+  pc_bt_excluded_subdiv: [Beer]
+  # Bậc 1 nạp dữ liệu chung (17/11, User "P1 theo bậc"): luật KỲ — trạng thái nào phải có ngày xuất hoá đơn mới được tính (công văn 6.1 đọc như
+  # trước: mọi đơn). RAW tháng 10 chỉ có Invoiced ⇒ không đổi số. Tháng sau có Shipped chưa xuất hoá đơn thì ghi rõ ở luật kỳ đó (câu hỏi sếp).
+  invoice_required_status: [Invoiced, Shipped]
+  # Cổng đối soát: doanh số bị loại (trừ đơn sau ngày chốt) > 2 % doanh số tới ngày chốt ⇒ dừng, báo số dòng + tiền từng lý do.
+  # Tháng 10: 0 % (3 dòng trễ có ngày xuất KPI 1 cộng — mốc 7). Tháng 11 thử: 47 % (Shipped trống ngày xuất) ⇒ chặn.
+  max_excluded_sales_pct: 2
+  lppc_min_lines: 4                      # mục 2.3: LPPC chỉ tính đơn có ít nhất 4 line đạt MOQ
+
+# Bậc 3a: số mục công văn của từng KPI (bảng 5.1, cột "(2.x)") — công văn tháng khác đánh số khác thì sửa ở đây. Dùng trong chữ "cách đếm" và ô
+# `cong_van_section` của công cụ; thiếu khoá ⇒ không nêu mục (không đoán).
+cong_van_sections: {Turnover: "2.1", PC_BT: "2.2", LPPC: "2.3", ASO_ALL: "2.4", ASO_Focus: "2.5", ASO_Focus_2: "2.6", PC_ON: "2.7", LPPC_Meat: "2.8"}
+
+kpis:
+  Turnover:
+    amount_100: 5600000
+    weight_pct: 38.5144
+    measure: pct_of_target
+    tiers:
+      - {min: 95, pay_ratio: 0.70, printed_amount: 3920000, label: "Đạt 95%"}
+      - {min: 100, pay_ratio: 1.00, printed_amount: 5600000, label: "Đạt 100%"}
+  PC_BT:
+    amount_100: 2200000
+    weight_pct: 15.1307
+    measure: pct_of_target
+    tiers:
+      - {min: 100, pay_ratio: 1.00, printed_amount: 2200000, label: "Đạt 100%"}
+  LPPC:
+    amount_100: 2000000
+    weight_pct: 13.7551
+    measure: value_by_region          # mốc là giá trị LPPC tuyệt đối, khác nhau theo miền (mục 2.3)
+    region_tiers:
+      "Sông Hồng & Tây Bắc – Đông Bắc":
+        - {min: 5.5, pay_ratio: 0.90, printed_amount: 1800000, label: "Mức 1: 5.5"}
+        - {min: 6, pay_ratio: 1.00, printed_amount: 2000000, label: "Mức 2: 6"}
+      "Bắc Trung Bộ & Đông":
+        - {min: 5, pay_ratio: 0.90, printed_amount: 1800000, label: "Mức 1: 5"}
+        - {min: 5.5, pay_ratio: 1.00, printed_amount: 2000000, label: "Mức 2: 5.5"}
+      "Miền Tây":
+        - {min: 4.3, pay_ratio: 0.90, printed_amount: 1800000, label: "Mức 1: 4.3"}
+        - {min: 4.7, pay_ratio: 1.00, printed_amount: 2000000, label: "Mức 2: 4.7"}
+      "Nam Trung Bộ & Tây Nguyên":
+        - {min: 4.5, pay_ratio: 0.90, printed_amount: 1800000, label: "Mức 1: 4.5"}
+        - {min: 4.7, pay_ratio: 1.00, printed_amount: 2000000, label: "Mức 2: 4.7"}
+  ASO_ALL:
+    amount_100: 1040000
+    weight_pct: 7.1527
+    measure: pct_of_target
+    tiers:
+      - {min: 100, pay_ratio: 1.00, printed_amount: 1040000, label: "Đạt 100%"}
+  ASO_Focus:
+    amount_100: 1000000
+    weight_pct: 6.8776
+    measure: pct_of_target
+    tiers:
+      - {min: 90, pay_ratio: 0.80, printed_amount: 800000, label: "Đạt 90%"}
+      - {min: 100, pay_ratio: 1.00, printed_amount: 1000000, label: "Đạt 100%"}
+  ASO_Focus_2:
+    amount_100: 800000
+    weight_pct: 5.5021
+    measure: pct_of_target
+    tiers:
+      - {min: 90, pay_ratio: 0.80, printed_amount: 640000, label: "Đạt 90%"}
+      - {min: 100, pay_ratio: 1.00, printed_amount: 800000, label: "Đạt 100%"}
+  PC_ON:
+    amount_100: 1500000
+    weight_pct: 10.3163
+    measure: pct_of_target
+    tiers:
+      - {min: 100, pay_ratio: 1.00, printed_amount: 1500000, label: "Đạt 100%"}
+  LPPC_Meat:
+    amount_100: 400000
+    weight_pct: 2.7511
+    measure: value                     # mục 2.8: "Mức 1: 3.8", toàn quốc
+    tiers:
+      - {min: 3.8, pay_ratio: 1.00, printed_amount: 400000, label: "Mức 1: 3.8"}
+
+# Vùng trong file chỉ tiêu (cột Region) ⇒ miền của mục 2.3. Vùng chưa có trong bảng ⇒ rules.py báo lỗi, không đoán.
+region_map:
+  "CD - Nam Trung Bộ": "Nam Trung Bộ & Tây Nguyên"
+
+over_target_bonus:
+  # Mục 7.2: NPP chi khi NPP đạt ≥ 100 % VÀ doanh số ĐDKD > 103 %; = 2 % × (thực đạt − chỉ tiêu 100 %), trần 2 tr
+  rate_pct: 2
+  npp_min_pct: 100
+  employee_above_pct: 103
+  # Nhãn chép nguyên chữ công văn 7.2 — rules.py so số trong nhãn với ngưỡng ngay trên (2 ví dụ in sẵn không ghim
+  # được ngưỡng: gõ 103 thành 104 / 110 vẫn ra đúng ví dụ — 02/11)
+  npp_min_label: "Tổng doanh số bán ra của NPP phải đạt ≥ 100%"
+  employee_above_label: "Doanh số thực đạt của ĐDKD phải vượt trên 103%"
+  cap: 2000000
+  # Ví dụ in sẵn trong công văn (bảng sau mục 7.2) — rules.py chạy hàm thưởng vượt trên các ví dụ này, ra khác ⇒ chặn
+  # (bắt lỗi gõ tỷ lệ / trần / ngưỡng). paid = tiền NPP chi; raw = 2 % × chênh trước khi áp trần.
+  printed_examples:
+    - {target: 800000000, actual: 910000000, npp_pct: 108, raw: 2200000, paid: 2000000}   # Nguyễn Văn A — chạm trần
+    - {target: 500000000, actual: 500000000, npp_pct: 108, raw: 0, paid: 0}               # Nguyễn Văn B — 100 % ≤ 103 %

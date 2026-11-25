@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="vi">
+  <!-- Bước 2b: trang kéo–thả riêng (CSS riêng, không lẫn trang chính) — cùng CSP với index.html -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP (C rà bảo mật R6, 03/11; 03/11 trưa bỏ Google Fonts — SPEC mục 2 "không mở mạng ngoài", C kiểm v2): ảnh chỉ từ chính trang; gọi mạng chỉ về chính trang (backend / agent đi qua proxy Vite cùng cổng) ⇒ nếu câu trả lời
+         có link / ảnh markdown chứa số tiền thì trình duyệt cũng không tự tải ra ngoài. 'unsafe-inline' cho script / style: Vite dev chèn đoạn mở đầu React. -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; img-src 'self' data:; connect-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <title>Sửa workflow KPI — kéo thả</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/keo_tha/main.tsx"></script>
+  </body>
+</html>

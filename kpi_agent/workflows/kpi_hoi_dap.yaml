@@ -1,0 +1,47 @@
+# Workflow hỏi đáp KPI — khối agent có công cụ.
+# 6 khối tính như kpi_thuong_nvbh.yaml ⇒ khối agent nhận số từ chính các khối đó; mỗi khối kpi_tool = một công cụ agent được dùng, nối dây vào cổng `tools`.
+# Bỏ một dây công cụ ⇒ trợ lý không gọi được công cụ đó (code chặn). Câu hỏi + ngày chốt là tham số lượt (--question, --cutoff), không nằm trong file.
+# Nối ĐỦ mọi công cụ khối gọi được (= công cụ của đường chat trừ get_data_provenance — chưa nối được, cần bảng lưu bản tính của backend);
+# 10/11: thêm 3 công cụ nhóm A bậc mức tra cứu (t_team_kpi, t_compare, t_issues) — bản 09/11 thiếu ⇒ lượt T5 đầu so không cùng điều kiện với chat (B tự bắt).
+workflow: kpi_hoi_dap
+nodes:
+  - {id: rules,    type: load_rules,    params: {path: kpi_agent/config/rules_2026_10.yaml}}
+  - {id: targets,  type: read_targets,  params: {path: "sample_data/thang_10/Chi tieu NVBH.xlsx"}}
+  - {id: tracking, type: read_tracking, params: {path: sample_data/thang_10/Tracking.xlsx}}
+  - {id: check,    type: check_data}
+  - {id: kpi,      type: compute_kpi}
+  - {id: bonus,    type: compute_bonus, params: {npp_turnover_pct: null}}
+  - {id: t_team,     type: kpi_tool, params: {tool: get_team_bonus_table}}
+  - {id: t_employee, type: kpi_tool, params: {tool: get_employee_result}}
+  - {id: t_gap,      type: kpi_tool, params: {tool: get_mid_month_gap}}
+  - {id: t_explain,  type: kpi_tool, params: {tool: explain_kpi}}
+  - {id: t_chance,   type: kpi_tool, params: {tool: get_opportunities}}
+  - {id: t_what_if,  type: kpi_tool, params: {tool: simulate_kpi_change}}
+  - {id: t_team_kpi, type: kpi_tool, params: {tool: get_team_kpi_summary}}
+  - {id: t_compare,  type: kpi_tool, params: {tool: compare_employees}}
+  - {id: t_issues,   type: kpi_tool, params: {tool: get_data_issues}}
+  - {id: agent,    type: kpi_agent,     params: {reasoning: medium, max_tool_calls: 5}}
+edges:
+  - {from_node: targets,  from_port: targets,  to_node: check, to_port: targets}
+  - {from_node: tracking, from_port: tracking, to_node: check, to_port: tracking}
+  - {from_node: targets,  from_port: targets,  to_node: kpi,   to_port: targets}
+  - {from_node: tracking, from_port: tracking, to_node: kpi,   to_port: tracking}
+  - {from_node: rules,    from_port: rules,    to_node: kpi,   to_port: rules}
+  - {from_node: kpi,      from_port: results,  to_node: bonus, to_port: results}
+  - {from_node: rules,    from_port: rules,    to_node: bonus, to_port: rules}
+  - {from_node: targets,  from_port: targets,  to_node: bonus, to_port: targets}
+  - {from_node: rules,    from_port: rules,    to_node: agent, to_port: rules}
+  - {from_node: targets,  from_port: targets,  to_node: agent, to_port: targets}
+  - {from_node: tracking, from_port: tracking, to_node: agent, to_port: tracking}
+  - {from_node: check,    from_port: issues,   to_node: agent, to_port: issues}
+  - {from_node: kpi,      from_port: results,  to_node: agent, to_port: results}
+  - {from_node: bonus,    from_port: bonuses,  to_node: agent, to_port: bonuses}
+  - {from_node: t_team,     from_port: tool, to_node: agent, to_port: tools}
+  - {from_node: t_employee, from_port: tool, to_node: agent, to_port: tools}
+  - {from_node: t_gap,      from_port: tool, to_node: agent, to_port: tools}
+  - {from_node: t_explain,  from_port: tool, to_node: agent, to_port: tools}
+  - {from_node: t_chance,   from_port: tool, to_node: agent, to_port: tools}
+  - {from_node: t_what_if,  from_port: tool, to_node: agent, to_port: tools}
+  - {from_node: t_team_kpi, from_port: tool, to_node: agent, to_port: tools}
+  - {from_node: t_compare,  from_port: tool, to_node: agent, to_port: tools}
+  - {from_node: t_issues,   from_port: tool, to_node: agent, to_port: tools}
