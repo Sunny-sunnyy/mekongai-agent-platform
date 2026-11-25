@@ -1,0 +1,54 @@
+# Cấu hình sạch cho dịch vụ kpi-backend (đã tách khỏi đường dẫn máy cố định)
+# Dùng cùng tệp mã nguồn kpi_agent/ (bản đóng băng) và thư mục dữ liệu mẫu sample_data/thang_10/.
+# Đường dẫn trạng thái và kết quả chạy lấy qua biến CAPITOL_RUNTIME_DIR (mặc định ./runtime).
+
+services:
+  kpi-backend:
+    image: ${KPI_BACKEND_IMAGE:-capitol-local/kpi-backend:252dc30a}
+    build:
+      context: ../docker_build/kpi-backend
+      dockerfile: Dockerfile
+    container_name: capitol-kpi-backend
+    restart: unless-stopped
+    working_dir: /srv/kpi
+    entrypoint: []
+    command:
+      - python
+      - -m
+      - uvicorn
+      - --app-dir
+      - /srv/kpi
+      - kpi_agent.backend.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8099"
+    env_file:
+      - ../env/kpi.khoa.env
+    environment:
+      PYTHONPATH: /srv/kpi
+      KPI_STORE_DIR: /srv/kpi_store
+      KPI_UPLOAD_DIR: /srv/kpi_store/uploads
+      KPI_RULES_YAML: /srv/kpi/kpi_agent/config/rules_2026_10_raw.yaml
+      KPI_EXTRA_BONUS_YAML: /srv/kpi/kpi_agent/config/extra_bonus_2026_10.yaml
+      KPI_WORKFLOW_TEMPLATE: /srv/kpi/kpi_agent/workflows/kpi_thuong_nvbh_raw.yaml
+      KPI_DEFAULT_WORKFLOW: kpi_thuong_nvbh_raw
+    volumes:
+      - ../kpi_agent:/srv/kpi/kpi_agent:ro
+      - ../sample_data/thang_10:/srv/kpi/sample_data/thang_10:ro
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/kpi_store:/srv/kpi_store
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/kpi_store/uploads:/srv/kpi/kpi_agent/data/uploads
+    ports:
+      - "127.0.0.1:18401:8099"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8099/api/health', timeout=3)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - kpi_noi_bo
+
+networks:
+  kpi_noi_bo:
+    name: capitol_kpi_noi_bo

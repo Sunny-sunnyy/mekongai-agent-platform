@@ -1,0 +1,29 @@
+# [ghi chú] Máy chủ MCP Exa của mình — EXA_SEARCH + EXA_GET_CONTENTS_ACTION đúng tên Capitol (chay_thu/va_exa/KE_HOACH.md).
+# Dùng CHỒNG như compose.mcp_shop.yaml. KHÔNG có ports: ⇒ chỉ hộp trong mạng compose gọi được (worker gọi http://mcp-exa:8766/mcp).
+# Khoá Exa CHỈ ở hộp này (env/exa.khoa.env, Git bỏ qua). Sổ tiền ghi ra thư mục gắn rw duy nhất. Trần + tổ chức cho phép đặt qua biến
+# EXA_TRAN_USD / EXA_ORG (đặt khi up; thiếu ⇒ trần 0 = mọi lượt bị từ chối trước khi gọi Exa; thiếu tổ chức ⇒ hộp không chạy).
+services:
+  mcp-exa:
+    image: capitol-local/agentic-backend:release-4.10.0
+    container_name: capitol-mcp-exa
+    entrypoint: ["python", "-I", "/thu/may_chu.py"]
+    environment:
+      EXA_MCP_HOST: "0.0.0.0"
+      EXA_MCP_PORT: "8766"
+      SO_EXA: /so/so_exa.json
+      TRAN_EXA_USD: "${EXA_TRAN_USD:-0}"
+      EXA_ORG_CHO_PHEP: "${EXA_ORG:-}"
+      EXA_USER_LOCATION: "${EXA_LOC:-}"     # đo tiếng Việt (va_exa/DO_TIENG_VIET.md) quyết bật hay không
+      HOME: /tmp
+    env_file:
+      - ./env/exa.khoa.env
+    volumes:
+      - ./va_exa/may_chu.py:/thu/may_chu.py:ro
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/exa_so:/so
+    user: "1000:1000"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    pids_limit: 64

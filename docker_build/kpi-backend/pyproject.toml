@@ -1,0 +1,35 @@
+[project]
+name = "kpi-agent"
+version = "0.1.0"
+description = "Trợ lý KPI thưởng nhân viên bán hàng (backend chỉ đọc, agent hỏi đáp và giao diện theo dõi)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "httpx>=0.28,<1",
+    "langchain-core>=0.3.80,<0.4",
+    "langchain-openai>=0.3.35,<0.4",
+    "openpyxl>=3.1,<4",
+    "pydantic>=2.10,<3",
+    "pyyaml>=6.0,<7",
+    "uvicorn[standard]>=0.34,<1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<9",
+    "ruff>=0.17.5",
+]
+
+[tool.ruff]
+line-length = 160
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["kpi_agent/tests"]
+
+[tool.uv]
+package = false

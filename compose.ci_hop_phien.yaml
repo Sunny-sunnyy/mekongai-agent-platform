@@ -1,0 +1,15 @@
+# [09/11/2026, C — KE_HOACH_DUNG_TIEP_D việc 4 + vá offload, đã giao; D ĐẠT va_ci_hop_phien/KET_QUA.md] File thứ 9 của DC (_chung.sh) — chỉ thêm khi gắn.
+# Khối chạy code (flexible / skill_code_interpreter, SandboxMode.ALWAYS) đi HỘP PHIÊN thay E2B; _ensure_offload_sandbox không dựng E2B.
+# Cần sẵn (V5, compose.hop_phien.yaml): V1 e2b_chat_service.py (3 hàm rào + _TRAN_SKILL_*), V2 hop_phien.py, hàng đợi phiên, cờ CHAY_THU_HOP_PHIEN.
+# node.py: ĐÈ đích /srv/src/workflow/node/base/agent/node.py bằng bản .ci_hop_phien (compose gộp volume theo ĐÍCH ⇒ thay dòng gắn của
+# compose.yaml / compose.temporal.yaml) — bản node.py gốc (3d6f3f2d) nằm nguyên trên máy. Gỡ: bỏ file này khỏi DC rồi tao_lai_ab.sh.
+services:
+  ab-api: &ab_ci_hop_phien
+    volumes:
+      - ./sua_doi/workflow/node/base/agent/node.py.ci_hop_phien:/srv/src/workflow/node/base/agent/node.py:ro
+      - ./sua_doi/workflow/node/base/agent/sandbox_runtime.py:/srv/src/workflow/node/base/agent/sandbox_runtime.py:ro
+      - ./sua_doi/nodes/agent/code_interpreter_skill/node.py.ci_auth:/srv/src/nodes/agent/code_interpreter_skill/node.py:ro   # [09/11 chiều] + vá CI-AUTH (local: không token người dùng — D ĐẠT); bản trước node.py 0a5edf5a
+  ab-worker:
+    <<: *ab_ci_hop_phien
+  ab-worker-temporal:
+    <<: *ab_ci_hop_phien

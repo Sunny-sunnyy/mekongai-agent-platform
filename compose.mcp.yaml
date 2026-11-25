@@ -1,0 +1,33 @@
+# Bước 10 — thêm sổ đăng ký máy chủ công cụ (mcp-fastapi) + các máy chủ công cụ (mcp-servers, có máy chủ dựng workflow).
+# Dùng CHỒNG:  docker compose -f compose.yaml -f compose.temporal.yaml -f compose.mcp.yaml ...
+# Viết 03/11/2026. Đường nối (đọc code):
+#   agentic-backend (local) hỏi http://mcp-fastapi:80/list-mcp-servers (src/core/settings.py:1383)
+#   ⇒ sổ đăng ký trả host = HOST_BASE_URL (mcp-fastapi routes/api.py:47-55)
+#   ⇒ agentic-backend ghép "/workflow-builder-server/mcp" (services/orchestrator/tools/workflow_builder_toolset.py:68-69)
+#   ⇒ nginx của mcp-servers nghe 8120, chuyển /workflow-builder-server/ sang 127.0.0.1:8020 (etc/nginx/nginx.conf.template:38, 252-253)
+
+services:
+  mcp-fastapi:
+    image: capitol-local/mcp-fastapi:release-3.16.0
+    container_name: capitol-mcp-fastapi
+    env_file: ./env/mcp.env
+    networks:
+      default:
+        aliases: ["mcp-fastapi"]   # agentic-backend chế độ local gọi đúng tên máy này
+    mem_limit: 768m
+
+  mcp-servers:
+    image: capitol-local/mcp-servers:release-3.16.0
+    container_name: capitol-mcp-servers
+    env_file:
+      - ./env/mcp.env
+      - path: ./env/agentic-backend.khoa.env   # máy chủ dựng workflow có thể cần khoá AI (chưa chắc)
+        required: false
+    volumes:
+      # vá (sua_doi/README.md): hạn chờ lấy danh mục khối khi dựng 10 s ⇒ 240 s; 2 URL lưu đường cũ persist-workflow ⇒ đường v1
+      - ./sua_doi/mcp-servers/services/workflow_builder/sdk.py:/srv/src/services/workflow_builder/sdk.py:ro
+      # vá (thêm 19:53 03/11): công cụ SỬA workflow đọc + lưu qua đường cũ (platform-api ⇒ 401) ⇒ đường v1
+      - ./sua_doi/mcp-servers/services/workflow_builder/client.py:/srv/src/services/workflow_builder/client.py:ro
+      - ./sua_doi/mcp-servers/nginx.conf.template:/etc/nginx/nginx.conf.template:ro   # [ghi chú] chặn /structured- + /unstructured-collections-server/ (403)
+      - ./sua_doi/mcp-servers/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro   # [ghi chú] qdrant-api-server 8009 nghe 127.0.0.1 (gốc 0.0.0.0) — bản gốc = mã nguồn nền …/mcp-servers/…/srv/supervisord.conf 25c90b25
+    mem_limit: 3g

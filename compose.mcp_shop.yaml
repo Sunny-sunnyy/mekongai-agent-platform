@@ -1,0 +1,25 @@
+# [10:48 06/11/2026, A] Máy chủ MCP của mình (nhóm kỹ thuật, chay_thu/mcp_cua_minh/, 38/38 trong hộp) — bản đồ tái tạo dòng 8.
+# Dùng CHỒNG: docker compose -f compose.yaml -f compose.temporal.yaml -f compose.mcp.yaml -f compose.mcp_shop.yaml up -d mcp-shop
+# Không có ports: ⇒ chỉ hộp trong mạng compose gọi được. Khoá ở env/mcp_shop.khoa.env (Git bỏ qua).
+services:
+  mcp-shop:
+    image: capitol-local/agentic-backend:release-4.10.0
+    container_name: capitol-mcp-shop
+    entrypoint: ["python", "-I", "/thu/may_chu.py"]
+    environment:
+      SHOP_MCP_HOST: "0.0.0.0"
+      SHOP_MCP_PORT: "8765"
+      SHOP_MCP_DB: /nt/du_lieu_gia.sqlite
+      HOME: /tmp
+    env_file:
+      - ./env/mcp_shop.khoa.env
+    volumes:
+      - ./mcp_cua_minh/may_chu.py:/thu/may_chu.py:ro
+      - ./sql_chi_doc/du_lieu_gia.sqlite:/nt/du_lieu_gia.sqlite:ro
+    user: "1000:1000"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    pids_limit: 64

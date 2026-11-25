@@ -1,0 +1,50 @@
+# [ghi chú] capitol-cong-ai — cổng mô hình chung (cong_ai/GHI_CHEP.md, kế hoạch B_KE_HOACH_CONG_MO_HINH.md). Dùng CHỒNG trong DC (_chung.sh).
+# Bậc gắn 1 (file này): mọi base URL mô hình của 3 ab-* + platform-api trỏ về cổng; khoá OpenAI VẪN còn ở ab-* (bậc 2: bỏ khoá khỏi ab-* ⇒ chỉ cổng giữ).
+# Không mở cổng ra máy (không ports:). Trần / sổ: cổng đọc RO file trần ngày + bản tóm tắt sổ chay_s5 (ket_qua/so_cong_doc, CG-2); ghi sổ cổng vào ket_qua/so_cong (rw).
+services:
+  cong-ai:
+    image: capitol-local/agentic-backend:release-4.10.0
+    container_name: capitol-cong-ai
+    entrypoint: ["python", "-m", "uvicorn", "cong:app", "--host", "0.0.0.0", "--port", "8090", "--workers", "1"]   # 1 tiến trình: khoá trần nằm trong bộ nhớ (E (1))
+    working_dir: /app
+    environment:
+      TZ: "Asia/Ho_Chi_Minh"   # tên file trần + sổ theo ngày VN (thử 17/11: thiếu TZ ⇒ ngày UTC lệch)
+      HOME: /tmp
+      PYTHONDONTWRITEBYTECODE: "1"
+      CONG_AI_BANG: "/srv/dinh_tuyen.yaml"   # [ghi chú] gốc nhà cung cấp + giá + trần ra đọc TỪ BẢNG (bỏ CONG_AI_LEN / CONG_AI_GIA)
+      CONG_AI_SO: "/srv/so_cong"
+      CONG_AI_TRAN_DIR: "/srv/tran_ngay"
+      CONG_AI_SO_DOC: "/srv/so_cong_doc"
+      CONG_AI_TRAN_RA: "32000"   # [ghi chú] 16000 ⇒ 32000: token SUY LUẬN của Claude tính vào đầu ra; dòng luna trong bảng vẫn tự kẹp 16000
+    env_file:
+      - path: ./env/cong_ai.khoa.env   # CHỈ dòng OPENAI_API_KEY (gan.sh tách từ agentic-backend.khoa.env, 600, Git bỏ qua) — thiếu ⇒ compose lỗi, hộp không lên
+        required: true
+      - path: ./env/openrouter.khoa.env   # [bản 1] CHỈ dòng OPENROUTER_API_KEY, CHỈ hộp này đọc. Bảng hiện không dòng nào đi OpenRouter ⇒ không bắt buộc;
+        required: false                  #   mục bảng trỏ openrouter mà thiếu khoá ⇒ cổng trả lỗi, không gọi lên
+    volumes:
+      - ./cong_ai/cong.py:/app/cong.py:ro
+      - ./cong_ai/dinh_tuyen.yaml:/srv/dinh_tuyen.yaml:ro   # sửa bảng = sửa file này (người vận hành giá); cổng đọc lại mỗi lần gọi, không cần tạo lại hộp
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/so_cong:/srv/so_cong
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/so_cong_doc:/srv/so_cong_doc:ro     # [CG-2] CHỈ bản tóm tắt số của chay_s5 (không thấy kết quả thử khác trong ket_qua/)
+      - ${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}/tran_ngay:/srv/tran_ngay:ro
+      - ${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}/bedrock_046:/srv/bedrock_creds:ro   # [ghi chú] THƯ MỤC chứa hardlink file STS (làm mới bằng refresh-token.sh, cổng đọc lại mỗi lần gọi — không cần khởi động lại); gắn thư mục, KHÔNG gắn file đơn lẻ
+    mem_limit: 256m
+    restart: "no"
+
+  ab-api: &tro_cong
+    environment:
+      OPENAI_REGIONAL_BASE_URL: "http://capitol-cong-ai:8090"   # [ghi chú] AB ai/agentic/models/openai.py:24-50 tự thêm /v1
+      ANTHROPIC_PROXY_BASE_URL: "http://capitol-cong-ai:8090"   # AB ai/agentic/models/anthropic.py:24-37 (SDK tự thêm /v1/messages)
+      OPENROUTER_BASE_URL: "http://capitol-cong-ai:8090/v1"     # chỉ đường raw (prompt_enhancer); khối Agent OpenRouter KHÔNG đọc biến này (openrouter.py:101) ⇒ vẫn bị chặn host
+      ANTHROPIC_API_KEY: "khong-dung-cong-ai-giu-khoa"          # SDK đòi khoá khác rỗng; cổng không đọc khoá người gọi
+    depends_on:
+      - cong-ai
+  ab-worker: *tro_cong
+  ab-worker-temporal: *tro_cong
+  platform-api:
+    environment:
+      OPENAI_REGIONAL_BASE_URL: "http://capitol-cong-ai:8090"   # P utils/openai_endpoint.py:25-48
+      ANTHROPIC_PROXY_BASE_URL: "http://capitol-cong-ai:8090"   # P utils/anthropic_endpoint.py
+      ANTHROPIC_API_KEY: "khong-dung-cong-ai-giu-khoa"
+    depends_on:
+      - cong-ai

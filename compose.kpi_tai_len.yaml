@@ -1,0 +1,37 @@
+# [ghi chú] Hộp chuyển tiếp TẢI FILE KPI: trang 18400 (máy) ⇒ 127.0.0.1:18402 ⇒ hộp này ⇒ kpi-backend:8110 (mạng nội bộ).
+# Lệnh riêng như kpi-backend (không vào DC): cd chay_thu && docker compose -p capitol-chay-thu -f compose.kpi_tai_len.yaml up -d kpi-tai-len
+# Tắt: docker stop capitol-kpi-tai-len && docker rm capitol-kpi-tai-len
+services:
+  kpi-tai-len:
+    image: capitol-local/agentic-backend:release-4.10.0
+    container_name: capitol-kpi-tai-len
+    entrypoint: ["python", "-I", "/thu/chuyen_tiep.py"]
+    environment:
+      HOME: /tmp
+      PYTHONDONTWRITEBYTECODE: "1"
+      VAN_TAY_TRUONG: "${VAN_TAY_TRUONG:-period,cutoff,files_sha256,rule_version,workflow_version,status}"   # [ghi chú] trường ĐỘNG của /van-tay; mốc gộp 2 (4a19a94e+) bật với thêm data_version,latest_data_version (đặt biến lúc up); mặc định = như chuyen_tiep.py
+    env_file:
+      - ${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}/tai_len_18402.env   # [ghi chú] TAI_LEN_MA=<hex ≥ 32> — mã riêng cổng 18402 (600, NGOÀI repo, không bind vào hộp nào); may_chu đọc cùng file, gửi header X-Tai-Len-Ma
+      - ${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}/van_tay_18402.env   # [ghi chú] VAN_TAY_MA=<hex ≥ 32> — mã ĐỌC vân tay hộp chính (khác mã tải lên); máy chủ agent mekongai đọc cùng file, gửi X-Van-Tay-Ma
+      - ./env/kpi.khoa.env           # KPI_SYS_KEY — khoá chỉ ở hộp này + kpi-backend (+ worker đọc CHAY_THU_KIEM_CODE_KHOA); không ở may_chu / trình duyệt
+    volumes:
+      - ./sua_doi/kpi_tai_len/chuyen_tiep.py:/thu/chuyen_tiep.py:ro
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/kpi_van_tay:/van_tay:ro   # [ghi chú] van_tay_tinh.json do bat_kpi_backend_raw.sh ghi mỗi lần bật hộp chính (chỉ sha, không bí mật)
+    ports:
+      - "127.0.0.1:18402:8120"      # CHỈ máy này
+    networks:
+      - kpi_noi_bo                   # tới kpi-backend
+      - kpi_cong                     # mạng RIÊNG chỉ để mở cổng (mạng internal không mở cổng được)
+    dns: [127.0.0.1]                 # [D mục 18, minor] kpi_cong không internal ⇒ chặn phân giải tên ngoài; tên hộp nội bộ vẫn qua DNS nhúng của Docker
+    user: "1000:1000"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 160m
+    pids_limit: 32
+
+networks:
+  kpi_noi_bo:
+    internal: true
+  kpi_cong: {}                       # CHỈ hộp này dùng; có đường ra Internet (giới hạn D ghi: script stdlib, không gọi ra ngoài; dns 127.0.0.1)

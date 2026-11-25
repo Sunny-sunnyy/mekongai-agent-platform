@@ -1,0 +1,4 @@
+# Phien ban ghim theo moi truong da kiem chung (tuong ung agentic-backend release-4.10.0)
+fastmcp==3.4.2
+httpx==0.28.1
+pydantic==2.12.5

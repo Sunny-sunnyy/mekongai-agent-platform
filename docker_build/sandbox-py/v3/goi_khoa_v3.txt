@@ -1,0 +1,2 @@
+# pip THÊM cho sandbox-py:v3 (chồng lên v2). Phiên bản + mã băm từ poetry.lock của Capitol (AB release-4.10.0) [tài liệu họ].
+defusedxml==0.7.1 --hash=sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61

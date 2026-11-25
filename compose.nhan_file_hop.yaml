@@ -1,0 +1,23 @@
+# [09/11/2026, C — đã giao B2b, người vận hành] Thư mục file đầu vào cho hộp chạy code (va_b2b/HUONG_DAN_GAN.md).
+# Dùng CHỒNG sau compose.minio.yaml:  … -f compose.minio.yaml -f compose.nhan_file_hop.yaml up -d --no-deps --force-recreate ab-api ab-worker ab-worker-temporal
+# Chiều dữ liệu: khối Agent (trong ab-*) tải file từ MinIO ⇒ GHI vào /srv/sandbox/file_tai (= chay_thu/ket_qua/sandbox_file_tai trên WSL)
+#                ⇒ người chạy hộp (WSL) đọc bằng O_NOFOLLOW ⇒ chép bản sao vào /dau_vao/ của hộp không mạng.
+# Thư mục phải TẠO TRƯỚC trên WSL (mkdir -p chay_thu/ket_qua/sandbox_file_tai) — không thì Docker tạo thư mục thuộc root.
+# Git bỏ qua chay_thu/ket_qua/ (đã có).
+# [D kiểm B2b, minor b] cap_drop MKNOD: hộp ab-* (coi như có thể bị chiếm) không tạo được nút thiết bị trong thư mục rw này.
+services:
+  ab-api:
+    volumes:
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/sandbox_file_tai:/srv/sandbox/file_tai
+    cap_drop:
+      - MKNOD
+  ab-worker:
+    volumes:
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/sandbox_file_tai:/srv/sandbox/file_tai
+    cap_drop:
+      - MKNOD
+  ab-worker-temporal:
+    volumes:
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/sandbox_file_tai:/srv/sandbox/file_tai
+    cap_drop:
+      - MKNOD

@@ -1,0 +1,27 @@
+# [10/11/2026, C — đã giao; D Đ-5] Rào chắn CHẾ ĐỘ CODE (kiểm số + bảng thưởng từ backend KPI mekongai, không AI). File chồng thêm cho DC (_chung.sh) —
+# ĐÃ GẮN 10/11 (nhóm kỹ thuật — D ĐẠT Rào chắn 6 / Người duyệt 2 / công cụ KPI 2 / gói xlsx); file thứ 10 của DC (_chung.sh).
+# Trước khi gắn: chép va_rao_code/node.py ⇒ sua_doi/nodes/governance/guardrails/node.py (giữ .truoc_code), va_rao_code/params.py ⇒
+# sua_doi/nodes/governance/guardrails/params.py (file MỚI); DUYET dung_lai_sau_bat.sh thêm 2 dòng sha.
+# compose gộp volume theo ĐÍCH ⇒ dòng node.py dưới thay dòng gắn node.py của compose.yaml (:140) / compose.temporal.yaml.
+# Khoá: CHỈ từ file khoá (Git bỏ qua, umask 077, không ai in) — dòng trong file: CHAY_THU_KIEM_CODE_KHOA=<cùng giá trị KPI_SYS_KEY phía backend>.
+# Địa chỉ GHIM ở đây (không ô nào của workflow đổi được): host:cổng theo b9 chốt (a5 đề xuất kpi-backend:8110), đường /api/system/kiem-so.
+# [chưa kiểm] env_file ở file chồng có GỘP với env_file của compose.yaml không ⇒ sau up, kiểm (không in khoá):
+#   docker exec capitol-ab-worker-temporal printenv CHAY_THU_KIEM_CODE_URL CHAY_THU_KIEM_CODE_KHOA_TEN
+#   docker exec capitol-ab-worker-temporal sh -c 'printf %s "$CHAY_THU_KIEM_CODE_KHOA" | wc -c'      # phải ≥ 16, không in giá trị
+services:
+  ab-api: &ab_rao_code
+    environment:
+      CHAY_THU_KIEM_CODE_URL: "http://kpi-backend:8110/api/system/kiem-so"
+      CHAY_THU_KIEM_CODE_KIEU: "http"
+      CHAY_THU_KIEM_CODE_GIAY: "10"
+      CHAY_THU_KIEM_CODE_KHOA_TEN: "X-Kpi-Sys-Key"
+      CHAY_THU_KPI_URL: "http://kpi-backend:8110"   # [ghi chú] 10 công cụ KPI của khối Agent (va_kpi_tools/, D ĐẠT dd84f256) — cùng hộp backend
+    env_file:
+      - ./env/kpi.khoa.env
+    volumes:
+      - ./sua_doi/nodes/governance/guardrails/node.py:/srv/src/nodes/governance/guardrails/node.py:ro
+      - ./sua_doi/nodes/governance/guardrails/params.py:/srv/src/nodes/governance/guardrails/params.py:ro
+  ab-worker:
+    <<: *ab_rao_code
+  ab-worker-temporal:
+    <<: *ab_rao_code

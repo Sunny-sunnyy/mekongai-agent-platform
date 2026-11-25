@@ -1,0 +1,10 @@
+# [ghi chú] File 13 của DC (khi gắn: chép ra chay_thu/compose.dang_trang.yaml + thêm vào _chung.sh):
+# khối "Vercel Deploy" đăng vào kho file Capitol (va_dang_trang/). Chỉ gắn đè 1 file, không thêm biến, không thêm mạng.
+services:
+  ab-api: &ab_dt
+    volumes:
+      - ./sua_doi/nodes/agent/vercel_deploy/node.py:/srv/src/nodes/agent/vercel_deploy/node.py:ro
+  ab-worker:
+    <<: *ab_dt
+  ab-worker-temporal:
+    <<: *ab_dt

@@ -1,0 +1,23 @@
+# Hộp gác cổng máy (C 11/11/2026, đã giao): mọi lối từ máy vào agentic-backend / platform-api / giao diện Temporal đi qua đây,
+# Host khác 127.0.0.1 / localhost ⇒ 403 (chống DNS rebinding). Lý do + phép thử: cong_ngoai/Caddyfile, C_outbox 11/11.
+# Dùng CHỒNG như các file compose khác (nằm trong danh sách DC ở _chung.sh). Image caddy:2.11.7 đã có sẵn trên máy (không tải).
+services:
+  cong-ngoai:
+    image: caddy:2.11.7
+    container_name: capitol-cong-ngoai
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+    env_file:   # [ghi chú] CONG_18300_MA (600, Git bỏ qua .gitignore:3) — thiếu file ⇒ compose báo lỗi, hộp không lên (đóng khi lỗi)
+      - path: ./env/cong_18300.khoa.env
+        required: true
+    volumes:
+      - ./cong_ngoai/Caddyfile:/etc/caddy/Caddyfile:ro
+    ports:
+      - "127.0.0.1:18300:18300"   # agentic-backend (hộp ab-api không còn mở cổng ra máy)
+      - "127.0.0.1:18301:18301"   # platform-api
+      - "127.0.0.1:18233:18233"   # giao diện web Temporal
+    read_only: true
+    tmpfs:
+      - /data
+      - /config
+    mem_limit: 64m
+    restart: "no"

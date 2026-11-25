@@ -1,0 +1,82 @@
+# eval-service của Capitol chạy RIÊNG (nhóm kỹ thuật, 06/11/2026 — đã giao việc 6; 07/11 sửa B1–B3 theo soát D BAO_CAO_KET_QUA 31.5). CHƯA CHẠY: cần User `docker load` image + tạo env/eval.khoa.env + nói "làm đi".
+# Dùng:  docker compose -f chay_thu/eval_service/compose.yaml up -d        (xem HUONG_DAN.md — có bước kiểm trước khi gọi AI)
+# Image: capitol-local/eval-service:release-0.18.4 (tar 515 MB ở D:, nạp theo HUONG_DAN.md mục 2).
+name: capitol-eval
+
+services:
+  eval:
+    image: capitol-local/eval-service:release-0.18.4
+    container_name: capitol-eval
+    # Giữ đúng lệnh gốc nhưng BỎ `opentelemetry-instrument` (tự gửi vết ra ngoài) — _image_info.json "Cmd".
+    command: ["uvicorn", "eval_srvc.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8080"]
+    working_dir: /srv/src
+    env_file:
+      # B1 (soát D 07/11, BAO_CAO_KET_QUA 31.3): file khoá RIÊNG chỉ một dòng OPENAI_API_KEY — KHÔNG dùng chung agentic-backend.khoa.env
+      #    (biến nào có trong file đều đổi hành vi eval: E2B_API_KEY, PLATFORM_*, CORALOGIX_*…). User tự tạo bằng lệnh `!` ở HUONG_DAN mục 3.
+      #    Git bỏ qua (chay_thu/.gitignore `env/*.khoa.env*`). KHÔNG mở file này — chỉ trỏ đường.
+      - path: ../env/eval.khoa.env
+        required: true
+      - path: ${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}/minio_eval.env   # [ghi chú] khoá user MinIO RIÊNG chỉ bucket evals (file 600 ngoài repo) — KHÔNG phải khoá root
+        required: true
+    environment:
+      # --- 5 biến BẮT BUỘC không có mặc định (eval_srvc/system_settings.py:60-65). Chỉ OPENAI_API_KEY là thật (lấy từ env_file ở trên);
+      #     4 biến còn lại đặt giá trị giả: các đường dùng chúng (SAFE tra web, Diffbot, gọi Capitol, Claude) KHÔNG dùng ở bước thử này.
+      SERP_API_KEY: "khong_dung"
+      CAPITOL_API_KEY: "khong_dung"
+      CLAUDE_API_KEY: "khong_dung"
+      DIFFBOT_TOKEN: "khong_dung"
+      # --- CHẶN GỬI RA NGOÀI mặc định của image
+      SENTRY_DSN: ""                                # mặc định là DSN thật của Capitol, sentry_sdk.init luôn chạy (logging_utils.py:278-279)
+      SENTRY_ENABLED: "false"                       # chỉ tắt nhánh Sentry trong OTel (fastapi_otel.py:101)
+      OTEL_DESTINATION: "LOCAL_GOODIES_JAEGER"      # mặc định CORALOGIX ⇒ gửi vết tới ingress.coralogix.us (fastapi_otel.py:110-135)
+      OTEL_SDK_DISABLED: "true"
+      OTEL_ENABLED: "false"                         # B2: setup_fastapi_otel dừng ngay, không dựng bộ gửi vết (fastapi_otel.py:61-63; system_settings.py:157 mặc định True)
+      CACHE_ENABLED: "false"                        # không có Redis; đệm bỏ cấu hình khi tạo khoá (báo cáo hệ thống mục 5)
+      ENV: "local"
+      # D 07/11 (BAO_CAO_KET_QUA mục 36): route reference_output LUÔN thử ghi S3 (background_tasks.py:157) ⇒ chặn chắc ở tầng boto3:
+      # [ghi chú] S3 ⇒ MinIO của bộ (mạng s3_noi_bo ở compose.gan_capitol.yaml) để platform-api đọc được kết quả chấm; trước: cổng chết.
+      AWS_ENDPOINT_URL_S3: "http://minio:9000"
+      AWS_ENDPOINT_URL: "http://127.0.0.1:9"          # mọi dịch vụ AWS KHÁC S3 (ssm…) ⇒ cổng chết: có khoá MinIO thì boto3 ký mọi lệnh, không để ra AWS thật
+      AWS_REGION: "us-east-1"
+      S3_BUCKET_NAME: "capitol-chay-thu-evals"            # bucket GIẢ trên MinIO (mặc định system_settings.py:93 "capitol-evals" là tên thật của Capitol)
+      AWS_EC2_METADATA_DISABLED: "true"            # không dò khoá ở máy chủ metadata 169.254.169.254
+      # --- giám khảo gpt-6-luna (bản vá sua_doi/) — mặc định Claude Sonnet 4.6, máy không có khoá Anthropic
+      EVAL_LUNA_REASONING_EFFORT: "low"
+      EVAL_JUDGE_VOTE_N: "3"                        # như Capitol (self_consistency.py:49-55)
+      EVAL_VOTE_CHON: "${EVAL_VOTE_CHON:-cao_nhat}"  # cao_nhat = như Capitol (mặc định); trung_vi / thap_nhat để đo — đặt biến khi `up`, khỏi sửa file (bản vá self_consistency.py)
+    # B3: chặn theo TÊN — KHÔNG chặn máy khác / IP. Chỉ trỏ các tên máy đã biết trong code về chính hộp (không có gì nghe);
+    #     máy không có tên ở đây, hoặc gọi thẳng bằng IP, vẫn ra Internet bình thường (mạng cần Internet để gọi api.openai.com).
+    #     An toàn của lượt thử là do đường đi của code (BAO_CAO_KET_QUA 31.4), không phải do danh sách này. Dữ liệu thật ⇒ cần proxy chỉ cho api.openai.com.
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"   # [ghi chú] eval có Internet + tới cổng WSL (1945 mekongai, E đo) ⇒ đè tên (IP 192.168.65.254 vẫn tới — rào thật ở cổng)
+      - "gateway.docker.internal:127.0.0.1"
+      - "jaeger-local:127.0.0.1"
+      - "ingress.coralogix.us:127.0.0.1"
+      - "llm.prod.capitol.ai:127.0.0.1"
+      - "serpapi.com:127.0.0.1"
+      - "api.diffbot.com:127.0.0.1"
+      - "api.anthropic.com:127.0.0.1"               # Claude (llm_service/model_builders.py); CLAUDE_API_KEY giả: nội dung đã đi trước khi bị 401 [suy luận, 31.4]
+      - "o1201410.ingest.us.sentry.io:127.0.0.1"    # máy Sentry của DSN mặc định (system_settings.py:51-57) — thêm cho chắc dù SENTRY_DSN đã rỗng
+    volumes:
+      # bản vá giám khảo gpt-6-luna (chỉ đọc, gắn ĐÈ file gốc — gốc trong image không đổi; diff ở sua_doi/**/*.diff)
+      - ./sua_doi/eval_srvc/custom_types/enums/language_model.py:/srv/src/eval_srvc/custom_types/enums/language_model.py:ro
+      - ./sua_doi/eval_srvc/llm_service/gpt5_service.py:/srv/src/eval_srvc/llm_service/gpt5_service.py:ro
+      - ./sua_doi/eval_srvc/api/eval_runner.py:/srv/src/eval_srvc/api/eval_runner.py:ro   # [ghi chú] chỉ pass_fail / score có trần (cờ EVAL_CHI_PASS_FAIL mặc định bật)
+      - ./sua_doi/eval_srvc/llm_service/self_consistency.py:/srv/src/eval_srvc/llm_service/self_consistency.py:ro
+      - ./sua_doi/eval_srvc/eval/eval_factory.py:/srv/src/eval_srvc/eval/eval_factory.py:ro
+      - ./sua_doi/eval_srvc/eval/reference_output/reference_output_eval.py:/srv/src/eval_srvc/eval/reference_output/reference_output_eval.py:ro
+      - ./sua_doi/eval_srvc/custom_types/app_request_schemas/user_run_reference_output_eval.py:/srv/src/eval_srvc/custom_types/app_request_schemas/user_run_reference_output_eval.py:ro
+      # bộ ca chấm thử + script gọi (chạy BẰNG docker exec trong chính hộp, gọi 127.0.0.1:8080 — không mở cổng ra máy)
+      - ./:/thu:ro
+      - ${CAPITOL_RUNTIME_DIR:-../runtime}/eval_service:/ra
+    # KHÔNG có `ports:` — chỉ gọi từ trong hộp (docker exec). Gắn vào Capitol sau (platform-api đặt evals__BASE_URL) ⇒ thêm mạng capitol khi đó.
+    networks: [rieng]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1g
+    pids_limit: 256
+    restart: "no"
+
+networks:
+  rieng:
+    name: capitol-eval-rieng

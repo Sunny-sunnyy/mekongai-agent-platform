@@ -1,0 +1,11 @@
+nodejs
+libreoffice-core
+libreoffice-writer
+libreoffice-calc
+libreoffice-impress
+fonts-liberation
+fonts-dejavu-core
+fonts-crosextra-carlito
+fonts-crosextra-caladea
+pandoc
+poppler-utils

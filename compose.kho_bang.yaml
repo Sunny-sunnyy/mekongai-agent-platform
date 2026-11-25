@@ -1,0 +1,17 @@
+# [ghi chú] Kho bảng chạy trên máy: gắn đè 2 file platform-api (bản ĐÓNG BĂNG ở sua_doi/, ro —
+# C đề xuất: không gắn thẳng thư mục làm việc va_kho_bang/). Dùng CHỒNG lên compose.yaml (file 14 của DC). Gốc: va_kho_bang/*.goc.
+# [đã chốt 10/11] khoá OpenAI của User vào platform-api CHỈ 1 dòng OPENAI_API_KEY, file riêng (User tạo bằng `!`; Git bỏ qua) — cho bước AI
+# sinh SQL (ép gpt-6-luna trong llm_athena bản chay_thu). Không đổi mạng / cổng.
+services:
+  platform-api:
+    environment:
+      CHAY_THU_NGUOI_DUNG_CO_DINH: "on"   # [ghi chú] token cố định test-token-123 (viết cứng trong AB api/auth.py:64) ⇒ anonymous@example.com, vai user; tắt: bỏ dòng
+      QDRANT_CHAT_MODEL: "gpt-6-luna"   # [ghi chú] mặc định gpt-5.2 (config.py:534) trái luật luna; đường /chat còn bị chặn ở 18301
+      CHAT_DEFAULT_MODEL: "gpt-6-luna"   # [ghi chú] /{orgid}/chat mặc định gpt-4… (config.py:524); ngoài máy đã chặn (18301 danh sách cho phép)
+    env_file:
+      - ./env/platform-api-openai.khoa.env
+    volumes:
+      - ./sua_doi/platform_api/utils/llm_athena.py:/srv/src/utils/llm_athena.py:ro
+      - ./sua_doi/platform_api/utils/glue_catalog.py:/srv/src/utils/glue_catalog.py:ro
+      - ./sua_doi/platform_api/dependencies/public_api_auth.py:/srv/src/dependencies/public_api_auth.py:ro   # [ghi chú] người dùng cố định (User 8d)
+      - ./sua_doi/platform_api/utils/s3_utils.py:/srv/src/utils/s3_utils.py:ro   # [ghi chú] nhãn S3 làm sạch + mã hoá (tên kho có dấu ⇒ trước: upload 500 InvalidTag)

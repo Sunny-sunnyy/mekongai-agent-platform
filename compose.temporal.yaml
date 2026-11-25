@@ -1,0 +1,178 @@
+# Bước 6 — thêm Temporal (bộ chạy bền) vào bộ lõi. Dùng CHỒNG lên compose.yaml:
+#   docker compose -f compose.yaml -f compose.temporal.yaml ...
+# Viết 03/11/2026. Chỉ chạy qua buoc6_bat_temporal.sh.
+#
+# Vì sao cần: chạy lại từ một khối, tạm dừng / chạy tiếp, hỏi lại người — code từ chối (400) khi USE_TEMPORAL tắt
+# (src/api/routers/workflow.py:303-330, src/api/v1/handlers/run.py:2231-2249).
+# Search attribute OrgId / UserId / WorkflowName: API gắn khi bắt đầu workflow (src/api/routers/workflow.py:129-157)
+# — namespace phải khai trước, nếu không Temporal từ chối.
+
+services:
+  temporal:
+    image: temporalio/temporal:1.4.1
+    container_name: capitol-temporal
+    command: ["server", "start-dev", "--ip", "0.0.0.0", "--namespace", "capitol",
+              "--search-attribute", "OrgId=Keyword",
+              "--search-attribute", "UserId=Keyword",
+              "--search-attribute", "WorkflowName=Keyword", "--db-filename", "/home/temporal/temporal.db"]   # [ghi chú] lưu bền
+    # [ghi chú] KHÔNG ports: — cổng máy đi qua hộp gác capitol-cong-ngoai (compose.cong_ngoai.yaml, chặn Host / Origin lạ)
+    mem_limit: 768m
+    volumes:
+      - capitol_temporal:/home/temporal   # [ghi chú] file temporal.db; thư mục có sẵn trong image, chủ temporal (uid 1000)
+
+  # API dùng thêm env/temporal.env (đặt sau ⇒ ghi đè USE_TEMPORAL=false của file chính)
+  ab-api:
+    env_file:
+      - ./env/temporal.env
+    depends_on:
+      temporal:
+        condition: service_started
+
+  # Worker của đường Temporal (khác worker hàng đợi Redis). Lệnh: src/temporal/worker.py (_run_worker), health ở cổng 8080.
+  ab-worker-temporal:
+    image: capitol-local/agentic-backend:release-4.10.0
+    container_name: capitol-ab-worker-temporal
+    environment:
+      CHAY_THU_RAO_CHAN_CHAN: "${CHAY_THU_RAO_CHAN_CHAN:-true}"   # bật: CHAY_THU_RAO_CHAN_CHAN=true docker compose … up -d --force-recreate ab-api ab-worker ab-worker-temporal
+      CHAY_THU_MCP_CHO_PHEP: "${CHAY_THU_MCP_CHO_PHEP:-mcp-shop,mcp-exa}"   # [ghi chú] lớp nền chỉ cho MCP trong danh sách (node.py.ci_hop_phien :139-175)
+      CHAY_THU_KIEM_SO_SO: "/srv/kiem_so_kpi"   # [ghi chú] nơi khối Agent ghi sổ phiếu kiểm số
+      SANDBOX_TOOL_OUTPUT_MAX_CHARS: "30000"   # [ghi chú] gốc 200.000 ⇒ 1 lần gọi ≤ 200k + 8k + ~58k (ca xấu) < 272k
+      RAG_CONG_URL: "http://host.docker.internal:19453/api/v1/search"   # [ghi chú] hộp cổng capitol-rag-cong (chỉ /search)
+      CHAY_THU_CHAN_LOI_MEM: "chan"   # [ghi chú] lớp chặn lỗi mềm (kiem_loi_mem.py); lùi: MUC=do
+      CHAY_THU_E2B_KHOI: "code_interpreter"   # [ghi chú] CHỈ flexible_code_interpreter_node đi E2B (cần thêm CHAY_THU_E2B_KHOA từ e2b.env)
+      CHAY_THU_E2B_TTL: "180"   # [ghi chú] E2B tự tắt máy sau 180 s (kẹp 30–180), không keepalive — BẰNG E2B_TTL_GIAY ở muc_toi_da.py
+      CHAY_THU_E2B_DS: "/srv/e2b_ds/file_gia_lap.txt"   # [ghi chú] chỉ file có sha trong danh sách GIẢ LẬP mới lên E2B
+      CHAY_THU_E2B_MANG: "bat"   # [ghi chú] User M14: mạng RA bật trong giai đoạn thử — TẮT ("tat") trước khi có người dùng thật
+      CHAY_THU_E2B_FILE: "nguoi_dung"   # [ghi chú] file NGƯỜI DÙNG tải lên được lên E2B (loại file + cỡ ≤ 20 MB + không giống file khoá + soát khoá trong nội dung); gỡ dòng này = chỉ file giả lập
+      CHAY_THU_E2B_TEMPLATE: "chay-thu-e2b-doc:v2"   # [ghi chú] [ghi chú] template tự viết (đọc PDF / Word mekongai + OCR vie), 1 vCPU / 1 GiB; bản trước "code-interpreter-v1"
+      CHAY_THU_E2B_GIA: "/srv/e2b_gia/gia_e2b.json"   # [ghi chú] bảng giá MỘT nguồn (va_e2b/gia_e2b.json, ro) — template ngoài bảng ⇒ không tạo máy
+      CHAY_THU_E2B_SO: "/srv/e2b_so"   # [ghi chú] sổ máy E2B (dòng tao TRƯỚC mỗi máy; thiếu ⇒ không tạo) — chay_s5.tien_luot đọc
+      E2B_TEMPLATE: "chay-thu-sandbox-py-v3:v3"   # [ghi chú] 2.2a lời dặn khớp hộp thật
+      E2B_CODE_INTERPRETER_TEMPLATE: "chay-thu-sandbox-py-v3:v3"   # [ghi chú] 2.2a lời dặn khớp hộp thật
+      E2B_SKILL_PPTX_TEMPLATE: "chay-thu-sandbox-py-v3:v3"   # [ghi chú] 2.2a lời dặn khớp hộp thật
+      E2B_SKILL_DOCX_TEMPLATE: "chay-thu-sandbox-py-v3:v3"   # [ghi chú] 2.2a lời dặn khớp hộp thật
+      E2B_SKILL_XLSX_TEMPLATE: "chay-thu-sandbox-py-v3:v3"   # [ghi chú] 2.2a lời dặn khớp hộp thật
+      E2B_SKILL_EY_PPTX_TEMPLATE: "chay-thu-sandbox-py-v3:v3"   # [ghi chú] 2.2a lời dặn khớp hộp thật
+      E2B_SKILL_D3_TEMPLATE: "chay-thu-sandbox-py-v3:v3"   # [ghi chú] 2.2a lời dặn khớp hộp thật
+      E2B_SKILL_ORG_CHART_TEMPLATE: "chay-thu-sandbox-py-v3:v3"   # [ghi chú] 2.2a lời dặn khớp hộp thật
+      A2A_TASK_ALIGNMENT_GUARDRAIL_ENABLED: "false"   # [ghi chú] giám khảo task-alignment TẮT RÕ (A 17/11): chưa chứng minh lượt giám khảo vào sổ tiền (AGENTS 3.9); bật = bước sau
+      TEMPORAL_THUMBNAIL_TASK_QUEUE: ""   # [ghi chú] bộ không có thumbnail_worker ⇒ dựng ảnh trong tiến trình
+      DB_POOL_SIZE: "5"   # [ghi chú] mặc định 20 + 40 / tiến trình so với Postgres max_connections 100
+      DB_MAX_OVERFLOW: "5"   # [ghi chú]
+      DB_POOL_SIZE_WORKER: "2"   # [ghi chú]
+      DB_MAX_OVERFLOW_WORKER: "2"   # [ghi chú]
+      NOTIFICATION_SERVICE_BASE_URL: ""   # [ghi chú] mặc định notification_service:80 không có ⇒ tắt gửi
+      A2A_HISTORY_TIERED_ENABLED: "false"   # [ghi chú] tắt bước TÓM TẮT LỊCH SỬ chat bằng AI sau lượt (gốc True, core/settings.py:1006): chạy nền, ngoài trần token + ngoài sổ tiền; trang kiểm cờ này trước mỗi lượt chat
+      AGENT_REQUEST_LIMIT: "20"   # [ghi chú] gốc 200 (core/settings.py:724); đo 694 lượt agent_node: tối đa 7 lần gọi ⇒ trần tiền thật cùng TRAN_TOKEN_* trong bản vá base/agent/node.py
+    env_file:
+      - ./env/agentic-backend.env
+      - path: ./env/agentic-backend.khoa.env
+        required: false
+      - path: ${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}/rag_cong.env   # [ghi chú] RAG_MA (file 600, ngoài repo) — giá trị KHÔNG ở đây
+        required: false
+      - path: ./env/e2b.khoa.env   # [ghi chú] CHAY_THU_E2B_KHOA (600, Git bỏ qua .gitignore:3) — giá trị KHÔNG ở đây; thiếu / rỗng ⇒ E2B tắt
+        required: false
+      - ./env/temporal.env
+    working_dir: /srv/src
+    command: ["python", "-m", "temporal.worker"]
+    volumes:
+      - ./sua_doi/core/config/ai/openai.py:/srv/src/core/config/ai/openai.py:ro
+      - ./sua_doi/core/config/ai/registry.py:/srv/src/core/config/ai/registry.py:ro
+      - ./sua_doi/ai/agentic/models/openai.py:/srv/src/ai/agentic/models/openai.py:ro
+      # vá 8 (04/11, User yêu cầu): công cụ gọi thẳng (không qua MCP) + khuôn đầu ra có cấu trúc cho khối Agent — sua_doi/README.md "Vá 8"
+      - ./sua_doi/nodes/agent/params.py:/srv/src/nodes/agent/params.py:ro
+      - ./sua_doi/nodes/agent/node.py:/srv/src/nodes/agent/node.py:ro
+      - ./sua_doi/nodes/agent/kiem_so_ai.py:/srv/src/nodes/agent/kiem_so_ai.py:ro   # [ghi chú] mô-đun kiểm số bằng AI của khối Agent
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/kiem_so_kpi:/srv/kiem_so_kpi   # [ghi chú] sổ phiếu kiểm số — GHI ĐƯỢC
+      - ./sua_doi/nodes/agent/native_tools.py:/srv/src/nodes/agent/native_tools.py:ro
+      - ./sua_doi/nodes/agent/rag_tool.py:/srv/src/nodes/agent/rag_tool.py:ro   # [ghi chú] công cụ rag_search (E ĐẠT)
+      - ./sua_doi/nodes/agent/kiem_loi_mem.py:/srv/src/nodes/agent/kiem_loi_mem.py:ro   # [ghi chú]
+      - ./sua_doi/nodes/agentic_deep_research/node.py:/srv/src/nodes/agentic_deep_research/node.py:ro   # [ghi chú] trần cộng dồn cả khối
+      - ./sua_doi/ai/agentic/cache_observability.py:/srv/src/ai/agentic/cache_observability.py:ro   # [ghi chú] [CACHE_USAGE] có session=
+      # [10:05 06/11/2026, A] gắn file đẹp + sql_query (sql_chi_doc/gan/HUONG_DAN_GAN.md); DB giả chỉ đọc = lớp rào 0
+      # [09/11/2026, B] file đẹp: gắn BẢN ĐÓNG BĂNG 11e7250b (D ĐẠT BAO_CAO_KET_QUA mục 44 / bao_cao_ket_qua/06_FILE_DEP.md), KHÔNG gắn file đang sửa xuat_file_dep/xuat_file.py
+      - ./sua_doi/nodes/agent/xuat_file.py:/srv/src/nodes/agent/xuat_file.py:ro
+      # [09/11/2026, B — MỤC 55, D ĐẠT] khối PowerPoint / Word bằng công cụ file đẹp (cờ CHAY_THU_FILE_DEP_KHOI, mặc định bật) — va_file_dep_khoi/
+      - ./sua_doi/nodes/output/_file_dep_khoi.py:/srv/src/nodes/output/_file_dep_khoi.py:ro
+      # [G1 09/11] gỡ bản thay mục 55 — bật lại: bỏ tiền tố này - ./sua_doi/nodes/output/powerpoint_chat/node.py:/srv/src/nodes/output/powerpoint_chat/node.py:ro
+      # [G1 09/11] gỡ bản thay mục 55 — bật lại: bỏ tiền tố này - ./sua_doi/nodes/output/word_doc_chat/node.py:/srv/src/nodes/output/word_doc_chat/node.py:ro
+      # [09/11/2026, B — MỤC 59, D ĐẠT] khối đồ thị quan hệ vẽ bằng code (cờ CHAY_THU_DO_THI_KHOI, mặc định bật) — va_do_thi/
+      - ./sua_doi/nodes/output/_do_thi_khoi.py:/srv/src/nodes/output/_do_thi_khoi.py:ro
+      # [Q1 09/11] gỡ bản thay mục 59 — bật lại: bỏ dấu #   - ./sua_doi/nodes/output/org_chart/node.py:/srv/src/nodes/output/org_chart/node.py:ro
+      # [09/11/2026, B — MỤC 61, D ĐẠT] khối Người duyệt: ghi chú + NGUYÊN VĂN sẽ gửi (cờ CHAY_THU_NGUOI_DUYET, mặc định bật) — va_nguoi_duyet/
+      - ./sua_doi/nodes/logic/human_intervention/node.py:/srv/src/nodes/logic/human_intervention/node.py:ro
+      - ./va_xuat_ket_qua/dung_file.py:/srv/src/nodes/logic/human_intervention/dung_file_nhap.py:ro   # [ghi chú] bộ dựng Excel NHÁP có nhãn cho lượt tự duyệt khi quá hạn
+      - ./sua_doi/nodes/logic/human_intervention/params.py:/srv/src/nodes/logic/human_intervention/params.py:ro
+      # [09/11/2026, B] sql_query: [ghi chú] nay là BẢN 2 4e3e1de7 của B (đã chốt 12:23; bản trước 25975106 = sql_query.py.truoc_kiem_sql, D ĐẠT bổ sung 2, 06/11 — bao_cao_ket_qua/04_CONG_CU_AGENT_VA_BO_THU_SOAT.md), KHÔNG gắn file đang sửa sql_chi_doc/sql_query.py
+      - ./sua_doi/nodes/agent/sql_query.py:/srv/src/nodes/agent/sql_query.py:ro
+      - ./sua_doi/nodes/agent/nho_sql_luot.py:/srv/src/nodes/agent/nho_sql_luot.py:ro   # [ghi chú] sổ kết quả SQL theo lượt
+      - ./sua_doi/nodes/agent/kiem_so_sql.py:/srv/src/nodes/agent/kiem_so_sql.py:ro   # BẢN ĐÓNG BĂNG 59cd4414 của hàm B (D Đ2) — KHÔNG gắn thẳng hoi_du_lieu/
+      - ./sql_chi_doc/du_lieu_gia_2.sqlite:/srv/sql_chi_doc/du_lieu_gia.sqlite:ro   # [ghi chú] DB giả 2 (9b281018, B) — cùng đích, bản trước du_lieu_gia.sqlite f97a772f
+      # [10:11 06/11/2026, A] vá 10 run_python: phiếu việc ghi vào vao/ (rw), kết quả đọc từ ra/ (ro) — người chạy hộp trên WSL nối hai bên
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/sandbox_hang_doi/vao:/srv/sandbox/vao
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/sandbox_hang_doi/ra:/srv/sandbox/ra:ro
+      # [10:14 06/11/2026, A] vá 10 R12 (b)(c): hàm kiểm mức workflow + 2 chỗ gọi (Temporal prepare, worker Redis)
+      - ./sua_doi/workflow/r12_kiem.py:/srv/src/workflow/r12_kiem.py:ro
+      # [V5 09/11, B — mục 65, D ĐẠT] bộ chạy lấy class theo node_id từ sổ đăng ký (chay_thu/va_nap_khoi/)
+      - ./sua_doi/workflow/nap_khoi.py:/srv/src/workflow/nap_khoi.py:ro
+      - ./sua_doi/workflow/runtime/workflow_executor.py:/srv/src/workflow/runtime/workflow_executor.py:ro
+      - ./sua_doi/temporal/utils/node_factory.py:/srv/src/temporal/utils/node_factory.py:ro
+      - ./sua_doi/temporal/activities/prepare_workflow.py:/srv/src/temporal/activities/prepare_workflow.py:ro
+      - ./sua_doi/services/worker/executor.py:/srv/src/services/worker/executor.py:ro
+      # [10:15 06/11/2026, A] vá 10 R12 (d2) tối thiểu: chat Operator không có công cụ đọc đầu ra khối / gọi lại MCP (tắt: CHAY_THU_R12_OPERATOR=false)
+      - ./sua_doi/api/a2a_gateway/orchestrator.py:/srv/src/api/a2a_gateway/orchestrator.py:ro
+      - ./sua_doi/api/a2a_gateway/boc_assemble.py:/srv/src/api/a2a_gateway/boc_assemble.py:ro   # [ghi chú] bước kiểm sau khi ghép
+      - ./sua_doi/api/a2a_gateway/kiem_sau_ghep.py:/srv/src/api/a2a_gateway/kiem_sau_ghep.py:ro   # [ghi chú] bước kiểm sau khi ghép
+      - ./sua_doi/api/a2a_gateway/luat_tang.py:/srv/src/api/a2a_gateway/luat_tang.py:ro   # [ghi chú] bước kiểm sau khi ghép
+      # [10:59 06/11/2026, A] vá 10b (D kiểm S4 M2): Operator không đưa file do lượt chạy tạo sang workflow khác
+      - ./sua_doi/services/orchestrator/tools/workflow_tools.py:/srv/src/services/orchestrator/tools/workflow_tools.py:ro
+      # [10:27 06/11/2026, A] vá 10 R12 chỗ (3): sửa khi tạm dừng (apply_edit_activity) kiểm sơ đồ mới
+      - ./sua_doi/temporal/activities/persist_results.py:/srv/src/temporal/activities/persist_results.py:ro
+      # [10:47 06/11/2026, A] vá 11: rào chắn (guardrails) chạy gpt-6-luna thay Claude Sonnet ghi cứng — bản đồ tái tạo dòng 1
+      - ./sua_doi/services/custom_guardrail_check/custom_guardrail_check_service.py:/srv/src/services/custom_guardrail_check/custom_guardrail_check_service.py:ro
+      # [16:03 07/11/2026, A] rào chắn CHẶN thật (B viết theo thiết kế D BAO_CAO_KET_QUA 32.3; D kiểm mục 34). Cờ CHAY_THU_RAO_CHAN_CHAN, mặc định tắt = đúng Capitol
+      - ./sua_doi/nodes/governance/guardrails/node.py:/srv/src/nodes/governance/guardrails/node.py:ro
+      - ./sua_doi/services/sandbox/templates.py:/srv/src/services/sandbox/templates.py:ro   # [ghi chú] 2.2a mục mẫu hộp phiên v3
+      - ./sua_doi/services/redis/event_persistence.py:/srv/src/services/redis/event_persistence.py:ro   # [ghi chú] TTL lease bộ ghi sự kiện 30 ⇒ 120 (giờ nhảy ⇒ mất sự kiện)
+      - ./sua_doi/nodes/governance/evals/node.py:/srv/src/nodes/governance/evals/node.py:ro   # [ghi chú] mọi bài ERROR ⇒ FAILED; lùi: LUI=co gan_evals_loi.sh
+      # [09/11/2026, B] khối Đánh giá: bỏ token M2M khi ENVIRONMENT local (như client.py:84-89; D kiểm ĐẠT BAO_CAO_KET_QUA mục 45) — chay_thu/va_evals/HUONG_DAN_GAN.md
+      - ./sua_doi/services/platform/evals.py:/srv/src/services/platform/evals.py:ro
+      - ./sua_doi/workflow/node/base/agent/node.py:/srv/src/workflow/node/base/agent/node.py:ro
+      - ./sua_doi/workflow/node/base/agent/streaming.py:/srv/src/workflow/node/base/agent/streaming.py:ro
+      - ./sua_doi/workflow/node/base/agent/structured_output.py:/srv/src/workflow/node/base/agent/structured_output.py:ro
+      - ./sua_doi/services/redaction/redaction_service.py:/srv/src/services/redaction/redaction_service.py:ro   # vá 9 (chiều 04/11): Che thông tin chạy gpt-6-luna
+      - ./sua_doi/nodes/redaction/node.py:/srv/src/nodes/redaction/node.py:ro   # [ghi chú]
+      - ./du_lieu:/srv/du_lieu:ro
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/xuat_file:/srv/xuat_file   # hướng C chiều 04/11: thư mục DUY NHẤT công cụ xuất Excel / Word được ghi
+      # vá 7 (04/11, User yêu cầu xem tiền khối duyệt): ghi dòng log [DIGEST_USAGE] token của bản tóm tắt cho người duyệt — sua_doi/README.md
+      - ./sua_doi/nodes/logic/human_intervention/digest.py:/srv/src/nodes/logic/human_intervention/digest.py:ro
+      - ./va_e2b/file_gia_lap.txt:/srv/e2b_ds/file_gia_lap.txt:ro   # [ghi chú] danh sách sha file giả lập
+      - ./va_e2b/gia_e2b.json:/srv/e2b_gia/gia_e2b.json:ro   # [ghi chú] bảng giá E2B một nguồn
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/e2b_so:/srv/e2b_so   # [ghi chú] sổ máy E2B (ghi được; chỉ hộp này)
+    depends_on:
+      temporal:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "backend.composio.dev:127.0.0.1"   # chặn gọi ra Composio — xem ghi chú ở ab-api trong compose.yaml
+      - "api.anthropic.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "api.parallel.ai:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "mcp.parallel.ai:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "api.elevenlabs.io:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "api.vercel.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "api.buffer.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "cloud.langfuse.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "us.posthog.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "login.microsoftonline.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "openrouter.ai:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "generativelanguage.googleapis.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "o1201410.ingest.us.sentry.io:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "ingress.us1.coralogix.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "platform.reducto.ai:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "www.googleapis.com:127.0.0.1"   # [ghi chú] chặn ra ngoài
+      - "host.docker.internal:host-gateway"   # [ghi chú] tới hộp cổng RAG (172.19.0.1:19450, có mã)
+    mem_limit: 1536m
+
+volumes:
+  capitol_temporal:

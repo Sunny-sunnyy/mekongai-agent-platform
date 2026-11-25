@@ -1,0 +1,18 @@
+# [07/11/2026, B — đã giao việc 8] Ghép THÊM vào eval_service/compose.yaml để hộp capitol-eval vào mạng của bộ Capitol (platform-api gọi được nó).
+# CHƯA CHẠY. Dùng: docker compose -f chay_thu/eval_service/compose.yaml -f chay_thu/eval_service/compose.gan_capitol.yaml up -d --force-recreate
+# Mạng bộ Capitol = mạng mặc định của dự án `capitol-chay-thu` (chay_thu/compose.yaml:12 `name:`) ⇒ tên Docker `capitol-chay-thu_default`.
+# Vẫn KHÔNG mở cổng ra máy. Vẫn giữ mạng riêng cũ (đi ra api.openai.com).
+services:
+  eval:
+    networks:
+      rieng: {}
+      capitol:
+        aliases: ["capitol-eval"]      # platform-api gọi http://capitol-eval:8080
+      s3: {}                           # [ghi chú] tới minio:9000 (mạng internal, không ra ngoài)
+networks:
+  capitol:
+    external: true
+    name: capitol-chay-thu_default
+  s3:
+    external: true
+    name: capitol-chay-thu_s3_noi_bo

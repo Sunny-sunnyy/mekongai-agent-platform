@@ -1,0 +1,12 @@
+# [07/11/2026, B — đã giao việc 8] Ghép THÊM vào bộ Capitol (cùng compose.yaml …) để platform-api gửi bài chấm sang eval-service của mình.
+# CHƯA CHẠY. Dùng: thêm `-f compose.eval.yaml` vào lệnh up của bộ, rồi tạo lại riêng hộp platform-api (`up -d --force-recreate platform-api`).
+# platform-api đọc settings lồng bằng "__" (config.py:307 env_nested_delimiter) ⇒ evals__BASE_URL = settings.evals.BASE_URL (config.py:70-75,
+# mặc định "http://eval-service.eval-service"). KHÔNG có "/" cuối: URL ghép f"{BASE_URL}/{endpoint}" (eval_manager/eval_runner_service.py:208).
+services:
+  platform-api:
+    environment:
+      evals__BASE_URL: "http://capitol-eval:8080"
+      EVAL_KHO_DIR: /srv/kho_evals   # [ghi chú] kho file kết quả chấm thay OpenSearch (bộ không có) — route /test/status đọc từ đây
+    volumes:
+      - ./sua_doi/platform_api/eval_manager/eval_manager_opensearch.py:/srv/src/eval_manager/eval_manager_opensearch.py:ro   # [ghi chú] bản thay 0760a808
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/evals_kho:/srv/kho_evals   # [ghi chú] bind ghi được DUY NHẤT của platform-api (700, Git bỏ qua); lùi: LUI=co gan_kho_evals.sh

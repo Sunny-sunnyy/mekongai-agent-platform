@@ -1,0 +1,54 @@
+# [ghi chú] Hộp KHÔNG cần gọi về WSL ⇒ đè tên host.docker.internal / gateway.docker.internal về chính nó.
+# Vì sao: Docker Desktop cho MỌI hộp tới cổng 127.0.0.1 của WSL qua host.docker.internal (E đo 18300 / 18301 / 18233 / 18400 / 19453 từ ab-*).
+# GIỚI HẠN [đã chạy, B 15:2x]: chỉ chặn kiểu gọi THEO TÊN — gọi thẳng IP 192.168.65.254 vẫn tới ⇒ rào thật là mã ở từng cổng (18300 / 18301 Caddy,
+#   18400 mã mở trang, 19453 RAG_MA). 3 hộp ab-* KHÔNG có ở đây: cần cổng RAG (RAG_CONG_URL host.docker.internal:19453, C va_rag_cong_bridge).
+# extra_hosts gộp theo danh sách với file khác (platform-api đã có danh sách chặn host) — tên trùng giữa các file thì bản này thêm dòng, không xoá.
+services:
+  postgres:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  redis:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  otel:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  ab-migrate:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  dynamodb:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  platform-api:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  minio:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  temporal:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  mcp-fastapi:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  mcp-servers:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  mcp-shop:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"
+  cong-ngoai:
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+      - "gateway.docker.internal:127.0.0.1"

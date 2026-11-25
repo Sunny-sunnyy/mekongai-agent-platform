@@ -1,0 +1,13 @@
+# Bản lưu image Docker bộ Capitol
+
+Tạo bằng `scripts/luu_image_docker.sh`, bắt đầu 10:16, 15/11/2026. Nạp lại: `docker load -i luu_image/<file>`.
+
+| File | Mã image | Tên:tag trong file | Cỡ (byte) | sha256 |
+|---|---|---|---|---|
+| `agentic-backend_8505e4dd93a4.tar` | 8505e4dd93a4 | 053376294935.dkr.ecr.us-east-1.amazonaws.com/agentic-backend:archive-8505e4dd93a4 053376294935.dkr.ecr.us-east-1.amazonaws.com/agentic-backend:release-4.10.0-5091ce2 capitol-local/agentic-backend:release-4.10.0 | 1190840832 | 08294094679cbeb00570556f22f763a579487f3700d285b91336305c03b0722c |
+| `platform-api_e337db773769.tar` | e337db773769 | 053376294935.dkr.ecr.us-east-1.amazonaws.com/platform-api:archive-e337db773769 053376294935.dkr.ecr.us-east-1.amazonaws.com/platform-api:release-1.82.0-3c2a9cf capitol-local/platform-api:release-1.82.0 | 604240384 | 6395b5ea7353824bf175647ffe857bf7558af6a49fb58e78c10b8415dc7a6502 |
+| `mcp-servers_d2644587fb97.tar` | d2644587fb97 | 053376294935.dkr.ecr.us-east-1.amazonaws.com/mcp-servers:archive-d2644587fb97 053376294935.dkr.ecr.us-east-1.amazonaws.com/mcp-servers:release-3.16.0-76425c4 capitol-local/mcp-servers:release-3.16.0 | 709231616 | 999eb270bb7273fa27faa12b69fd3f777e376b6915bb154f01e254be095bfe0e |
+| `mcp-fastapi_7fa52b49d93d.tar` | 7fa52b49d93d | 053376294935.dkr.ecr.us-east-1.amazonaws.com/mcp-fastapi:archive-7fa52b49d93d 053376294935.dkr.ecr.us-east-1.amazonaws.com/mcp-fastapi:release-3.16.0-76425c4 capitol-local/mcp-fastapi:release-3.16.0 | 752471552 | 2b7dc23c56bb3a9fb67c40d39059846234966207548d95109f11130054e4d34e |
+| `artifact-blob-store_4c0e60c32497.tar` | 4c0e60c32497 | 053376294935.dkr.ecr.us-east-1.amazonaws.com/artifact-blob-store-svc:archive-4c0e60c32497 053376294935.dkr.ecr.us-east-1.amazonaws.com/artifact-blob-store-svc:release-1.0.2-e4937b4 capitol-local/artifact-blob-store:release-1.0.2 | 356791296 | 249663199bdadbfd1b2975e36236d252bcaec405d4f9b27cee800489874278e9 |
+| `eval-service_2bc7aa5adbcf.tar` | 2bc7aa5adbcf | 053376294935.dkr.ecr.us-east-1.amazonaws.com/eval-service:archive-2bc7aa5adbcf 053376294935.dkr.ecr.us-east-1.amazonaws.com/eval-service:release-0.18.4-5800297 capitol-local/eval-service:release-0.18.4 | 539805696 | 209fcbd98e698c05cf97763e32932c23b16f24f32281dea0c694c137d1aef09d |
+| `qdrant-svc_3fe3ffea6c0e.tar` | 3fe3ffea6c0e | 053376294935.dkr.ecr.us-east-1.amazonaws.com/qdrant-svc:archive-3fe3ffea6c0e 053376294935.dkr.ecr.us-east-1.amazonaws.com/qdrant-svc:release-0.32.0-f3fd6ce capitol-local/qdrant-svc:release-0.32.0 | 2896407552 | fadd7af854e1ee08091640f2060b69dbd1a33e73c0f11d4e5f09b396c4349c6c |

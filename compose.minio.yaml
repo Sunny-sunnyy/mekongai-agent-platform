@@ -1,0 +1,77 @@
+# [09/11/2026, C — đã giao B1, người vận hành tải image MinIO] S3 giả lập cho khối Nhận file (chay_thu/nhan_file/DOC_CODE.md mục 6).
+# Dùng CHỒNG lên bộ:  docker compose -f compose.yaml -f compose.temporal.yaml -f compose.mcp.yaml -f compose.mcp_shop.yaml -f compose.eval.yaml \
+#                       -f compose.minio.yaml up -d minio   rồi   … up -d --force-recreate ab-api ab-worker ab-worker-temporal
+#
+# Image: MinIO bản cộng đồng KHÔNG còn phát hành image (09/11 [đã chạy]: Docker Hub minio/minio ⇒ 404 / "denied"; quay.io/minio/minio:latest
+# ⇒ "no such manifest") ⇒ dùng bản đóng gói cuối của Bitnami, kho LƯU TRỮ chính thức "bitnamilegacy" ("Legacy Bitnami images (no longer
+# updated)", cập nhật cuối 19/08/2025). MinIO RELEASE 2025-07-23; ghim theo digest danh sách (amd64 f24044f1…, 99,3 MB nén).
+# Không còn vá bảo mật ⇒ chỉ dùng cục bộ, KHÔNG mở cổng ra ngoài, dữ liệu giả.
+#
+# An toàn mạng:
+#  - minio chỉ ở mạng `s3_noi_bo` (internal: true) ⇒ không có đường ra Internet, không mở cổng nào ra máy (kể cả 127.0.0.1 — không cần:
+#    chay_b1.py kiểm file từ TRONG hộp ab-api).
+#  - 3 hộp ab-* vào THÊM mạng `s3_noi_bo` (vẫn giữ `default` để gọi OpenAI, Postgres…).
+#  - Khoá: env/minio.khoa.env (Git bỏ qua — chay_thu/.gitignore `env/*.khoa.env*`), tự sinh bằng chay_thu/nhan_file/tao_khoa_minio.py.
+#    Cùng một cặp: MINIO_ROOT_USER / MINIO_ROOT_PASSWORD (cho minio) = AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (cho boto3 trong ab-*).
+#  - Có khoá thì MỌI client boto3 của ab-* (không chỉ S3) sẽ ký và gửi đi ⇒ đặt AWS_ENDPOINT_URL (chung) = cổng chết 127.0.0.1:9 để mọi
+#    dịch vụ AWS khác lỗi ngay trong hộp; AWS_ENDPOINT_URL_S3 (riêng) thắng biến chung cho S3. K1 [đã chạy 10:03] thấy cả hai biến có tác
+#    dụng với botocore 1.43.26 của image; thứ tự "riêng thắng chung" là [kiến thức chung về botocore] ⇒ chay_b1.py kiểm lại trước khi tải.
+services:
+  minio:
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5@sha256:6dabb4a2088c9a79908de3bc05f4586c23ad2182c8908e7e3acbf61c1467fb20
+    container_name: capitol-minio
+    env_file:
+      - ./env/minio.khoa.env
+    environment:
+      MINIO_DEFAULT_BUCKETS: "capitol-chay-thu-files,capitol-chay-thu-outputs,capitol-chay-thu-evals,capitol-chay-thu-temporal-payload"   # [ghi chú] + payload Temporal (volume mới tự tạo)   # Bitnami tự tạo bucket lúc khởi động [tài liệu Bitnami]
+      MINIO_BROWSER: "off"          # tắt trang quản trị (không cần)
+      MINIO_UPDATE: "off"           # không tự kiểm bản mới [kiến thức chung; mạng internal nên đằng nào cũng không ra được]
+    volumes:
+      - capitol_minio:/bitnami/minio/data
+    networks:
+      - s3_noi_bo
+    mem_limit: 512m
+    restart: "no"
+
+  ab-api: &ab_s3
+    environment:
+      AWS_ENDPOINT_URL_S3: "http://minio:9000"
+      AWS_ENDPOINT_URL: "http://127.0.0.1:9"          # mọi dịch vụ AWS KHÁC S3 ⇒ cổng chết trong hộp (không ra AWS thật)
+      AWS_REGION: "us-east-1"
+      AWS_S3_BUCKET_NAME: "capitol-chay-thu-files"
+      OUTPUTS_BUCKET_NAME: "capitol-chay-thu-outputs"
+      # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY: từ env/minio.khoa.env (dòng env_file dưới) — không ghi giá trị ở đây
+    env_file:
+      - ./env/minio.khoa.env
+    networks:
+      - default
+      - s3_noi_bo
+  ab-worker:
+    <<: *ab_s3
+  ab-worker-temporal:
+    <<: *ab_s3
+
+  # [09/11 chiều, C — A quyết] platform-api: S3 sang MinIO cho route skill gốc (PA routes/skills.py:383 lưu zip vào S3_UPLOADS_BUCKET; :337-346
+  # ký link tải). Trước đây PA KHÔNG có endpoint S3 và bucket mặc định là bucket THẬT của Capitol (config.py:470 "capitol-ai-ingestion-pipeline")
+  # ⇒ giờ trỏ bucket giả trên MinIO. Khoá: env/minio.khoa.env (thêm SAU env/platform-api.env ⇒ khoá MinIO thắng khoá giả cũ). DynamoDB local
+  # chạy -sharedDb (compose.yaml:235) ⇒ đổi khoá KHÔNG đổi dữ liệu thấy được; DynamoDB đi DYNAMODB_ENDPOINT_URL riêng. Dịch vụ AWS khác ⇒ cổng chết.
+  # ENABLE_APP_ENCRYPTION mặc định False (config.py:565) ⇒ tải lên / ký link đi S3 thẳng (không Azure Key Vault).
+  platform-api:
+    environment:
+      AWS_ENDPOINT_URL_S3: "http://minio:9000"
+      AWS_ENDPOINT_URL: "http://127.0.0.1:9"
+      S3_UPLOADS_BUCKET: "capitol-chay-thu-files"
+      S3_EVAL_RESULTS_BUCKET: "capitol-chay-thu-evals"   # [ghi chú] đọc kết quả chấm (eval_manager/background_tasks.py:118); mặc định config.py:480 là tên thật
+    env_file:
+      - ./env/platform-api.env
+      - ./env/minio.khoa.env
+    networks:
+      - default
+      - s3_noi_bo
+
+networks:
+  s3_noi_bo:
+    internal: true
+
+volumes:
+  capitol_minio:

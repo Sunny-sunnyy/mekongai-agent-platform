@@ -1,0 +1,10 @@
+{
+  "name": "sandbox-py-v3-node",
+  "private": true,
+  "description": "Gói npm cho skill pptx / docx gốc của Capitol (e2b-template/constants.py NPM_PPTX + NPM_DOCX). Ghim bằng package-lock.json (integrity sha512) sinh 1 lần ở bước tải.",
+  "dependencies": {
+    "pptxgenjs": "*",
+    "sharp": "*",
+    "docx": "*"
+  }
+}

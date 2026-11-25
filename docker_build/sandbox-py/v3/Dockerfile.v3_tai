@@ -1,0 +1,20 @@
+# Buoc tai goi cho sandbox-py:v3 (co mang — chi chay 1 lan de tai ra /tmp/sandbox_khoa_goi_v3)
+#   docker build --output type=local,dest=/tmp/sandbox_khoa_goi_v3 -f v3/Dockerfile.v3_tai v3
+FROM python:3.12-slim@sha256:e695ab189fa2d082b1c61c69a6b888a5adeca61ceeccad107b1ed2a125721a9e AS tai
+ARG SNAP=20261109T000000Z
+COPY . /chay/
+RUN rm -f /etc/apt/sources.list.d/debian.sources \
+ && printf 'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/%s trixie main\ndeb [check-valid-until=no] http://snapshot.debian.org/archive/debian/%s trixie-updates main\ndeb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/%s trixie-security main\n' "$SNAP" "$SNAP" "$SNAP" > /etc/apt/sources.list \
+ && apt-get update -qq \
+ && mkdir -p /ra/debs \
+ && apt-get install -y -qq --no-install-recommends --download-only -o Dir::Cache::archives=/ra/debs $(cat /chay/apt_v3.txt) \
+ && rm -f /ra/debs/lock && rm -rf /ra/debs/partial \
+ && apt-get install -y -qq --no-install-recommends nodejs npm \
+ && cd /chay && { [ -f package-lock.json ] || npm install --package-lock-only --before=2026-10-26 --no-audit --no-fund; } \
+ && npm ci --omit=dev --ignore-scripts --no-audit --no-fund \
+ && npm ls --omit=dev --depth=0 > /ra/phien_ban_npm.txt \
+ && tar -czf /ra/node_modules.tgz node_modules && cp package-lock.json /ra/ \
+ && mkdir -p /ra/wheels && pip download --no-deps --only-binary=:all: --require-hashes -r /chay/goi_khoa_v3.txt -d /ra/wheels \
+ && (cd /ra && find . -type f ! -name SHA256SUMS | sort | xargs sha256sum > /tmp/SHA256SUMS && mv /tmp/SHA256SUMS /ra/SHA256SUMS)
+FROM scratch
+COPY --from=tai /ra/ /

@@ -1,0 +1,6 @@
+{
+  "AccessKeyId": "<aws-sts-access-key-id>",
+  "SecretAccessKey": "<aws-sts-secret-access-key>",
+  "SessionToken": "<aws-sts-session-token>",
+  "Expiration": "2099-01-01T00:00:00Z"
+}

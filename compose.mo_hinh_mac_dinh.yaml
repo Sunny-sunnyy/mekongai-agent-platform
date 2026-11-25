@@ -1,0 +1,12 @@
+# [ghi chú] ÉP MÔ HÌNH cho khối kiểu Agent (Agent, chạy code, MCP agent, Vercel deploy) — CHƯA GẮN. Bản 2: tên đọc từ FILE.
+# Gắn đè model_resolution.py (gốc e2a183ee; bản vá chỉ THÊM dòng) + gắn THƯ MỤC ./cau_hinh_mo_hinh (không gắn file đơn lẻ — bài học inode 13:55 18/11).
+# Đổi mô hình / TẮT: sửa TẠI CHỖ chay_thu/cau_hinh_mo_hinh/mo_hinh_khoi.txt (không có dòng mac_dinh ⇒ chạy luna như cũ). KHÔNG cần tạo lại hộp.
+# ĐIỀU KIỆN TRƯỚC khi gắn: bảng cổng AI đã có dòng claude-sonnet-5-5 + gói tiền va_tien_bedrock (gan.sh tự kiểm).
+x-mo-hinh: &mo_hinh
+  volumes:
+    - ./va_mo_hinh_mac_dinh/model_resolution.py:/srv/src/workflow/node/base/agent/model_resolution.py:ro
+    - ./cau_hinh_mo_hinh:/srv/cau_hinh_mo_hinh:ro
+services:
+  ab-api: *mo_hinh
+  ab-worker: *mo_hinh
+  ab-worker-temporal: *mo_hinh

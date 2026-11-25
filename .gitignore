@@ -1,0 +1,24 @@
+# Khoá & biến môi trường thật (TUYỆT ĐỐI không commit)
+.env
+.env.*
+!.env.example
+!.env.qdrant.example
+env/*.env
+env/*.khoa.env
+*.khoa.env
+*credentials*.json
+
+# Dữ liệu runtime, file nặng & cache
+runtime/
+luu_image/*.tar
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+node_modules/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

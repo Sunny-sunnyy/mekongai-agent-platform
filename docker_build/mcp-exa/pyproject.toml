@@ -1,0 +1,13 @@
+[project]
+name = "mcp-exa"
+version = "0.1.0"
+description = "MCP server cho Exa Search (co tran chi phi va kiem to chuc)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastmcp==3.4.2",
+    "httpx==0.28.1",
+    "pydantic==2.12.5",
+]
+
+[tool.uv]
+package = false

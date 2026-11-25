@@ -1,0 +1,7 @@
+# Gói bổ sung cho sandbox-py:v2 — cài chồng lên sandbox-py:v1 (giữ nguyên các gói trong goi_khoa.txt).
+# Phiên bản và mã băm wheel khớp thư viện chuẩn cho khối xử lý tài liệu PowerPoint/Word; pip --require-hashes đối chiếu trực tiếp với PyPI.
+lxml==6.1.0 --hash=sha256:bc783ee3147e60a25aa0445ea82b3e8aabb83b240f2b95d32cb75587ff781814
+python-docx==1.2.0 --hash=sha256:3fd478f3250fbbbfd3b94fe1e985955737c145627498896a8a6bf81f4baf66c7
+python-pptx==1.0.2 --hash=sha256:160838e0b8565a8b1f67947675886e9fea18aa5e795db7ae531606d68e785cba
+typing-extensions==4.15.0 --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
+xlsxwriter==3.2.9 --hash=sha256:9a5db42bc5dff014806c58a20b9eae7322a134abb6fce3c92c181bfb275ec5b3

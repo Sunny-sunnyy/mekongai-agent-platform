@@ -1,0 +1,96 @@
+# [ghi chú]
+# Nấc 2 "một nguồn số": trang KPI :5183 đọc số từ hộp KPI CHỈ ĐỂ XEM chạy cùng ảnh chụp + cùng dữ liệu với hộp chính (capitol-kpi-backend).
+#   máy chủ agent mekongai ⇒ 127.0.0.1:18403 (header X-Xem-Ma) ⇒ kpi-xem-cong (chỉ GET, danh sách đường tường minh) ⇒ kpi-xem:8110
+# Khác hộp chính: KHÔNG cờ KPI_SYSTEM_ONLY (trang cần đường của trang) · KHÔNG nạp env/kpi.khoa.env (khoá hệ thống không rời mạng kpi_noi_bo;
+#   KPI_SYS_KEY ở đây là chuỗi ngẫu nhiên script sinh lúc bật, không ai giữ) · store + uploads trên tmpfs (không dùng SQLite duyệt của hộp chính)
+#   · mạng internal RIÊNG kpi_xem (không chung mạng với hộp chính, ab-*, MCP).
+# Bật bằng script (sẽ viết khi đã giao dựng): bước 0 như bat_kpi_backend_raw.sh rồi đặt biến dưới. KHÔNG up thẳng.
+services:
+  kpi-xem:
+    image: capitol-local/agentic-backend:release-4.10.0
+    container_name: capitol-kpi-xem
+    entrypoint: ["python", "-I", "-m", "uvicorn", "--app-dir", "/srv/kpi", "kpi_agent.backend.main:app", "--host", "0.0.0.0", "--port", "8110"]
+    working_dir: /srv/kpi
+    environment:
+      KPI_STORE: /srv/kpi_store/kpi_store.sqlite          # tmpfs — mất khi tắt (cố ý)
+      KPI_UPLOAD_DIR: /srv/kpi_store/uploads
+      KPI_WARM_SPICE: "on"                                 # [ghi chú] mốc 5b — như hộp chính
+      KPI_ALLOWED_HOSTS: kpi-backend                       # hộp chuyển tiếp gửi Host: kpi-backend (như hộp 18402)
+      KPI_SESSION_KEY_FILE: /phien/xem_phien.key           # [ghi chú] hộp không cờ ĐÒI mã phiên (kpi_agent/session_key.py) — thiếu ⇒ backend không bật
+      KPI_SYS_KEY: "${XEM_KHOA_GIA:?thiếu XEM_KHOA_GIA}"   # ngẫu nhiên mỗi lần bật — /api/system/* của hộp xem vô dụng với mọi người [chờ mekongai: bỏ hẳn được không]
+      KPI_WORKFLOW: "${KPI_WORKFLOW:?thiếu KPI_WORKFLOW}"
+      KPI_CUTOFF: "${KPI_CUTOFF:?thiếu KPI_CUTOFF}"
+      HOME: /tmp
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:   # GIỐNG hộp chính (compose.kpi_backend_raw.yaml — bat_kpi_xem.sh bước 0 soi file cấp gốc ở CHÍNH file này) trừ 2 bind ghi — đổi bên đó thì đổi ở đây
+      - {type: bind, source: "${KPI_CODE:?thiếu KPI_CODE}/kpi_agent/__init__.py", target: /srv/kpi/kpi_agent/__init__.py, read_only: true}
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/session_key.py", target: /srv/kpi/kpi_agent/session_key.py, read_only: true}   # [ghi chú] mốc gộp 2 (4a19a94e) thêm file cấp gốc này (main.py:40, backend_client.py:12) — thiếu ⇒ ImportError lúc bật; bản CŨ HƠN mốc 2 (vd 5d371961) không có file ⇒ bỏ dòng này khi lùi
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/agent", target: /srv/kpi/kpi_agent/agent, read_only: true}
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/backend", target: /srv/kpi/kpi_agent/backend, read_only: true}
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/config", target: /srv/kpi/kpi_agent/config, read_only: true}
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/core", target: /srv/kpi/kpi_agent/core, read_only: true}
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/evals", target: /srv/kpi/kpi_agent/evals, read_only: true}
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/workflow", target: /srv/kpi/kpi_agent/workflow, read_only: true}
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/workflows", target: /srv/kpi/kpi_agent/workflows, read_only: true}
+      - {type: bind, source: "${KPI_CODE}/kpi_agent/scripts/tach_mcp_trang_sep.py", target: /srv/kpi/kpi_agent/scripts/tach_mcp_trang_sep.py, read_only: true}
+      - {type: bind, source: "${KPI_DL:?thiếu KPI_DL}/kpi_agent/data/ma_che_ten.json", target: /srv/kpi/kpi_agent/data/ma_che_ten.json, read_only: true}
+      - {type: bind, source: "${KPI_DL:?thiếu KPI_DL}/kpi_agent/data/mcp_trang_sep_3110.json", target: /srv/kpi/kpi_agent/data/mcp_trang_sep_3110.json, read_only: true}
+      - {type: bind, source: "${KPI_DL:?thiếu KPI_DL}/kpi_agent/data/chi_tieu_kokomi_3110.json", target: /srv/kpi/kpi_agent/data/chi_tieu_kokomi_3110.json, read_only: true}
+      - {type: bind, source: "${KPI_DL:?thiếu KPI_DL}/kpi_agent/data/chi_tieu_meat_3110.json", target: /srv/kpi/kpi_agent/data/chi_tieu_meat_3110.json, read_only: true}
+      - {type: bind, source: "${KPI_DL:?thiếu KPI_DL}/hoc_du_an/2_11_2026/Chi tieu NVBH.xlsx", target: "/srv/kpi/hoc_du_an/2_11_2026/Chi tieu NVBH.xlsx", read_only: true}
+      - {type: bind, source: "${KPI_DL:?thiếu KPI_DL}/hoc_du_an/10_11_2026/RAW DATA.xlsx", target: "/srv/kpi/hoc_du_an/10_11_2026/RAW DATA.xlsx", read_only: true}
+      - {type: bind, source: "${KPI_DL:?thiếu KPI_DL}/hoc_du_an/2_11_2026/Tracking.xlsx", target: /srv/kpi/hoc_du_an/2_11_2026/Tracking.xlsx, read_only: true}
+      - {type: bind, source: "${XEM_PHIEN_FILE:?thiếu XEM_PHIEN_FILE}", target: /phien/xem_phien.key, read_only: true}   # mã phiên hộp xem: script sinh mỗi lần bật, 600, ngoài repo
+      # [chờ mekongai] trang theo dõi / tên thật / tab Đánh giá cần thêm file nào (vd /api/names, 1 file JSON đánh giá) ⇒ thêm bind CHỈ ĐỌC từng file ở đây
+      # [bản 2 mục 4.4] sau khi có file tải lên ở hộp chính: gắn CHỈ ĐỌC ${CAPITOL_RUNTIME_DIR:-./runtime}/kpi_store/uploads (chỉ file, không SQLite) rồi dựng lại hộp xem
+    tmpfs:
+      - /tmp
+      - /srv/kpi_store:uid=1000,gid=1000,mode=700,size=64m
+    networks:
+      kpi_xem:
+        aliases: ["kpi-xem"]
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    pids_limit: 128
+
+  kpi-xem-cong:
+    image: capitol-local/agentic-backend:release-4.10.0
+    container_name: capitol-kpi-xem-cong
+    entrypoint: ["python", "-I", "/thu/chuyen_tiep_xem.py"]
+    environment:
+      HOME: /tmp
+      PYTHONDONTWRITEBYTECODE: "1"
+      XEM_DUONG_FILE: /thu/duong.json
+      XEM_PHIEN_FILE: /phien/xem_phien.key      # gửi X-Kpi-Session cho hộp xem (mã riêng của cặp hộp này)
+      XEM_DUONG_SHA256: "${XEM_DUONG_SHA256:?thiếu XEM_DUONG_SHA256}"   # sha256 file danh sách đường mekongai gửi kèm sha — lệch ⇒ hộp không bật
+      XEM_VAN_TAY_TINH: "${XEM_VAN_TAY_TINH:?thiếu XEM_VAN_TAY_TINH}"   # JSON script ghi lúc bật: sha DS ảnh chụp + sha 7 file dữ liệu bước 0
+      # [ghi chú] trường ĐỘNG của /van-tay hộp xem: mặc định trong mã chỉ 5 trường ⇒ tải file lên hộp chính (latest_data_version đổi) mà so 18402 ↔ 18403 vẫn "khớp".
+      # Thêm data_version + latest_data_version. KHÔNG thêm status: kho hộp xem là tmpfs nên luôn "tam_tinh" — sau khi duyệt ở hộp chính sẽ lệch oan.
+      XEM_VAN_TAY_TRUONG: "period,cutoff,files_sha256,rule_version,workflow_version,data_version,latest_data_version"
+    env_file:
+      - ${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}/xem_18403.env   # XEM_MA=<hex ≥ 32> — quyền 600, ngoài repo, không bind vào hộp nào; máy chủ agent mekongai đọc cùng file
+    volumes:
+      - ./sua_doi/kpi_xem/chuyen_tiep_xem.py:/thu/chuyen_tiep_xem.py:ro
+      - {type: bind, source: "${XEM_DUONG_FILE:?thiếu XEM_DUONG_FILE}", target: /thu/duong.json, read_only: true}
+      - {type: bind, source: "${XEM_PHIEN_FILE}", target: /phien/xem_phien.key, read_only: true}
+    ports:
+      - "127.0.0.1:18403:8121"       # CHỈ máy này; vẫn đòi mã vì hộp Docker khác gọi vòng host.docker.internal tới được
+    networks:
+      - kpi_xem                       # tới kpi-xem — KHÔNG vào kpi_noi_bo (bản 2: không tạo hộp nối hai vùng mạng)
+      - kpi_xem_cong                  # mạng riêng chỉ để mở cổng (mạng internal không mở cổng được)
+    dns: [127.0.0.1]
+    user: "1000:1000"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 160m
+    pids_limit: 32
+
+networks:
+  kpi_xem:
+    internal: true
+  kpi_xem_cong: {}

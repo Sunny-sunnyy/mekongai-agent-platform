@@ -1,0 +1,43 @@
+# Lớp ghi đè chuẩn hóa đường dẫn trạng thái và kết quả chạy cho bộ Compose nền tảng.
+# Dùng kết hợp cùng các tệp compose đã thay đường dẫn máy sang:
+#   - CAPITOL_STATE_DIR (mặc định: ${HOME}/.local/share/capitol-platform)
+#   - CAPITOL_RUNTIME_DIR (mặc định: ./runtime)
+# Lưu ý: dịch vụ kpi-backend dùng riêng tệp compose.kpi_backend.sach.yaml.
+
+services:
+  ab-api:
+    environment:
+      CAPITOL_STATE_DIR: ${CAPITOL_STATE_DIR:-/tmp/capitol-state}
+      CAPITOL_RUNTIME_DIR: ${CAPITOL_RUNTIME_DIR:-./runtime}
+      RAG_CONG_URL: ${RAG_CONG_URL:-http://host.docker.internal:19453/api/v1/search}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  ab-worker:
+    environment:
+      CAPITOL_STATE_DIR: ${CAPITOL_STATE_DIR:-/tmp/capitol-state}
+      CAPITOL_RUNTIME_DIR: ${CAPITOL_RUNTIME_DIR:-./runtime}
+      RAG_CONG_URL: ${RAG_CONG_URL:-http://host.docker.internal:19453/api/v1/search}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  ab-worker-temporal:
+    environment:
+      CAPITOL_STATE_DIR: ${CAPITOL_STATE_DIR:-/tmp/capitol-state}
+      CAPITOL_RUNTIME_DIR: ${CAPITOL_RUNTIME_DIR:-./runtime}
+      RAG_CONG_URL: ${RAG_CONG_URL:-http://host.docker.internal:19453/api/v1/search}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  cong-ai:
+    environment:
+      CAPITOL_STATE_DIR: ${CAPITOL_STATE_DIR:-/tmp/capitol-state}
+      CAPITOL_RUNTIME_DIR: ${CAPITOL_RUNTIME_DIR:-./runtime}
+
+  kpi-tai-len:
+    environment:
+      KPI_KHO_URL: http://kpi-backend:8099
+
+  kpi-xem-cong:
+    environment:
+      KPI_BACKEND_URL: http://kpi-backend:8099

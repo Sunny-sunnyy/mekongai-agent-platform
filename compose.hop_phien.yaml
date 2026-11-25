@@ -1,0 +1,21 @@
+# [09/11/2026, B — MỤC 63 V5, đã giao; người vận hành hộp phiên V3] Dùng CHỒNG lên bộ (file thứ 8 của DC trong _chung.sh — chỉ thêm khi gắn).
+# Gắn cho 3 hộp chạy khối: V1 + V2 chỉ đọc; hàng đợi phiên HAI chỗ như S2 (compose.yaml:121-122): vao rw, ra CHỈ ĐỌC — ab-* coi như có
+# thể bị chiếm, không được ghi giả kết quả / mã phiên (GIAO_DIEN_V2.md 6.3). Thư mục phiên do NGƯỜI CHẠY (uid 1000) tạo (6.4 — ab-* chạy root).
+# Tạo trước trên WSL:  mkdir -p chay_thu/ket_qua/hang_doi_phien/{vao,ra}/_mo   (không thì Docker tạo thư mục thuộc root).
+# Gỡ: bỏ file này khỏi DC (_chung.sh) rồi tao_lai_ab.sh — cờ CHAY_THU_HOP_PHIEN cũng mất ⇒ dịch vụ về mặc định trong code (bật) nhưng không còn
+# file V1 gắn đè ⇒ chạy đúng bản gốc của image.
+services:
+  ab-api: &ab_hop_phien
+    environment:
+      CHAY_THU_HOP_PHIEN: "true"
+      CHAY_THU_HANG_DOI_PHIEN: "/srv/hang_doi_phien"
+      A2A_TASK_ALIGNMENT_JUDGE_MODEL: "gpt-6-luna"   # V5 (RA_BIEN_MODEL_0911.md — env đủ, không cần vá code)
+    volumes:
+      - ./sua_doi/services/pydantic_ai_skills/e2b_chat_service.py:/srv/src/services/pydantic_ai_skills/e2b_chat_service.py:ro
+      - ./sua_doi/services/sandbox/hop_phien.py:/srv/src/services/sandbox/hop_phien.py:ro
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/hang_doi_phien/vao:/srv/hang_doi_phien/vao
+      - ${CAPITOL_RUNTIME_DIR:-./runtime}/hang_doi_phien/ra:/srv/hang_doi_phien/ra:ro
+  ab-worker:
+    <<: *ab_hop_phien
+  ab-worker-temporal:
+    <<: *ab_hop_phien
