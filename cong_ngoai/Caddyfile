@@ -1,0 +1,114 @@
+# Hộp gác cổng máy cho bộ chạy thử Capitol — C 11/11/2026, đã giao (đóng chỗ hở DNS rebinding), đã soát giấy ĐẠT có điều kiện.
+# Vì sao: agentic-backend (18300), platform-api (18301), giao diện Temporal (18233) KHÔNG có khoá; trước đây mở thẳng 127.0.0.1
+# ⇒ trang web lạ trong trình duyệt đổi DNS tên miền của nó về 127.0.0.1 là gọi được (đọc dữ liệu, bấm chạy tốn tiền).
+# Đo 11/11 trước khi sửa: Host giả "evil.example" ⇒ 200 ở cả 3 cổng.
+# Hai luật, đều là DANH SÁCH CHO PHÉP, so nguyên tên (không wildcard):
+#  1. Host phải là 127.0.0.1 hoặc localhost (Caddy so tên máy, bỏ số cổng) — trình duyệt luôn gửi Host = tên miền trên thanh địa chỉ.
+#  2. [đã soát] Host đúng nhưng trang lạ gọi thẳng http://127.0.0.1:1830x: trình duyệt gửi kèm Origin của trang lạ ⇒ có Origin mà
+#     không thuộc {http://127.0.0.1:<cùng cổng>, http://localhost:<cùng cổng>} ⇒ 403 (đã chốt; trang 18400 không gọi thẳng 1830x từ trình duyệt —
+#     D rg web/src: 0 chỗ). Script / may_chu gọi từ máy không gửi Origin ⇒ không bị chặn.
+#     Phải cho chính cổng: giao diện Temporal và trang /docs gọi POST cùng nguồn ⇒ trình duyệt vẫn gửi Origin.
+#  3. [đã soát 12/11 — V2-1] cookie của trình duyệt đặt theo TÊN MÁY, không theo cổng ⇒ khi người dùng mở 127.0.0.1:18300 / 18301 / 18233,
+#     trình duyệt gửi kèm cookie mã mở trang của may_chu (xuong_ma_18400). Xoá header Cookie trước khi chuyển ⇒ mã không vào hộp
+#     ab-api / platform-api / temporal (các dịch vụ này không dùng cookie: không đăng nhập).
+# Hộp Capitol KHÔNG còn mở cổng ra máy (compose.yaml, compose.temporal.yaml) ⇒ không có đường vòng qua hộp này.
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+:18300 {
+	@la_host not host 127.0.0.1 localhost
+	@la_nguon {
+		header Origin *
+		not header_regexp Origin ^http://(127\.0\.0\.1|localhost):18300$
+	}
+	# [ghi chú] CHẶN MẶC ĐỊNH.
+	# Có mã đúng (header X-Chay-Thu-Ma = {$CONG_18300_MA}, mã ≥ 32 ký tự từ env/cong_18300.khoa.env — CHỈ tiến trình có sổ tiền gửi: may_chu.goi_ab /
+	# tải file, buoc4b.goi khi đã nạp sandbox.chay_s5) ⇒ mọi đường. Không mã ⇒ CHỈ: GET / HEAD (trừ /ws/* và /a2a/* — WebSocket chat + A2A là đường AI)
+	# + POST list-nodes + POST runs/session/{s}/stop | pause. Mọi ghi khác (chạy, chạy lại, resume, duyệt, lưu workflow, lịch, trigger, tải file…) ⇒ 403.
+	# Mã thiếu / rỗng (biến không đặt) ⇒ header_regexp ≥ 32 không khớp ⇒ không ai qua được nhánh "có mã" (đóng khi lỗi). Không có directive log.
+	@co_ma {
+		header X-Chay-Thu-Ma {$CONG_18300_MA}
+		header_regexp ma X-Chay-Thu-Ma ^[A-Za-z0-9_-]{32,128}$
+	}
+	@doc_khong_ma {
+		method GET HEAD
+		not path /ws /ws/* /a2a/* /a2a
+	}
+	@ghi_khong_ma {
+		method POST
+		path_regexp ghi ^/(nodes/[0-9a-f-]{36}/list-nodes|api/v1/orgs/[0-9a-f-]{36}/workflows/[0-9a-f-]{36}/runs/session/[A-Za-z0-9_.:-]{1,128}/(stop|pause))$
+	}
+	route {
+		respond @la_host "Host khong duoc phep" 403
+		respond @la_nguon "Origin khong duoc phep" 403
+		request_header -Cookie
+		handle @co_ma {
+			request_header -X-Chay-Thu-Ma
+			reverse_proxy ab-api:80
+		}
+		handle @doc_khong_ma {
+			request_header -X-Chay-Thu-Ma
+			reverse_proxy ab-api:80
+		}
+		handle @ghi_khong_ma {
+			request_header -X-Chay-Thu-Ma
+			reverse_proxy ab-api:80
+		}
+		respond "Duong nay can ma chay (chay_thu 18300: chi trang 18400 / script co so tien)" 403
+	}
+}
+
+:18301 {
+	@la_host not host 127.0.0.1 localhost
+	@la_nguon {
+		header Origin *
+		not header_regexp Origin ^http://(127\.0\.0\.1|localhost):18301$
+	}
+	# [ghi chú] 18301 = DANH SÁCH CHO PHÉP. platform-api mở mọi đường nội bộ KHÔNG đăng nhập
+	# (INTERNAL_ROUTES_AUTH_ENABLED=false) và có khoá OpenAI ⇒ /{orgid}/chat (gpt-4, routes/chat.py:274), chat kho, hỏi SQL… gọi AI ngoài sổ.
+	# Máy (script) chỉ cần: GET /health, /openapi.json, /docs (dung_lai, buoc3), GET /org-node-access-config/{uuid} (dung_lai :83, :114, buoc3),
+	# POST /skills/{uuid} (va_ci_hop_phien/chay_skill.py). Nhật ký cổng 72 h: chỉ /health. Khối Capitol đi trong mạng bộ (platform-api:80) ⇒ không qua đây.
+	@cho_phep_get {
+		method GET HEAD
+		path_regexp cho_get ^/(health|openapi\.json|docs|org-node-access-config/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$
+	}
+	# [ghi chú] POST /skills/{org} (tải skill lên — ghi) đòi CÙNG mã 18300: mọi hộp Docker tới được WSL qua IP 192.168.65.254
+	#   (B đo 15:2x) ⇒ danh sách cho phép thôi chưa đủ. Mọi POST khác của 18301 vẫn 403 (chặn mặc định — dòng respond cuối khối).
+	@cho_phep_post {
+		method POST
+		path_regexp cho_post ^/skills/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+		header X-Chay-Thu-Ma {$CONG_18300_MA}
+		header_regexp ma301 X-Chay-Thu-Ma ^[A-Za-z0-9_-]{32,128}$
+	}
+	route {
+		respond @la_host "Host khong duoc phep" 403
+		respond @la_nguon "Origin khong duoc phep" 403
+		request_header -Cookie
+		reverse_proxy @cho_phep_get platform-api:80
+		handle @cho_phep_post {
+			request_header -X-Chay-Thu-Ma
+			reverse_proxy platform-api:80
+		}
+		respond "Duong nay khong mo ra may (chay_thu: danh sach cho phep 18301)" 403
+	}
+}
+
+:18233 {
+	@la_host not host 127.0.0.1 localhost
+	@la_nguon {
+		header Origin *
+		not header_regexp Origin ^http://(127\.0\.0\.1|localhost):18233$
+	}
+	route {
+		respond @la_host "Host khong duoc phep" 403
+		respond @la_nguon "Origin khong duoc phep" 403
+		request_header -Cookie
+		# [ghi chú] giao diện Temporal CHỈ XEM: POST (terminate / reset / signal / start — reset chạy lại activity AI ngoài sổ) ⇒ 403
+		@xem_t method GET HEAD
+		reverse_proxy @xem_t temporal:8233
+		respond "Giao dien Temporal chi xem (chay_thu)" 403
+	}
+}

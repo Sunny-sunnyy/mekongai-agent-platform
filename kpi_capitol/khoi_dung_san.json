@@ -1,0 +1,449 @@
+{
+ "phien_ban": "kpi-1",
+ "loi_dan_sha16": "47a85c588d25ad71",
+ "loi_dan_nguon": "chay_thu/kpi_capitol/workflow_kpi.py:loi_dan() — trang KHÔNG giữ bản chữ riêng",
+ "khoi": [
+  {
+   "ma": "kpi_cau_hoi",
+   "ten": "Câu hỏi giám sát",
+   "mo_ta": "Ô gõ câu hỏi về thưởng lương kinh doanh (ví dụ: \"Tháng 10 NV05 được bao nhiêu?\").",
+   "khoi_goc": "text_input_node",
+   "sua_duoc": {
+    "text_input": {
+     "nhan": "Câu hỏi",
+     "kieu": "chu",
+     "toi_da": 1000
+    }
+   },
+   "o_day": [],
+   "o_an": [],
+   "o_khoa": [],
+   "ghi_chu": {},
+   "gia_tri_cung": {}
+  },
+  {
+   "ma": "kpi_tro_ly",
+   "ten": "Trợ lý KPI",
+   "mo_ta": "AI đọc câu hỏi, gọi các công cụ tính thưởng của hệ thống rồi viết câu trả lời — không tự tính số.",
+   "khoi_goc": "agent_node",
+   "sua_duoc": {},
+   "o_day": [
+    "user_prompt"
+   ],
+   "o_an": [
+    "enable_interactive_feedback",
+    "fast_mode",
+    "files",
+    "frequency_penalty",
+    "ground_with_provided_info",
+    "kpi_data_version",
+    "mcp_servers",
+    "output_schema",
+    "parallel_tool_calls",
+    "presence_penalty",
+    "primary_output",
+    "primary_output_extensions",
+    "retries",
+    "seed",
+    "temperature",
+    "timeout",
+    "tool_choice",
+    "tool_current_time",
+    "tool_customer_id",
+    "tool_fetch_url",
+    "tool_ma_file",
+    "tool_make_csv",
+    "tool_make_docx",
+    "tool_make_md",
+    "tool_make_pdf",
+    "tool_make_pptx",
+    "tool_make_txt",
+    "tool_make_xlsx",
+    "tool_order_lookup",
+    "tool_run_python",
+    "tool_sql_query",
+    "tool_web_search",
+    "top_k",
+    "top_p",
+    "trace"
+   ],
+   "o_khoa": [
+    "enable_interactive_feedback",
+    "fast_mode",
+    "files",
+    "frequency_penalty",
+    "ground_with_provided_info",
+    "kpi_data_version",
+    "max_tokens",
+    "mcp_servers",
+    "model",
+    "output_schema",
+    "parallel_tool_calls",
+    "presence_penalty",
+    "primary_output",
+    "primary_output_extensions",
+    "rag_collections",
+    "retries",
+    "seed",
+    "system_prompt",
+    "temperature",
+    "timeout",
+    "tool_choice",
+    "tool_current_time",
+    "tool_customer_id",
+    "tool_fetch_url",
+    "tool_kpi",
+    "tool_ma_file",
+    "tool_make_csv",
+    "tool_make_docx",
+    "tool_make_md",
+    "tool_make_pdf",
+    "tool_make_pptx",
+    "tool_make_txt",
+    "tool_make_xlsx",
+    "tool_order_lookup",
+    "tool_rag_search",
+    "tool_run_python",
+    "tool_sql_query",
+    "tool_web_search",
+    "top_k",
+    "top_p",
+    "trace"
+   ],
+   "ghi_chu": {
+    "system_prompt": "lấy từ workflow_kpi.loi_dan() — chỉ xem, không sửa",
+    "tool_kpi": "bật: các công cụ KPI của hệ thống (đọc số + phép tính)",
+    "model": "mô hình thật do file mô hình khối quyết — xem dòng tiến độ 'Mô hình của khối' lúc chạy"
+   },
+   "gia_tri_cung": {
+    "enable_interactive_feedback": "",
+    "fast_mode": "",
+    "files": "",
+    "frequency_penalty": "",
+    "ground_with_provided_info": "",
+    "kpi_data_version": "",
+    "max_tokens": 4000,
+    "mcp_servers": "",
+    "model": "gpt-6-luna",
+    "output_schema": "",
+    "parallel_tool_calls": "",
+    "presence_penalty": "",
+    "primary_output": "",
+    "primary_output_extensions": "",
+    "rag_collections": "",
+    "retries": "",
+    "seed": "",
+    "system_prompt": "<workflow_kpi.loi_dan()>",
+    "temperature": null,
+    "timeout": "",
+    "tool_choice": "",
+    "tool_current_time": "",
+    "tool_customer_id": "",
+    "tool_fetch_url": "",
+    "tool_kpi": true,
+    "tool_ma_file": "",
+    "tool_make_csv": "",
+    "tool_make_docx": "",
+    "tool_make_md": "",
+    "tool_make_pdf": "",
+    "tool_make_pptx": "",
+    "tool_make_txt": "",
+    "tool_make_xlsx": "",
+    "tool_order_lookup": "",
+    "tool_rag_search": "",
+    "tool_run_python": "",
+    "tool_sql_query": "",
+    "tool_web_search": "",
+    "top_k": "",
+    "top_p": "",
+    "trace": ""
+   }
+  },
+  {
+   "ma": "kpi_kiem_so",
+   "ten": "Kiểm số bằng code",
+   "mo_ta": "Code so từng con số trong câu trả lời với kết quả công cụ; sai một số là chặn cả câu.",
+   "khoi_goc": "guardrails_node",
+   "sua_duoc": {},
+   "o_day": [
+    "guardrail_query",
+    "cau_hoi"
+   ],
+   "o_an": [
+    "guardrails_list",
+    "kpi_data_version"
+   ],
+   "o_khoa": [
+    "che_do_kiem",
+    "guardrails_list",
+    "kpi_data_version"
+   ],
+   "ghi_chu": {
+    "che_do_kiem": "code (không dùng AI để kiểm)"
+   },
+   "gia_tri_cung": {
+    "che_do_kiem": "code",
+    "guardrails_list": "",
+    "kpi_data_version": ""
+   }
+  },
+  {
+   "ma": "kpi_duyet",
+   "ten": "Giám sát duyệt bảng thưởng",
+   "mo_ta": "Dừng lại cho người duyệt xem bảng thưởng từ lõi tính; bấm duyệt thì hệ thống tự xuất file Excel. Hết hạn chờ mà không ai bấm thì tự đi tiếp với nhãn “tự duyệt”.",
+   "khoi_goc": "human_intervention_node",
+   "sua_duoc": {
+    "timeout": {
+     "nhan": "Số giây chờ duyệt",
+     "kieu": "so_nguyen",
+     "tu": 30,
+     "toi": 3600
+    }
+   },
+   "o_day": [
+    "preview_context"
+   ],
+   "o_an": [],
+   "o_khoa": [
+    "auto_approve_on_timeout",
+    "che_do_kpi",
+    "reviewer_note"
+   ],
+   "ghi_chu": {
+    "che_do_kpi": "bật",
+    "auto_approve_on_timeout": "bật — hết giờ không ai bấm thì tự đi tiếp; kết quả mang nhãn “tự duyệt khi quá hạn — chưa có người duyệt”, file là bản nháp"
+   },
+   "gia_tri_cung": {
+    "auto_approve_on_timeout": true,
+    "che_do_kpi": true,
+    "reviewer_note": "Duyệt bảng thưởng từ lõi tính (không phải số AI viết). Kiểm mã băm trước khi bấm."
+   }
+  },
+  {
+   "ma": "kpi_ket_qua",
+   "ten": "Kết quả đã duyệt",
+   "mo_ta": "Hiện câu trả lời đã qua kiểm số (và đã duyệt) cùng file Excel nếu có.",
+   "khoi_goc": "text_output_node",
+   "sua_duoc": {},
+   "o_day": [
+    "text_content"
+   ],
+   "o_an": [
+    "primary_output",
+    "primary_output_extensions"
+   ],
+   "o_khoa": [
+    "primary_output",
+    "primary_output_extensions"
+   ],
+   "ghi_chu": {},
+   "gia_tri_cung": {
+    "primary_output": "",
+    "primary_output_extensions": ""
+   }
+  }
+ ],
+ "bo_san": {
+  "ten": "Bộ KPI sẵn",
+  "mo_ta": "Năm khối đã nối sẵn — chỉ cần gõ câu hỏi rồi bấm Chạy.",
+  "khoi": [
+   {
+    "ma": "kpi_cau_hoi",
+    "x": 0,
+    "y": 0
+   },
+   {
+    "ma": "kpi_tro_ly",
+    "x": 350,
+    "y": 0
+   },
+   {
+    "ma": "kpi_kiem_so",
+    "x": 700,
+    "y": 0
+   },
+   {
+    "ma": "kpi_duyet",
+    "x": 1050,
+    "y": 0
+   },
+   {
+    "ma": "kpi_ket_qua",
+    "x": 1400,
+    "y": 0
+   }
+  ],
+  "day": [
+   {
+    "tu": "kpi_cau_hoi",
+    "toi": "kpi_tro_ly",
+    "o": "user_prompt"
+   },
+   {
+    "tu": "kpi_tro_ly",
+    "toi": "kpi_kiem_so",
+    "o": "guardrail_query"
+   },
+   {
+    "tu": "kpi_cau_hoi",
+    "toi": "kpi_kiem_so",
+    "o": "cau_hoi"
+   },
+   {
+    "tu": "kpi_kiem_so",
+    "toi": "kpi_duyet",
+    "o": "preview_context"
+   },
+   {
+    "tu": "kpi_duyet",
+    "toi": "kpi_ket_qua",
+    "o": "text_content"
+   }
+  ]
+ },
+ "mau": [
+  {
+   "ten": "KPI mẫu 1 — Một nhân viên được bao nhiêu",
+   "cau_hoi": "Tháng 10 NV05 được bao nhiêu, ở những KPI nào?",
+   "cong_cu": "get_employee_result"
+  },
+  {
+   "ten": "KPI mẫu 2 — Tổng thưởng cả đội",
+   "cau_hoi": "Tổng lương kinh doanh cả đội tháng 10 là bao nhiêu?",
+   "cong_cu": "get_team_bonus_table"
+  },
+  {
+   "ten": "KPI mẫu 3 — Vì sao chưa có tiền",
+   "cau_hoi": "Vì sao NV07 không có tiền PC_BT?",
+   "cong_cu": "explain_kpi"
+  },
+  {
+   "ten": "KPI mẫu 4 — Còn thiếu bao nhiêu để đạt mốc",
+   "cau_hoi": "NV02 cần thêm bao nhiêu doanh số để chạm mốc thưởng Turnover đầu tiên?",
+   "cong_cu": "get_mid_month_gap",
+   "ghi_chu": "Tháng 10 đã chốt số (hết ngày bán) — con số ở đây để hiểu khoảng cách tới mốc, không phải việc còn kịp làm."
+  },
+  {
+   "ten": "KPI mẫu 5 — Thưởng thêm của một nhân viên",
+   "cau_hoi": "NV02 được những khoản thưởng thêm nào, mỗi khoản bao nhiêu tiền?",
+   "cong_cu": "get_extra_bonus"
+  },
+  {
+   "ten": "KPI mẫu 6 — Bảng thưởng cả đội và xuất Excel",
+   "cau_hoi": "Cho tôi bảng thưởng cả đội tháng 10: mỗi nhân viên được bao nhiêu?",
+   "cong_cu": "get_team_bonus_table",
+   "ghi_chu": "Bấm Duyệt ở khối Giám sát duyệt ⇒ hệ thống xuất file Excel bảng thưởng."
+  },
+  {
+   "ten": "KPI mẫu 7 — So hai nhân viên",
+   "cau_hoi": "So NV04 với NV09: ai được nhiều hơn, hơn ở KPI nào?",
+   "cong_cu": "compare_employees"
+  },
+  {
+   "ten": "KPI mẫu 8 — Dữ liệu có gì cần để ý",
+   "cau_hoi": "Dữ liệu tháng này có gì cần để ý không?",
+   "cong_cu": "get_data_issues"
+  },
+  {
+   "ten": "KPI mẫu 9 — Giả định nếu bán thêm thì thưởng đổi thế nào",
+   "cau_hoi": "Nếu NV02 có thêm 50.000.000 đồng doanh số thì KPI Turnover của NV02 đạt mốc nào, tiền thưởng đổi bao nhiêu?",
+   "cong_cu": "simulate_kpi_change"
+  },
+  {
+   "ten": "KPI mẫu 10 — Một KPI của cả đội ai ở mốc nào",
+   "cau_hoi": "KPI ASO_ALL: cả đội được bao nhiêu tiền, ai ở mốc nào, mấy người chưa có tiền?",
+   "cong_cu": "get_team_kpi_summary"
+  },
+  {
+   "ten": "KPI mẫu 11 — Ai có cơ hội lên mốc",
+   "cau_hoi": "Ai đang có cơ hội lên mốc kế tiếp, ở KPI nào, lên được thì thêm bao nhiêu tiền?",
+   "cong_cu": "get_opportunities"
+  },
+  {
+   "ten": "KPI mẫu 12 — Số đang xem lấy từ đâu có tin được không",
+   "cau_hoi": "Số thưởng đang xem tính theo bản luật nào, chốt tới ngày nào, đã có người soát chưa?",
+   "cong_cu": "get_data_provenance"
+  },
+  {
+   "ten": "KPI mẫu 13 — Phiếu một nhân viên gồm 8 KPI và thưởng thêm",
+   "cau_hoi": "Tháng 10 NV05 được bao nhiêu ở từng KPI, vì sao? · NV05 được những khoản thưởng thêm nào, mỗi khoản bao nhiêu, tổng 8 KPI cộng thưởng thêm là bao nhiêu?",
+   "cong_cu": "get_employee_result + get_extra_bonus",
+   "ghi_chu": "2 nhánh chạy cùng lúc, mỗi nhánh một thẻ kết quả. Chỉ chạy bằng nút Chạy trên xưởng (không qua Hỏi nhanh / Trợ lý)."
+  },
+  {
+   "ten": "KPI mẫu 14 — Bản tin giám sát ba câu chạy một lần",
+   "cau_hoi": "Tổng lương kinh doanh cả đội tháng 10 là bao nhiêu, ai nhiều nhất, ai ít nhất? · Ai đang có cơ hội lên mốc kế tiếp, ở KPI nào, lên được thì thêm bao nhiêu tiền? · Dữ liệu tháng này có gì cần để ý không?",
+   "cong_cu": "get_team_bonus_table + get_opportunities + get_data_issues",
+   "ghi_chu": "3 nhánh chạy cùng lúc, mỗi nhánh một thẻ kết quả. Chỉ chạy bằng nút Chạy trên xưởng (không qua Hỏi nhanh / Trợ lý)."
+  },
+  {
+   "ten": "KPI mẫu 15 — Xem nhanh và bảng chính thức có duyệt trong một lần",
+   "cau_hoi": "Tổng lương kinh doanh cả đội tháng 10 là bao nhiêu? · Cho tôi bảng thưởng cả đội tháng 10: mỗi nhân viên được bao nhiêu?",
+   "cong_cu": "get_team_bonus_table",
+   "ghi_chu": "Nhánh trên trả số tạm tính ngay; nhánh dưới dừng ở khối Giám sát duyệt — bấm Duyệt thì hệ thống xuất file Excel bảng thưởng. 2 nhánh chạy cùng lúc, mỗi nhánh một thẻ kết quả. Chỉ chạy bằng nút Chạy trên xưởng (không qua Hỏi nhanh / Trợ lý)."
+  },
+  {
+   "ten": "KPI mẫu 16 — So hai nhân viên rồi giải thích chỗ lệch",
+   "cau_hoi": "So NV04 với NV08: ai được nhiều hơn, hơn bao nhiêu, lệch ở những KPI nào và vì sao?",
+   "cong_cu": "compare_employees"
+  },
+  {
+   "ten": "KPI mẫu 17 — Câu ngoài phạm vi phải từ chối",
+   "cau_hoi": "Lương cơ bản cộng ngày công của NV99 tháng 10 là bao nhiêu?",
+   "cong_cu": "(không công cụ nào trả được)",
+   "ghi_chu": "Ca đối chứng: hệ thống không có lương cơ bản / ngày công và không có nhân viên NV99 ⇒ câu trả lời đúng là TỪ CHỐI, không nêu số tiền."
+  },
+  {
+   "ten": "KPI mẫu 18 — Chỉ tiêu và các mốc thưởng của một KPI",
+   "cau_hoi": "KPI Turnover của NV05: chỉ tiêu bao nhiêu, có những mốc nào, mỗi mốc được bao nhiêu tiền?",
+   "cong_cu": "explain_kpi"
+  },
+  {
+   "ten": "KPI mẫu 19 — Ai đang sát mốc kế tiếp",
+   "cau_hoi": "Trong cả đội, ai còn thiếu ít nhất để lên mốc kế tiếp của KPI Turnover, thiếu bao nhiêu?",
+   "cong_cu": "get_mid_month_gap (cả đội)"
+  },
+  {
+   "ten": "KPI mẫu 20 — Giả định đạt đúng 100 phần trăm chỉ tiêu",
+   "cau_hoi": "Nếu NV02 đạt 100 % chỉ tiêu Turnover thì được bao nhiêu tiền, hơn hiện tại bao nhiêu?",
+   "cong_cu": "simulate_kpi_change (target_pct)"
+  },
+  {
+   "ten": "KPI mẫu 21 — Tổng chi cả đội gồm cả thưởng thêm",
+   "cau_hoi": "Cả đội tháng 10: tổng 8 KPI là bao nhiêu, tổng thưởng thêm là bao nhiêu, cộng lại là bao nhiêu?",
+   "cong_cu": "get_extra_bonus (cả đội)"
+  },
+  {
+   "ten": "KPI mẫu 22 — Trả lời thắc mắc của một nhân viên",
+   "cau_hoi": "NV07 thắc mắc vì sao PC_BT không có tiền: hệ thống đếm thế nào, chỉ tiêu và thực hiện bao nhiêu, dữ liệu của NV07 có gì cần để ý?",
+   "cong_cu": "explain_kpi + get_data_issues"
+  },
+  {
+   "ten": "KPI mẫu 23 — Còn gì cần xem trước khi chốt kỳ",
+   "cau_hoi": "Trước khi chốt thưởng tháng 10: dữ liệu còn cờ gì, số đang là tạm tính hay đã soát, bản tính nào đang dùng?",
+   "cong_cu": "get_data_issues + get_data_provenance"
+  },
+  {
+   "ten": "KPI mẫu 24 — Một câu gộp ba ý về một nhân viên",
+   "cau_hoi": "NV05 tháng 10 được bao nhiêu, còn thiếu bao nhiêu để lên mốc kế tiếp ở KPI chưa đạt, và dữ liệu của NV05 có cờ gì?",
+   "cong_cu": "get_employee_result + get_mid_month_gap + get_data_issues"
+  },
+  {
+   "ten": "KPI mẫu 25 — Câu hỏi chung chung",
+   "cau_hoi": "Tháng này thế nào?",
+   "cong_cu": "(AI tự chọn)",
+   "ghi_chu": "Câu không nói rõ hỏi gì: Trợ lý hoặc hỏi lại, hoặc trả tổng quan cả đội — không tự chọn một nhân viên."
+  },
+  {
+   "ten": "KPI mẫu 26 — Vượt chỉ tiêu sao tiền không tăng",
+   "cau_hoi": "NV04 đạt 126,82 % KPI PC_ON, vì sao tiền PC_ON chỉ 1.500.000 đồng, vượt thêm có được thêm không?",
+   "cong_cu": "explain_kpi"
+  },
+  {
+   "ten": "KPI mẫu 27 — Đạt mà sao khoản này không có tiền",
+   "cau_hoi": "NV02 đạt hơn 100 % khoản thưởng thêm 7.2 (xúc xích), vì sao không có tiền?",
+   "cong_cu": "get_extra_bonus"
+  }
+ ],
+ "luat_noi": "workflow_kpi.kiem_payload + khoi_dung_san.kiem_khoi_dung_san (gọi lúc Lưu và lúc Chạy)"
+}

@@ -1,0 +1,247 @@
+{
+ "ghi": "Bảng ÁNH XẠ khuôn chuẩn cho màn ghép cột (đối chiếu kỹ thuật). Nguồn: mekongai tài liệu thiết kế nội bộ mục 2.1 (NHÁP, nhóm phát triển xác nhận đang soát — tên trường có thể đổi nhẹ ⇒ CHỈ sửa file này). goi_y = tên cột hay gặp (T10 DMS + tên tiếng Việt), chỉ để ĐỀ XUẤT; người xác nhận. du_lieu_khach = không hiện giá trị mẫu (mục 5.1, Q6). Bậc này mới có bảng don_hang; 4 bảng còn lại thêm sau.",
+ "bang": {
+  "don_hang": {
+   "ten_hien": "Đơn hàng (RAW)",
+   "dong_khong_phai_don": {
+    "cot_goi_y": [
+     "SHIP TO"
+    ],
+    "bat_dau_bang": [
+     "Total",
+     "Applied filters"
+    ]
+   },
+   "truong": [
+    {
+     "id": "sm_code",
+     "nghia": "Mã nhân viên bán hàng",
+     "kieu": "ma",
+     "bat_buoc": true,
+     "goi_y": [
+      "SM CODE",
+      "Mã NVBH",
+      "Mã NV",
+      "SM code"
+     ]
+    },
+    {
+     "id": "sm_name",
+     "nghia": "Họ tên nhân viên",
+     "kieu": "chuoi",
+     "bat_buoc": false,
+     "du_lieu_khach": true,
+     "goi_y": [
+      "SM_NAME",
+      "Tên nhân viên",
+      "SM name"
+     ]
+    },
+    {
+     "id": "order_num",
+     "nghia": "Số đơn",
+     "kieu": "ma",
+     "bat_buoc": true,
+     "goi_y": [
+      "ORDER NUM",
+      "Số đơn hàng",
+      "Số đơn"
+     ]
+    },
+    {
+     "id": "order_status",
+     "nghia": "Trạng thái đơn",
+     "kieu": "tap",
+     "tap": [
+      "Invoiced",
+      "Shipped",
+      "Cancelled",
+      "Canceled",
+      "Draft",
+      "Pending"
+     ],
+     "bat_buoc": true,
+     "goi_y": [
+      "ORDER STATUS",
+      "Trạng thái đơn",
+      "Trạng thái"
+     ]
+    },
+    {
+     "id": "order_date",
+     "nghia": "Ngày đặt đơn",
+     "kieu": "ngay",
+     "bat_buoc": true,
+     "goi_y": [
+      "ORDER DATE",
+      "Ngày đặt",
+      "Ngày đơn"
+     ]
+    },
+    {
+     "id": "invoiced_at",
+     "nghia": "Lúc xuất hoá đơn (được trống)",
+     "kieu": "ngay_gio",
+     "bat_buoc": true,
+     "duoc_trong": true,
+     "goi_y": [
+      "INVOICED DATE",
+      "Ngày xuất HĐ",
+      "Ngày hoá đơn"
+     ]
+    },
+    {
+     "id": "outlet_code",
+     "nghia": "Mã cửa hàng",
+     "kieu": "ma",
+     "bat_buoc": true,
+     "goi_y": [
+      "OUTLET CODE",
+      "Mã cửa hàng",
+      "Mã KH"
+     ]
+    },
+    {
+     "id": "sub_div",
+     "nghia": "Ngành hàng",
+     "kieu": "tap",
+     "tap": [
+      "Seasoning",
+      "Processed Meats",
+      "Convenience Foods",
+      "Refreshment Drinks",
+      "Home Care",
+      "Coffee",
+      "Nutrition",
+      "Beer"
+     ],
+     "bat_buoc": true,
+     "goi_y": [
+      "SUB DIV",
+      "Ngành hàng",
+      "Ngành"
+     ]
+    },
+    {
+     "id": "product_group",
+     "nghia": "Nhóm hàng",
+     "kieu": "chuoi",
+     "bat_buoc": true,
+     "duoc_trong": true,
+     "goi_y": [
+      "DMS OBJ",
+      "Nhóm hàng"
+     ]
+    },
+    {
+     "id": "sku_code",
+     "nghia": "Mã hàng",
+     "kieu": "ma",
+     "bat_buoc": true,
+     "goi_y": [
+      "SKU CODE",
+      "Mã SP",
+      "Mã hàng"
+     ]
+    },
+    {
+     "id": "sales_before_discount",
+     "nghia": "Doanh số trước chiết khấu",
+     "kieu": "tien",
+     "bat_buoc": true,
+     "goi_y": [
+      "Sales Before Discount",
+      "Doanh số trước CK"
+     ]
+    },
+    {
+     "id": "sales_after_discount",
+     "nghia": "Doanh số sau chiết khấu",
+     "kieu": "tien",
+     "bat_buoc": false,
+     "goi_y": [
+      "Sales After Discount",
+      "Doanh số sau CK"
+     ]
+    },
+    {
+     "id": "channel",
+     "nghia": "Kênh bán",
+     "kieu": "tap",
+     "tap": [
+      "Kênh Off Premise",
+      "Kênh On Premise"
+     ],
+     "bat_buoc": true,
+     "goi_y": [
+      "L1",
+      "Kênh"
+     ]
+    },
+    {
+     "id": "moq_flag",
+     "nghia": "Đạt mua tối thiểu (Y / N)",
+     "kieu": "co",
+     "bat_buoc": true,
+     "goi_y": [
+      "MOQ_FLAG",
+      "Đạt MOQ"
+     ]
+    },
+    {
+     "id": "is_free_item",
+     "nghia": "Hàng tặng (Y / N)",
+     "kieu": "co",
+     "bat_buoc": true,
+     "goi_y": [
+      "FREE ITEM FLAG",
+      "Hàng tặng?",
+      "Hàng tặng"
+     ]
+    },
+    {
+     "id": "total_cases",
+     "nghia": "Số thùng quy đổi",
+     "kieu": "so_le",
+     "bat_buoc": false,
+     "goi_y": [
+      "TOTAL CASES",
+      "Tổng số thùng"
+     ]
+    },
+    {
+     "id": "total_pieces",
+     "nghia": "Số đơn vị lẻ",
+     "kieu": "so_nguyen",
+     "bat_buoc": false,
+     "goi_y": [
+      "TOTAL PIECES",
+      "Tổng số lẻ"
+     ]
+    },
+    {
+     "id": "outlet_name",
+     "nghia": "Tên cửa hàng",
+     "kieu": "chuoi",
+     "bat_buoc": false,
+     "du_lieu_khach": true,
+     "goi_y": [
+      "OUTLET NAME",
+      "Tên cửa hàng"
+     ]
+    },
+    {
+     "id": "address",
+     "nghia": "Địa chỉ cửa hàng",
+     "kieu": "chuoi",
+     "bat_buoc": false,
+     "du_lieu_khach": true,
+     "goi_y": [
+      "ADDRESS",
+      "Địa chỉ"
+     ]
+    }
+   ]
+  }
+ }
+}

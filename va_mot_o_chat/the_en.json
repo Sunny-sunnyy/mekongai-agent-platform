@@ -1,0 +1,156 @@
+{
+ "ghi_chu": "C 18/11/2026 — bản tiếng Anh của THẺ gửi Jev (ma trận ô 3: EN / EN+VI). C tự dịch từ the_wf.json 8b34455b + the_dac_thu.json 5914e585 (chữ mình viết). Khoá = mã thẻ.",
+ "the": {
+  "kpi_hoi_nhanh": {
+   "ten": "KPI quick answer",
+   "covers": "Quick answer about sales pay / KPI bonus for the team or one employee in the current period (provisional numbers, checked by code). Use for: how much one employee or the whole team gets, why there is no money yet, how much is missing to reach the next tier, comparing two people, extra bonuses, progress / percent of target reached.",
+   "not_for": "An official approved table or an Excel file (=> template 6 / 15); a full per-KPI sheet for one employee (=> one-employee sheet); questions not about pay / bonus."
+  },
+  "kpi_bang_excel": {
+   "ten": "Template 6 — Team bonus table with Excel export",
+   "covers": "Builds the official team bonus table, waits for the manager's approval, then exports an Excel file. Use when the official team table or an Excel file to send is needed.",
+   "not_for": "A quick single number; only wanting to SEE numbers / totals without an official table or file (=> KPI quick answer); wanting a quick look now AND the official table (=> template 15)."
+  },
+  "kpi_xem_nhanh_chinh_thuc": {
+   "ten": "Template 15 — Quick view plus approved official table",
+   "covers": "One run: the upper branch returns provisional numbers immediately, the lower branch builds the official table for approval and then exports Excel. Use when the user wants a quick team total AND the approved official table.",
+   "not_for": "A quick single number; only viewing, no official table or file yet (=> KPI quick answer); only the official table + Excel with no preview (=> template 6)."
+  },
+  "kpi_ban_tin": {
+   "ten": "Template 14 — Three-question monitoring bulletin",
+   "covers": "A monitoring bulletin for managers: team total + who has most / least, who is close to the next tier, what in the data needs attention — three questions in one run. Use when a manager wants the overall picture at the start / end of a period.",
+   "not_for": "A question about one specific employee."
+  },
+  "kpi_phieu_nhan_vien": {
+   "ten": "Template 13 — One-employee sheet with 8 KPIs and extra bonuses",
+   "covers": "Full sheet for ONE employee: money per KPI with reasons, extra bonuses, total. Use when a full explanation for one employee is needed (sales pay slip).",
+   "not_for": "A quick single number for one employee (=> KPI quick answer); questions about the whole team."
+  },
+  "hoi_du_lieu_thu": {
+   "ten": "Ask the sample data",
+   "covers": "Natural-language questions over SAMPLE DATA (not bonus figures): the assistant writes an SQL query and returns a table. Use for raw sales / order figures in the sample data.",
+   "not_for": "Bonus / KPI pay questions."
+  },
+  "tai_lieu_rag": {
+   "ten": "Search the documents",
+   "covers": "Answers from documents uploaded to the organisation's document store (PDF / Word), with file name and page. Use for questions about the content of a document, policy or report that was uploaded.",
+   "not_for": "Bonus / KPI pay questions."
+  },
+  "wf_49933c4c": {
+   "ten": "How much one employee gets",
+   "covers": "How much one employee gets."
+  },
+  "wf_e0d19a51": {
+   "ten": "One KPI across the team: who is at which tier",
+   "covers": "For one KPI, which tier each team member is at."
+  },
+  "wf_b98ac99b": {
+   "ten": "Who can move up a tier",
+   "covers": "Who has a chance to move up to the next tier."
+  },
+  "wf_6dce6537": {
+   "ten": "Where do these numbers come from, can I trust them",
+   "covers": "Where the numbers being viewed come from and whether they can be trusted (final or provisional)."
+  },
+  "wf_c2d88984": {
+   "ten": "Compare two employees and explain the gap",
+   "covers": "Compare two employees and explain where the difference comes from."
+  },
+  "wf_7c92f326": {
+   "ten": "Target and bonus tiers of one KPI",
+   "covers": "The target and the bonus tiers of one KPI."
+  },
+  "wf_b645fb7d": {
+   "ten": "Who is close to the next tier",
+   "covers": "Who is close to the next tier."
+  },
+  "wf_73c5e49b": {
+   "ten": "Total team bonus",
+   "covers": "Total bonus of the whole team."
+  },
+  "wf_1e223acc": {
+   "ten": "What if exactly 100 percent of target",
+   "covers": "Scenario: what the bonus would be at exactly 100 percent of target."
+  },
+  "wf_65c9589b": {
+   "ten": "Total team cost including extra bonuses",
+   "covers": "Total team payout including extra bonuses."
+  },
+  "wf_2df9a8d6": {
+   "ten": "Answer one employee's question",
+   "covers": "Answer a question or complaint from one employee about their pay."
+  },
+  "wf_1afbe697": {
+   "ten": "What to check before closing the period",
+   "covers": "What still needs to be checked before closing the period."
+  },
+  "wf_04362a1c": {
+   "ten": "One question with three points about one employee",
+   "covers": "One question combining three points about one employee."
+  },
+  "wf_9defe2e7": {
+   "ten": "General question",
+   "covers": "A general question about the bonus scheme."
+  },
+  "wf_dae240bf": {
+   "ten": "Above target but why no more money",
+   "covers": "Why the money did not increase although the target was exceeded."
+  },
+  "wf_a7da3f6b": {
+   "ten": "Reached it but why no money for this item",
+   "covers": "Why a particular item has no money although it was reached."
+  },
+  "wf_60a58b1d": {
+   "ten": "Why no money yet",
+   "covers": "Why there is no money yet."
+  },
+  "wf_b6145bc5": {
+   "ten": "How much is missing to reach the tier",
+   "covers": "How much is still missing to reach the tier."
+  },
+  "wf_d9c61e3c": {
+   "ten": "Extra bonus of one employee",
+   "covers": "Extra bonuses of one employee."
+  },
+  "wf_d243fdd4": {
+   "ten": "Compare two employees",
+   "covers": "Compare two employees."
+  },
+  "wf_8e0c452a": {
+   "ten": "What in the data needs attention",
+   "covers": "What in the data needs attention."
+  },
+  "wf_8c05a9ac": {
+   "ten": "What if more is sold: how the bonus changes",
+   "covers": "Scenario: how the bonus changes if more is sold."
+  },
+  "wf_11fa5c4d": {
+   "ten": "Largest bonus cost and share",
+   "covers": "The largest bonus cost items and their share."
+  },
+  "wf_c2574e88": {
+   "ten": "Turnover target of each person in the team",
+   "covers": "The Turnover target of each person in the team."
+  },
+  "wf_5d2d3832": {
+   "ten": "How Turnover is calculated, with number check",
+   "covers": "How Turnover is calculated, with the numbers checked."
+  },
+  "wf_d7d06bf6": {
+   "ten": "Optimise KPI for NV02",
+   "covers": "How employee NV02 could optimise their KPIs."
+  },
+  "wf_6b570921": {
+   "ten": "Summarise a text into 3 key points",
+   "covers": "Summarise a text into 3 key points."
+  },
+  "dung_moi": {
+   "covers": "The user wants to CREATE a new WORKFLOW or EDIT / rebuild a WORKFLOW (process, blocks, connections).",
+   "not_for": "Editing NUMBERS, targets, bonuses or results (that is not editing a workflow); asking for numbers, documents or tables that an existing workflow can do."
+  },
+  "khong_phu_hop": {
+   "covers": "No workflow in the list can do what the user asks (off-topic, a different task), INCLUDING questions about things the KPI system does not have (base salary, working days, non-existent employees).",
+   "not_for": "A request that clearly matches a workflow in the list."
+  }
+ }
+}

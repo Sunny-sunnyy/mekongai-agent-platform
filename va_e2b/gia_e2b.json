@@ -1,0 +1,8 @@
+{
+  "_ghi_chu": "[ghi chú] BẢNG GIÁ E2B MỘT NGUỒN — USD / giây máy theo template. muc_toi_da (trang), sandbox/chay_s5 (sổ tiền) và sandbox_runtime (hộp ab-worker-temporal, gắn ro) cùng đọc file này. Template KHÔNG có ở đây ⇒ sandbox_runtime TỪ CHỐI tạo máy. Thêm template mới CHỈ SAU KHI ĐO trong máy thật (nproc + MemTotal). code-interpreter-v1 = cận trên 2 vCPU + 4 GiB (BAO_CAO_E2B mục 2). [ghi chú] + chay-thu-e2b-doc:v1 = 0,0000185 (1 vCPU 0,000014 + 1 GiB 0,0000045 — ĐÃ ĐO trong máy thật: nproc 1, MemTotal 999.976 kB, thu_sau_dung 11:23 18/11).",
+  "gia_giay": {
+    "code-interpreter-v1": 4.6e-05,
+    "chay-thu-e2b-doc:v1": 1.85e-05,
+    "chay-thu-e2b-doc:v2": 1.85e-05
+  }
+}

@@ -1,0 +1,156 @@
+{
+ "ghi_chu": "Danh sách thẻ workflow cho bước chọn. ten_tim = tiền tố tên workflow trên trang; gui_buoc_chon=false là thẻ không gửi cho bộ định tuyến.",
+ "the": [
+  {
+   "ma": "kpi_hoi_nhanh",
+   "ten_tim": "KPI hỏi nhanh",
+   "ten_wf": "KPI hỏi nhanh — lương kinh doanh, thưởng KPI (không duyệt, không xuất file)",
+   "lam_gi": "Trả lời nhanh một câu về lương kinh doanh / thưởng KPI của đội hoặc một nhân viên trong kỳ đang chạy (số tạm tính, đã qua khối kiểm số bằng code).",
+   "khi_nao_dung": "Hỏi một nhân viên được bao nhiêu, cả đội bao nhiêu, tổng tiền thưởng của MỘT KPI (Turnover, PC_BT, LPPC…) của cả đội là bao nhiêu, vì sao chưa có tiền, còn thiếu bao nhiêu để lên mốc, so hai người, thưởng thêm, hỏi tiến độ / đã đạt bao nhiêu phần trăm chỉ tiêu.",
+   "khong_dung_khi": "Cần bảng chính thức có người duyệt hoặc file Excel (⇒ KPI mẫu 6 / 15); cần phiếu đầy đủ từng KPI của một nhân viên (⇒ phiếu một nhân viên); câu không về lương / thưởng.",
+   "vi_du": [
+    "Tháng 10 NV05 được bao nhiêu, ở những KPI nào?",
+    "Vì sao NV07 không có tiền PC_BT?",
+    "So NV04 với NV09: ai được nhiều hơn, hơn ở KPI nào?",
+    "Tổng tiền thưởng KPI Turnover của cả đội tháng 10 là bao nhiêu?"
+   ],
+   "co_nguoi_duyet": false,
+   "xuat_file": false,
+   "goi_ra_ngoai": false,
+   "muc_toi_da_uoc": 0.075,
+   "chay_tu_chat": true,
+   "gui_thay_nguoi_dung": false,
+   "can_ma_nv": true
+  },
+  {
+   "ma": "kpi_bang_excel",
+   "ten_tim": "KPI mẫu 6 — Bảng thưởng cả đội và xuất Excel",
+   "ten_wf": "KPI mẫu 6 (khung chat) — Bảng thưởng cả đội, tạm tính",
+   "lam_hien": "Bảng thưởng cả đội — mỗi nhân viên được bao nhiêu — kèm file Excel bản nháp tải ngay (số tạm tính, chưa có người duyệt)",
+   "lam_gi": "Dựng bảng thưởng cả đội, dừng cho người phụ trách duyệt; duyệt xong hệ thống xuất file Excel.",
+   "khi_nao_dung": "Cần bảng thưởng chính thức của cả đội, cần file Excel để gửi.",
+   "khong_dung_khi": "Chỉ hỏi nhanh một con số; chỉ muốn XEM số / tổng, chưa cần bảng chính thức hay file (⇒ KPI hỏi nhanh); vừa muốn xem số ngay vừa cần bảng chính thức (⇒ KPI mẫu 15).",
+   "vi_du": [
+    "Cho tôi bảng thưởng cả đội tháng 10: mỗi nhân viên được bao nhiêu?"
+   ],
+   "co_nguoi_duyet": true,
+   "xuat_file": true,
+   "goi_ra_ngoai": false,
+   "muc_toi_da_uoc": 0.17,
+   "chay_tu_chat": true,
+   "gui_thay_nguoi_dung": false,
+   "can_ma_nv": false
+  },
+  {
+   "ma": "kpi_xem_nhanh_chinh_thuc",
+   "ten_tim": "KPI mẫu 15 — Xem nhanh và bảng chính thức có duyệt",
+   "ten_wf": "KPI mẫu 6 (khung chat) — Bảng thưởng cả đội, tạm tính",
+   "lam_hien": "Xem nhanh tổng lương kinh doanh cả đội và nhận luôn bảng thưởng kèm file Excel bản nháp (số tạm tính, chưa có người duyệt)",
+   "lam_gi": "Một lần chạy: nhánh trên trả số tạm tính ngay, nhánh dưới dựng bảng chính thức chờ người duyệt rồi xuất Excel.",
+   "khi_nao_dung": "Vừa muốn xem nhanh tổng cả đội vừa cần bảng chính thức có duyệt.",
+   "khong_dung_khi": "Chỉ cần một con số nhanh; chỉ muốn xem, chưa cần bảng chính thức hay file (⇒ KPI hỏi nhanh); chỉ cần bảng chính thức + Excel, không cần xem trước (⇒ KPI mẫu 6).",
+   "vi_du": [
+    "Tổng lương kinh doanh cả đội tháng 10 là bao nhiêu? · Cho tôi bảng thưởng cả đội tháng 10"
+   ],
+   "co_nguoi_duyet": true,
+   "xuat_file": true,
+   "goi_ra_ngoai": false,
+   "muc_toi_da_uoc": 0.17,
+   "chay_tu_chat": true,
+   "gui_thay_nguoi_dung": false,
+   "can_ma_nv": false
+  },
+  {
+   "ma": "kpi_ban_tin",
+   "ten_tim": "KPI mẫu 14 — Bản tin giám sát ba câu chạy một lần",
+   "lam_gi": "Một bản tin giám sát cho quản lý: tổng cả đội + ai nhiều / ít nhất, ai sắp lên mốc, dữ liệu có gì cần để ý — ba câu chạy một lần.",
+   "khi_nao_dung": "Quản lý muốn bức tranh chung đầu / cuối kỳ.",
+   "khong_dung_khi": "Hỏi riêng một nhân viên.",
+   "vi_du": [
+    "Tổng lương kinh doanh cả đội tháng 10 là bao nhiêu, ai nhiều nhất, ai ít nhất?"
+   ],
+   "co_nguoi_duyet": false,
+   "xuat_file": false,
+   "goi_ra_ngoai": false,
+   "muc_toi_da_uoc": 0.2,
+   "chay_tu_chat": true,
+   "gui_thay_nguoi_dung": false,
+   "can_ma_nv": false
+  },
+  {
+   "ma": "kpi_phieu_nhan_vien",
+   "ten_tim": "KPI mẫu 13 — Phiếu một nhân viên gồm 8 KPI và thưởng thêm",
+   "lam_gi": "Phiếu đầy đủ của MỘT nhân viên: tiền từng KPI kèm lý do, các khoản thưởng thêm, tổng cộng.",
+   "khi_nao_dung": "Cần giải thích đầy đủ cho một nhân viên (phiếu lương kinh doanh).",
+   "khong_dung_khi": "Hỏi nhanh MỘT con số của một nhân viên (⇒ KPI hỏi nhanh); hỏi cả đội.",
+   "vi_du": [
+    "Tháng 10 NV05 được bao nhiêu ở từng KPI, vì sao, thưởng thêm những khoản nào?"
+   ],
+   "co_nguoi_duyet": false,
+   "xuat_file": false,
+   "goi_ra_ngoai": false,
+   "muc_toi_da_uoc": 0.15,
+   "chay_tu_chat": true,
+   "gui_thay_nguoi_dung": false,
+   "can_ma_nv": true
+  },
+  {
+   "ma": "hoi_du_lieu_thu",
+   "ten_tim": "Hỏi dữ liệu thử",
+   "lam_gi": "Hỏi bằng lời trên DỮ LIỆU THỬ (không phải số tính thưởng): trợ lý tự viết câu truy vấn SQL rồi trả bảng.",
+   "khi_nao_dung": "Hỏi số liệu bán hàng / đơn hàng thô trên dữ liệu thử.",
+   "khong_dung_khi": "Hỏi thưởng / lương KPI.",
+   "vi_du": [
+    "Có bao nhiêu đơn hàng trong tháng?"
+   ],
+   "co_nguoi_duyet": false,
+   "xuat_file": false,
+   "goi_ra_ngoai": false,
+   "muc_toi_da_uoc": 0.08,
+   "chay_tu_chat": false,
+   "gui_thay_nguoi_dung": false,
+   "can_ma_nv": false
+  },
+  {
+   "ma": "tai_lieu_rag",
+   "ten_tim": "Thử RAG cách 1",
+   "lam_gi": "Hỏi trong tài liệu đã nạp vào kho tài liệu của tổ chức (PDF / Word), trả lời kèm tên file và số trang.",
+   "khi_nao_dung": "Câu hỏi về nội dung một tài liệu, quy định, báo cáo đã nạp.",
+   "khong_dung_khi": "Hỏi thưởng / lương KPI.",
+   "vi_du": [
+    "Quy định đổi trả hàng là bao nhiêu ngày?"
+   ],
+   "co_nguoi_duyet": false,
+   "xuat_file": false,
+   "goi_ra_ngoai": true,
+   "muc_toi_da_uoc": 0.08,
+   "chay_tu_chat": true,
+   "gui_thay_nguoi_dung": false,
+   "can_ma_nv": false,
+   "gui_buoc_chon": false,
+   "ly_do_khong_gui": "Workflow của thẻ ghi cứng một kho tài liệu không có trong sổ kho của tổ chức."
+  },
+  {
+   "ma": "kpi_ngoai_pham_vi",
+   "ten_tim": "KPI mẫu 17 — Câu ngoài phạm vi phải từ chối",
+   "lam_gi": "Mẫu đối chứng: câu hỏi về thứ hệ thống KPI không có (lương cơ bản, ngày công, nhân viên không tồn tại) — trả lời là từ chối có lý do.",
+   "khi_nao_dung": "Không dùng để chọn — chỉ để mô hình biết loại câu phải từ chối.",
+   "khong_dung_khi": "Mọi câu thật.",
+   "vi_du": [
+    "Lương cơ bản cộng ngày công của NV99 tháng 10 là bao nhiêu?"
+   ],
+   "co_nguoi_duyet": false,
+   "xuat_file": false,
+   "goi_ra_ngoai": false,
+   "muc_toi_da_uoc": 0.075,
+   "chay_tu_chat": false,
+   "gui_buoc_chon": false,
+   "gui_thay_nguoi_dung": false,
+   "can_ma_nv": false
+  }
+ ],
+ "dac_biet": {
+  "dung_moi": "Người dùng muốn TẠO / SỬA một workflow (ráp khối) ⇒ chuyển trợ lý dựng (Operator).",
+  "khong_co": "Không thẻ nào hợp ⇒ trả lời không làm được + gợi ý."
+ }
+}

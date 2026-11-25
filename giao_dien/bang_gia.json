@@ -1,0 +1,25 @@
+{
+ "_ghi_chu": "Giá USD cho 1 triệu token. Code Capitol KHÔNG có bảng giá USD (chỉ bậc cost_tier; D kiểm 04/11, BAO_CAO_KET_QUA.md mục 12) ⇒ bảng này tự giữ. Mô hình không có ở đây ⇒ trang hiện 'chưa có giá', không hiện 0. cache_read = null ⇒ chưa biết giá đọc đệm, tạm tính như token vào thường (ghi rõ trên trang).",
+ "gpt-6-luna": {
+  "input": 0.1,
+  "output": 0.5,
+  "cache_read": 0.01,
+  "source": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+  "read_at": "2026-11-03",
+  "note": "câu > 272K token vào thì đắt hơn (trang OpenAI); chép lại ở chay_thu/sua_doi/README.md",
+  "cache_read_source": "https://developers.openai.com/api/docs/models/gpt-6-luna"
+ },
+ "serper": {
+  "per_query": 0.001,
+  "source": "https://serper.dev/ (mục Pricing)",
+  "read_at": "2026-11-04",
+  "note": "Gói Starter 50 USD / 50.000 lượt = 1,00 USD / 1.000 (gói đắt nhất / lượt ⇒ không tính thiếu); Standard 0,75; Scale 0,50; Ultimate 0,30 USD / 1.000; lượt hết hạn sau 6 tháng; 2.500 lượt miễn phí khi đăng ký (đang dùng lượt miễn phí ⇒ thực tế 0). Trang không ghi rõ 1 lần tìm = 1 lượt (suy ra từ số lượt = số truy vấn) và không nói num > 10 có tốn thêm không (công cụ giới hạn ≤ 10). Chỉ trừ lượt khi trả kết quả thành công."
+ },
+ "qwen3-embedding-4b": {
+  "input": 0.02,
+  "output": null,
+  "source": "https://openrouter.ai/qwen/qwen3-embedding-4b",
+  "read_at": "2026-11-16",
+  "note": "app RAG mekongai tạo vector câu hỏi / trang bằng mô hình này qua OpenRouter (ngoài sổ luna — ghi theo rag_search × RAG_MOT_LAN)"
+ }
+}

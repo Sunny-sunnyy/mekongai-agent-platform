@@ -1,0 +1,53 @@
+[
+  {
+    "order_id": "DH-1042",
+    "customer_id": "KH-LAN",
+    "customer": "Chị Lan (khách thử)",
+    "items": [
+      {
+        "product": "Áo thun cổ tròn",
+        "size": "M",
+        "qty": 2,
+        "unit_price_vnd": 189000
+      }
+    ],
+    "ordered_at": "01/11/2026",
+    "delivery_status": "đã giao 03/11/2026",
+    "exchange_policy": "đổi size / lỗi trong 7 ngày kể từ ngày nhận",
+    "exchange_deadline": "10/11/2026"
+  },
+  {
+    "order_id": "DH-1043",
+    "customer_id": "KH-MINH",
+    "customer": "Anh Minh (khách thử)",
+    "items": [
+      {
+        "product": "Quần jean ống suông",
+        "size": "30",
+        "qty": 1,
+        "unit_price_vnd": 459000
+      }
+    ],
+    "ordered_at": "02/11/2026",
+    "delivery_status": "đang giao — dự kiến 05/11/2026",
+    "exchange_policy": "đổi size / lỗi trong 7 ngày kể từ ngày nhận",
+    "exchange_deadline": null
+  },
+  {
+    "order_id": "DH-0987",
+    "customer_id": "KH-HOA",
+    "customer": "Chị Hoa (khách thử)",
+    "items": [
+      {
+        "product": "Váy liền thân",
+        "size": "S",
+        "qty": 1,
+        "unit_price_vnd": 529000
+      }
+    ],
+    "ordered_at": "15/10/2026",
+    "delivery_status": "đã giao 18/10/2026",
+    "exchange_policy": "đổi size / lỗi trong 7 ngày kể từ ngày nhận",
+    "exchange_deadline": "25/10/2026"
+  }
+]

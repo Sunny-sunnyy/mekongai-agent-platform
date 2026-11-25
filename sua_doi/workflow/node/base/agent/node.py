@@ -1,0 +1,1175 @@
+"""``AgentBaseNode`` — the single hierarchical base for LLM agent nodes.
+
+One implementation of the agent-node pipeline previously copy-pasted (and
+drifted) across the Agent, MCP Agent, Agentic Deep Research, Code
+Interpreter, Skill Code Interpreter and Vercel Deploy nodes:
+
+    validate params → (sandbox per ``_sandbox_mode``) → assemble tools
+    (handle nodes + attached MCP servers + sandbox tools) → compose the
+    system prompt → compile the pydantic-ai agent → run (streaming with
+    transient-error retries) → persist sandbox outputs → output-feedback
+    review loop → build/emit ``NodeOutput``
+
+Extension contract
+------------------
+Subclasses customise behaviour ONLY through:
+
+1. **Declared capabilities** — the ``ClassVar`` knobs below (and on the
+   mixins). Defaults equal the Agent node's semantics; other nodes
+   declare their divergences explicitly.
+2. **The hooks in ``_OVERRIDABLE_HOOKS``** — narrow, documented override
+   points (per-round prompts, skill loading, bespoke run strategies,
+   output shapes).
+
+Everything else is final: every pipeline method across the base and its
+mixins carries ``@typing.final`` (static protection), and
+``__init_subclass__`` derives the enforcement set from those decorators'
+``__final__`` markers — one source of truth — raising ``TypeError`` at
+import time if a subclass overrides one. This is what prevents the
+copy-paste drift that produced ENG-4437 (five ``_stream_agent`` forks,
+an OBO gap patched twice, a port-emission bug) from ever re-forming.
+
+``__init_subclass__`` also enforces that params and ports are FRESH
+objects per node class — param/port instances carry identity semantics,
+so sharing them between classes corrupts editor and runtime state.
+"""
+
+import asyncio
+import inspect
+import logging
+import os  # [VÁ 10 chay_thu 06/11] CHAY_THU_CAM_E2B
+from typing import Any, ClassVar, final
+
+from pydantic_ai import Agent
+from pydantic_ai.usage import UsageLimits
+from sentry_sdk import capture_exception
+
+from ai.agentic.context import (
+    CompactionEvent,
+    build_capability_for_model,
+    format_compaction_event,
+)
+from core.config.ai import get_context_budget
+from core.settings import settings
+from nodes.bad_input_reporting import apply_bad_input_reporting
+from nodes.grounding import apply_grounding
+from nodes.tool.collection_params import (
+    build_collection_context_validated,
+    get_empty_scope_warnings,
+)
+from nodes.tool.context_graph_params import build_context_graph_context
+from services.sandbox.tool_result_offload import (
+    EXPLORATION_TOOL_PREFIX,
+    ToolResultOffloadCapability,
+    ToolResultOffloader,
+    build_exploration_toolset,
+    scrub_stale_offload_envelopes,
+)
+from workflow.citations import citations_to_metadata
+from workflow.clarification import extract_clarification_requested
+from workflow.node.base.agent.model_resolution import ModelResolutionMixin
+from workflow.node.base.agent.sandbox_runtime import (
+    PARSER_SYSTEM_SNIPPET,
+    SandboxLifecycleMixin,
+    SandboxMode,
+)
+from workflow.node.base.agent.schemas import CompileAgentArgs, RunAgentArgs
+from workflow.node.base.agent.streaming import (
+    StreamingMixin,
+    serialize_message_history,
+)
+from workflow.node.base.agent.toolsets import ToolsetAssemblyMixin
+from workflow.node.base.exceptions import AgentContractViolation
+from workflow.node.base.file import NodeFile
+from workflow.node.base.interactive_feedback import InteractiveFeedbackMixin
+from workflow.node.base.node import BaseNode, NodeOutput
+from workflow.node.base.param.base import NodeParam
+from workflow.node.base.param.custom import MarkdownDisplay
+
+logger = logging.getLogger(__name__)
+
+# Re-exported for subclasses / callers.
+__all__ = ["AgentBaseNode", "SandboxMode"]
+
+
+def _unwrap_exception_with_label(
+    e: Exception, label: str, depth: int = 0
+) -> tuple[str, str]:
+    """Recursively unwrap ExceptionGroup/TaskGroup to surface root cause errors.
+
+    Returns (error_msg, details_str) with full context instead of opaque
+    'unhandled errors in a TaskGroup (N sub-exception)' messages.
+    """
+    if isinstance(e, BaseExceptionGroup):
+        sub_details = []
+        for i, sub_exc in enumerate(e.exceptions, 1):
+            if isinstance(sub_exc, BaseExceptionGroup):
+                # Recursively unwrap nested groups
+                _, nested = _unwrap_exception_with_label(sub_exc, label, depth + 1)
+                sub_details.append(f"[{i}] (nested) {nested}")
+            else:
+                detail = f"{type(sub_exc).__name__}: {sub_exc}"
+                # Include __cause__ chain for chained exceptions
+                cause = sub_exc.__cause__
+                if cause:
+                    detail += f" (caused by {type(cause).__name__}: {cause})"
+                sub_details.append(f"[{i}] {detail}")
+        details_str = "; ".join(sub_details)
+        error_msg = f"{label} failed with {len(e.exceptions)} error(s): {details_str}"
+        return error_msg, details_str
+
+    # Non-group exception — include cause chain
+    detail = str(e)
+    cause = e.__cause__
+    if cause:
+        detail += f" (caused by {type(cause).__name__}: {cause})"
+    error_msg = f"{label} failed: {detail}"
+    return error_msg, detail
+
+
+class AgentBaseNode(
+    InteractiveFeedbackMixin,
+    SandboxLifecycleMixin,
+    StreamingMixin,
+    ToolsetAssemblyMixin,
+    ModelResolutionMixin,
+    BaseNode,
+):
+    """Base class for every LLM agent node. See module docstring."""
+
+    # ------------------------------------------------------------------
+    # Contract enforcement
+    # ------------------------------------------------------------------
+
+    #: Methods a subclass may override. Everything else defined by the
+    #: base (and its mixins) is final.
+    _OVERRIDABLE_HOOKS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "_model_settings",
+            "_system_prompt_replacement",
+            "_augment_system_prompt",
+            "_compose_agent_tools",
+            "_build_sandbox_manifest_prompt",
+            "_build_context_capabilities",
+            "_pre_compile",
+            "_run",
+            "_before_persist",
+            "_output_data",
+            "_output_display_model",
+            "_output_metadata",
+        }
+    )
+
+    # Cache for the derived name -> canonical-implementation map
+    # (see _final_method_impls).
+    _final_methods_cache: ClassVar[dict[str, Any] | None] = None
+
+    # id(obj) -> (obj, owner_key). Objects are kept alive on purpose so a
+    # garbage-collected param can never free its id for reuse and produce
+    # a false collision. owner_key is ``module.QualName`` so an
+    # ``importlib.reload`` of a node module can legitimately re-claim its
+    # own objects (same class identity, fresh class object) without
+    # tripping the shared-instance check.
+    _claimed_identity_objects: ClassVar[dict[int, tuple[Any, str]]] = {}
+
+    @classmethod
+    def _final_method_impls(cls) -> dict[str, Any]:
+        """Canonical implementation per final pipeline method.
+
+        Derived from the ``@typing.final`` decorators themselves (the
+        decorator stamps ``__final__`` on the function), so the decorators
+        are the single source of truth: decorating a new pipeline method
+        anywhere in the ``AgentBaseNode`` MRO protects it both statically
+        (type checkers) and at import time (``__init_subclass__``) with no
+        second hand-maintained list to forget. First MRO hit wins, i.e.
+        exactly the implementation normal attribute resolution would use.
+        """
+        if AgentBaseNode._final_methods_cache is None:
+            impls: dict[str, Any] = {}
+            for klass in AgentBaseNode.__mro__:
+                for name, attr in vars(klass).items():
+                    if getattr(attr, "__final__", False) and name not in impls:
+                        impls[name] = attr
+            AgentBaseNode._final_methods_cache = impls
+        return AgentBaseNode._final_methods_cache
+
+    @classmethod
+    def _final_pipeline_methods(cls) -> frozenset[str]:
+        """Names of the pipeline methods a subclass must never override."""
+        return frozenset(AgentBaseNode._final_method_impls())
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+
+        # 1. Final-method enforcement: the pipeline cannot be re-forked.
+        #    Checked by RESOLUTION, not just ``cls.__dict__``: each final
+        #    name must resolve to the canonical AgentBaseNode-MRO
+        #    implementation, so a foreign mixin ahead of the base in the
+        #    MRO (``class MyNode(SomeMixin, AgentNode)``) can't shadow a
+        #    pipeline method any more than a direct override can.
+        violations = [
+            name
+            for name, canonical in AgentBaseNode._final_method_impls().items()
+            if inspect.getattr_static(cls, name, None) is not canonical
+        ]
+        if violations:
+            raise AgentContractViolation(
+                f"{cls.__name__} overrides or shadows final AgentBaseNode "
+                f"pipeline method(s) {sorted(violations)}. Use the documented "
+                f"hooks instead: {sorted(AgentBaseNode._OVERRIDABLE_HOOKS)}"
+            )
+
+        # 2. Param/port freshness: every param and port object (including
+        #    ports referenced from a param's bindable_config) must belong to
+        #    exactly one node class.
+        owner_key = f"{cls.__module__}.{cls.__qualname__}"
+
+        def _claim(obj: Any, kind: str) -> None:
+            if obj is None:
+                return
+            claimed = AgentBaseNode._claimed_identity_objects.get(id(obj))
+            if claimed is not None and claimed[0] is obj and claimed[1] != owner_key:
+                raise AgentContractViolation(
+                    f"{cls.__name__} shares a {kind} object with "
+                    f"{claimed[1]}. Params and ports must be fresh instances "
+                    "per node class — use the factories in "
+                    "workflow.node.base.agent.params / .ports"
+                )
+            AgentBaseNode._claimed_identity_objects[id(obj)] = (obj, owner_key)
+
+        params = cls.__dict__.get("params")
+        if params is not None:
+            for param in getattr(params, "root", []) or []:
+                _claim(param, "param")
+                bindable = getattr(param, "bindable_config", None)
+                port = getattr(bindable, "input_port", None) if bindable else None
+                _claim(port, "bindable-config port")
+        for attr in ("input_ports", "output_ports"):
+            ports = cls.__dict__.get(attr)
+            if ports is not None:
+                for port in ports:
+                    _claim(port, "port")
+
+    # ------------------------------------------------------------------
+    # Declared capabilities (defaults == Agent-node semantics)
+    # ------------------------------------------------------------------
+
+    # Compilation-pipeline features. See _get_compilation_args.
+    _scope_check_enabled: ClassVar[bool] = True
+    _collection_context_enabled: ClassVar[bool] = True
+    _context_graph_context_enabled: ClassVar[bool] = True
+    _citations_prompt_enabled: ClassVar[bool] = True
+    _bad_input_prompt_enabled: ClassVar[bool] = True
+    # The always-on report_input_issue tool (ENG-4104). Composed into the
+    # agent's tools by the default _compose_agent_tools; historically only
+    # the generic Agent node registered it.
+    _input_issue_tool_enabled: ClassVar[bool] = True
+
+    # Output persistence. ``_persist_gated_by_param`` reads the node's
+    # ``persist_workspace`` toggle (code-interpreter family);
+    # ``_persist_outputs_enabled = False`` disables sandbox-output
+    # persistence entirely (Vercel Deploy: the sandbox is tools-only, its
+    # deploy result is the output contract).
+    _persist_gated_by_param: ClassVar[bool] = False
+    _persist_outputs_enabled: ClassVar[bool] = True
+
+    # False skips the pipeline's compile step and passes ``agent=None`` to
+    # ``_run`` — for nodes that compile per-phase themselves (the deep
+    # research rounds).
+    _compile_in_pipeline: ClassVar[bool] = True
+
+    # Optional ``deps_type`` forwarded to ``Agent(...)`` (Vercel Deploy's
+    # DeployDeps).
+    _agent_deps_type: ClassVar[type | None] = None
+
+    # Display/labels that differ per node.
+    _error_label: ClassVar[str] = "Agent node"
+    _agent_name_prefix: ClassVar[str] = "Agent"
+
+    def __init__(
+        self,
+        node_config: list[dict],
+        node_inputs=None,
+        validate_required=True,
+        validate_type=False,
+    ) -> None:
+        """node_config will be validated against the params, node_inputs are generated in run time and passed from other nodes"""
+        super().__init__(
+            node_config=node_config,
+            node_inputs=node_inputs,
+            validate_required=validate_required,
+            validate_type=validate_type,
+        )
+        self._validated_params: dict = {}
+        self._mcp_tools: list = []
+        self._stream = True
+        self._deps = None
+        # Multi-turn conversation history (Layer 1 of conversation-sessions).
+        # Captured from ``run.result.all_messages()`` after the agent loop
+        # completes and surfaced in ``NodeOutput.metadata["message_history"]``
+        # so downstream consumers (the agents router, A2A gateway, the
+        # platform-api chat endpoint) can persist it for the next turn.
+        # ``None`` until execute() runs at least once. Wrapped in
+        # ``ModelMessagesTypeAdapter.dump_python`` before serialization
+        # so ThinkingPart blocks survive the JSON round-trip.
+        self._final_message_history: list[Any] | None = None
+        # "Ask for feedback on outputs" (interactive_feedback mixin): when a
+        # review pause returns edit feedback, it is staged here and consumed
+        # by ``_get_runtime_args`` as the next user turn on top of
+        # ``_final_message_history`` — preserving the conversation (and the
+        # live sandbox) across regeneration turns. ``None`` outside a
+        # feedback turn.
+        self._pending_feedback_prompt: str | None = None
+        # MCP connection timeout (seconds), derived from the user-facing
+        # "timeout" param so tool-server connections don't die at the default
+        # 5 s while the LLM call gets a longer budget.
+        self._mcp_timeout: float = 30.0
+        # E2B sandbox — lifecycle owned by SandboxLifecycleMixin.
+        self._sandbox = None
+        self._sandbox_tools: list = []
+        # Files uploaded to the sandbox (sandbox_path, mime_type), populated in
+        # execute() before compile() so the system prompt can surface them.
+        self._sandbox_file_manifest: list[tuple[str, str | None]] = []
+        # Per-file probe results keyed by sandbox path ({kind, size,
+        # has_text_layer, preview, ...}), used to give the model concrete
+        # evidence of each file's existence and shape in the user prompt.
+        self._sandbox_file_probes: dict[str, dict[str, Any]] = {}
+        # Per-run dynamic context (collection scope + sandbox manifest) moved
+        # out of the cached system prefix and appended to the user turn so the
+        # system prompt stays identical across runs. Populated in
+        # ``_get_compilation_args`` and consumed by ``_get_runtime_args``.
+        self._dynamic_run_context: str = ""
+        # Tool invocations buffered for NodeOutput.metadata['tool_calls']
+        # (downstream tool_use eval); populated by _record_tool_call.
+        self._tool_call_log: list[dict] = []
+        # (language, source) tuples captured by the sandbox tools' code_sink
+        # when ``_capture_executed_code`` is on.
+        self._executed_code: list[tuple[str, str]] = []
+        # Tool-result offloader (ENG-4646): one per execute() run, shared
+        # across per-round / per-retry compiles of the same run so the
+        # offload sequence, the has-offloaded gate, and the sandbox files
+        # stay consistent. Built lazily by _build_tool_offload_capability.
+        self._tool_offloader: ToolResultOffloader | None = None
+        # Serialises the on-demand offload-sandbox boot so parallel
+        # oversized tool calls coalesce onto a single sandbox.
+        self._offload_sandbox_lock = asyncio.Lock()
+        # True when the live sandbox was created by _ensure_offload_sandbox
+        # (offload-only working storage): output persistence then skips the
+        # /home/user fallback sweep so exploration scratch never becomes
+        # user-facing files. Cleared by _setup_sandbox (full lifecycle).
+        self._sandbox_offload_only = False
+        # True once ANY sandbox actually booted this run — the honest input
+        # for the ``sandbox_used`` output metadata (the sandbox itself is
+        # already torn down by the time metadata is built).
+        self._sandbox_was_used = False
+
+    # ------------------------------------------------------------------
+    # Hooks (overridable — see _OVERRIDABLE_HOOKS)
+    # ------------------------------------------------------------------
+
+    def _system_prompt_replacement(self) -> str | None:
+        """Return a full replacement for the system prompt, or ``None``.
+
+        OVERRIDABLE HOOK. The deep-research node returns its per-round
+        prompt here; grounding + workflow special instructions are applied
+        to the replacement by the pipeline.
+        """
+        return None
+
+    def _augment_system_prompt(self, system_prompt: str) -> str:
+        """Final transformation of the fully composed system prompt.
+
+        OVERRIDABLE HOOK, applied LAST in composition. The code interpreter
+        appends its artifact-reuse protocol; the skill interpreter splices
+        the loaded SKILL.md section.
+        """
+        return system_prompt
+
+    def _compose_agent_tools(self) -> list:
+        """Plain (non-toolset) pydantic-ai tools for the compiled agent.
+
+        OVERRIDABLE HOOK. Default = the Agent node's composition. Citation
+        store tools register only when a Citation Store tool node is wired;
+        clarification tools only when both clarification gates are open —
+        so nodes that never use them get empty lists, unchanged behaviour.
+        """
+        tools = list(self._validated_params.get("tools", []))
+        tools += self._sandbox_tools
+        tools += self._build_citation_store_tools()
+        tools += self._build_clarification_tools()
+        if self._input_issue_tool_enabled:
+            tools += self._build_input_issue_tools()
+        return tools
+
+    def _build_context_capabilities(self, resolved_model_id: str) -> list:
+        """Build the per-run capability list for this agent.
+
+        Currently this attaches a ``ContextCompactionCapability`` whenever
+        the resolved model ID is in the registry (every model that has
+        a ``ModelSpec.context_window``). For unknown models the helper
+        returns an empty list so the agent's behaviour is unchanged.
+
+        Subclasses that need to add their own capabilities should
+        override this method and call ``super()`` to keep compaction
+        active.
+        """
+        cap = build_capability_for_model(
+            resolved_model_id,
+            on_compaction=self._on_context_compaction,
+            orgid=self._orgid,
+        )
+        return [cap] if cap is not None else []
+
+    def _on_context_compaction(self, event: CompactionEvent) -> None:
+        """Surface each phase of a compaction round to the node-level event stream.
+
+        Invoked synchronously by the capability for every emitted
+        ``CompactionEvent`` (``phase`` in ``{"start", "complete",
+        "failed"}``). We turn it into an ``emit_progress`` coroutine
+        via ``asyncio.create_task`` so the user sees a "Summarising
+        …" status line during the slow provider round-trip and a
+        follow-up "Summarisation complete: X → Y chars" line once the
+        retry kicks off. Wording is centralised in
+        :func:`format_compaction_event` so every node displays the
+        same text.
+        """
+        import asyncio
+
+        message = format_compaction_event(event)
+        try:
+            asyncio.create_task(self.emit_progress(message))
+        except RuntimeError:
+            # No running event loop (e.g. called from a sync context).
+            # Compaction observability is best-effort; swallow rather
+            # than letting it propagate up the capability chain.
+            logger.debug("Could not emit context-compaction progress: no running loop")
+
+    @final
+    def _build_tool_offload_capability(
+        self, resolved_model_id: str
+    ) -> ToolResultOffloadCapability | None:
+        """Build the tool-result offload capability for this compile (ENG-4646).
+
+        Attached unconditionally in ``_get_compilation_args`` (not via the
+        overridable ``_build_context_capabilities`` hook) so no subclass
+        override can accidentally drop the size guard. Returns ``None``
+        only when the feature is disabled via settings.
+
+        The ``ToolResultOffloader`` is per-run (reused across per-round /
+        per-retry compiles); the capability instance is per-compile. Nodes
+        whose sandbox already carries the ungated standard tools (input
+        files connected, or the code-interpreter family) do NOT get the
+        gated exploration toolset — the envelope guidance then references
+        the standard tool names instead, and duplicate tool registrations
+        are impossible. ``SandboxMode.NEVER`` nodes (Vercel Deploy) get an
+        offloader without a sandbox: oversized results degrade to inline
+        middle-truncation, which still cannot blow the context window.
+        """
+        if not settings.TOOL_RESULT_OFFLOAD_ENABLED:
+            return None
+        sandbox_capable = self._sandbox_mode != SandboxMode.NEVER
+        # ONE condition drives both the gated toolset's existence and the
+        # tool-name prefix the envelope advertises, so the two can never
+        # disagree: when the gated tools exist the envelope references
+        # their prefixed names; otherwise it references the ungated
+        # standard names (files-connected / code-interpreter runs).
+        wants_exploration = sandbox_capable and not bool(self._sandbox_tools)
+        if self._tool_offloader is None:
+            budget = get_context_budget(resolved_model_id)
+            self._tool_offloader = ToolResultOffloader(
+                ensure_sandbox=(
+                    self._ensure_offload_sandbox if sandbox_capable else None
+                ),
+                emit_progress=self.emit_progress,
+                harvest_citations=self._harvest_tool_citations,
+                safe_input_window=budget.safe_input_window if budget else None,
+                exploration_tool_prefix=(
+                    EXPLORATION_TOOL_PREFIX if wants_exploration else ""
+                ),
+            )
+        exploration_toolset = None
+        if wants_exploration:
+            exploration_toolset = build_exploration_toolset(
+                self._tool_offloader,
+                self._ensure_offload_sandbox,
+                emit_progress=self.emit_progress,
+            )
+        return ToolResultOffloadCapability(
+            offloader=self._tool_offloader,
+            exploration_toolset=exploration_toolset,
+        )
+
+    async def _pre_compile(self) -> None:
+        """Runs after the sandbox is ready and before the agent is compiled.
+
+        OVERRIDABLE HOOK. The skill interpreter loads its SKILL.md bundle
+        into the sandbox here.
+        """
+
+    async def _run(self, agent: Agent | None) -> Any:
+        """Execute the compiled agent and return the textual result.
+
+        OVERRIDABLE HOOK. Default = one streamed run (or a blocking
+        ``agent.run`` when streaming is off). The deep-research node
+        replaces this with its multi-round loop; Vercel Deploy with its
+        prepare-then-deploy flow. Overrides should use ``_stream_agent``
+        so streaming/retry semantics stay uniform.
+        """
+        if self._stream:
+            await self.emit_progress("Starting agent stream")
+            return await self._stream_agent(agent=agent)
+        await self.emit_progress("Running agent")
+        return await self._run_agent_blocking(agent)
+
+    async def _before_persist(self) -> None:
+        """Runs after the agent loop and before sandbox-output persistence.
+
+        OVERRIDABLE HOOK. The skill interpreter removes its skills
+        directory here so bundle files are never swept into the output.
+        """
+
+    def _output_data(self, result: Any) -> Any:
+        """Value for ``NodeOutput.data``. OVERRIDABLE HOOK (Vercel Deploy
+        returns the live deployment URL instead of the result text)."""
+        return result
+
+    def _output_display_model(self, result: Any) -> NodeParam:
+        """Display model for the node result panel. OVERRIDABLE HOOK."""
+        return MarkdownDisplay(
+            display_name="Agent Result",
+            field_id="agent_result",
+            required=False,
+            value=result,
+            info="Agents Result",
+            show=True,
+        )
+
+    def _output_metadata(
+        self,
+        *,
+        result: Any,
+        output_node_files: list[NodeFile],
+        input_file_names: set[str],
+    ) -> dict[str, Any]:
+        """Metadata for the node's ``NodeOutput``. OVERRIDABLE HOOK.
+
+        Default = the Agent node's full envelope (message history for
+        multi-turn continuation, eval inputs, citations, sandbox stats).
+        """
+        return {
+            "agent_name": self._validated_params.get(
+                "name", f"{self._agent_name_prefix}-{self.node_id}"
+            ),
+            # True whenever a sandbox actually booted this run — including
+            # an offload-only sandbox on a file-less run — so the E2B audit
+            # trail matches what was billed (ENG-4646 review).
+            "sandbox_used": self._sandbox_was_used or len(input_file_names) > 0,
+            "input_file_count": len(input_file_names),
+            "output_file_count": len(output_node_files),
+            "s3_urls": [f.presigned_url for f in output_node_files],
+            # Multi-turn conversation continuation (Layer 1 of the
+            # conversation-sessions feature). Serialized via the
+            # pydantic-ai TypeAdapter to preserve ThinkingPart blocks
+            # verbatim - critical for Anthropic round-trips. Empty
+            # list when capture failed or the run never produced a
+            # result object. Kept in this node's stored result and
+            # events, but stripped from the port copy handed to
+            # downstream nodes (``slim_envelope_metadata``).
+            "message_history": serialize_message_history(self._final_message_history),
+            # Surface inputs for downstream node-level evals
+            # (goal_achievement, tool_use). Read by EvalsNode via
+            # NodeOutput.metadata; falls back to workflow-fetch when
+            # missing.
+            "system_prompt": self._validated_params.get("system_prompt"),
+            "task": self._validated_params.get("user_prompt"),
+            # Duplicate of ``task``, kept because stored results and A2A
+            # ``node_completed`` events carry it. Stripped from port copies;
+            # evals re-derive it from ``task`` (``extract_runtime_metadata``).
+            "agent_task": self._validated_params.get("user_prompt"),
+            "tool_calls": getattr(self, "_tool_call_log", []),
+            # Citations (ENG-2731): upstream sources pass through, and
+            # sources this agent retrieved via tools (web search,
+            # collection search, MCP data tools) join them.
+            "citations": citations_to_metadata(self._all_run_citations()),
+        }
+
+    # ------------------------------------------------------------------
+    # Compilation (final)
+    # ------------------------------------------------------------------
+
+    @final
+    async def _get_compilation_args(self) -> CompileAgentArgs:
+        self._validated_params = await self._get_validated_params()
+
+        # Derive MCP connection timeout from the user-facing timeout param.
+        # Clamp between 30-60s — the MCP handshake shouldn't need the full LLM budget.
+        _timeout_raw = self._validated_params.get("timeout", 120)
+        user_timeout = int(_timeout_raw) if _timeout_raw not in ("", None) else 120
+        self._mcp_timeout = min(max(user_timeout, 30), 60)
+
+        system_prompt = self._validated_params.get("system_prompt", "")
+
+        # Apply grounding before the operational appends (collection_context,
+        # sandbox manifest, parser snippet, bad-input reporting) so the value
+        # written back to ``_validated_params["system_prompt"]`` — read by
+        # the eval metadata — matches what the model received, without the
+        # operational appends leaking into the eval payload.
+        system_prompt = apply_grounding(
+            system_prompt,
+            self._validated_params.get("ground_with_provided_info", False),
+        )
+        system_prompt = self._apply_workflow_special_instructions(system_prompt)
+        self._validated_params["system_prompt"] = system_prompt
+
+        # Per-phase replacement (deep-research rounds): the replacement gets
+        # the same grounding + special-instructions treatment; the grounded
+        # param prompt above stays written back for eval metadata.
+        replacement = self._system_prompt_replacement()
+        if replacement is not None:
+            system_prompt = self._apply_workflow_special_instructions(
+                apply_grounding(
+                    replacement,
+                    self._validated_params.get("ground_with_provided_info", False),
+                )
+            )
+
+        if self._scope_check_enabled:
+            scope_warnings = get_empty_scope_warnings(self.handle_nodes)
+            if scope_warnings:
+                for warning in scope_warnings:
+                    await self.emit_progress(f"ERROR: {warning}")
+                raise ValueError(
+                    "Collection scope is empty on one or more tool nodes. "
+                    "Please select collections/datasets before running."
+                )
+
+        # Keep the system prompt a STABLE cached prefix. Per-run / per-workflow
+        # dynamic content — the collection scope and the sandbox file manifest
+        # (whose paths vary run to run, sometimes index-prefixed) — is moved OUT
+        # of the cached system block and appended to the user turn instead (see
+        # ``_get_runtime_args``). The Anthropic instructions cache breakpoint
+        # sits at the end of the system block, so anything dynamic here poisons
+        # cross-conversation prefix reuse.
+        dynamic_context_parts: list[str] = []
+
+        if self._collection_context_enabled:
+            # Validated: stale selections are dropped and each dataset's
+            # collection_id is resolved from live data — stored selections may
+            # lack it, which would otherwise render an unqueryable empty ID.
+            (
+                collection_context,
+                scope_warnings,
+            ) = await build_collection_context_validated(
+                self.handle_nodes,
+                getattr(self, "_orgid", ""),
+                getattr(self, "_user_token", ""),
+            )
+            for warning in scope_warnings:
+                await self.emit_progress(f"WARNING: {warning}")
+            if collection_context:
+                dynamic_context_parts.append(collection_context)
+
+        if self._context_graph_context_enabled:
+            # The pinned-graph block embeds a per-workflow graph name/id, so it
+            # is dynamic content like the collection scope above — keep it out
+            # of the cached system prefix.
+            context_graph_context = build_context_graph_context(self.handle_nodes)
+            if context_graph_context:
+                dynamic_context_parts.append(context_graph_context)
+
+        if self._citations_prompt_enabled:
+            # Citations (ENG-2731): surface upstream sources so the model can
+            # cite them with [n] markers. Operational append only, never written
+            # back to ``_validated_params["system_prompt"]`` (eval payload stays
+            # clean).
+            system_prompt = await self._append_citations_prompt_section(system_prompt)
+
+        if self._bad_input_prompt_enabled:
+            # Unusable-input reporting (ENG-3635): same rule as citations —
+            # operational append the model must see, kept out of the eval
+            # payload already written back above.
+            system_prompt = apply_bad_input_reporting(
+                system_prompt, include_tool=self._input_issue_tool_enabled
+            )
+
+        sandbox_manifest = self._build_sandbox_manifest_prompt()
+        if sandbox_manifest:
+            dynamic_context_parts.append(
+                f"{sandbox_manifest}\n\n{PARSER_SYSTEM_SNIPPET}"
+            )
+
+        basemaps_note = self._build_sandbox_basemaps_prompt()
+        if basemaps_note:
+            dynamic_context_parts.append(basemaps_note)
+
+        self._dynamic_run_context = "\n\n".join(dynamic_context_parts)
+
+        system_prompt = self._augment_system_prompt(system_prompt)
+
+        mcp_payload = self._validated_params.get("mcp_servers") or {}
+        attached_mcp_servers = await self._process_attached_mcp_servers(mcp_payload)
+
+        resolved = await self._fetch_model(self._validated_params["model"])
+        self._validated_params["model"] = resolved.model
+        if not self._stream:
+            await self.emit_progress(
+                "!!Note!!: Streaming support is not yet available for the chosen models. We are working on it."
+            )
+        toolsets = await self._assemble_handle_toolsets() or []
+        # [VÁ 10 chay_thu 06/11] sandbox R12 (a): khối bật "chạy code" thì KHÔNG có toolset nào (bộ có sẵn / MCP cắm cổng Tools / máy chủ MCP gắn
+        # vào khối), không có công cụ từ khối công cụ nối dây, không có hộp E2B — đây là chỗ thấy cả nhánh tools= lẫn toolsets= (T30).
+        _rp = self._validated_params.get("tool_run_python")
+        if _rp is True or (isinstance(_rp, str) and _rp.strip().lower() in ("true", "1", "yes", "on")):
+            _du = []
+            if toolsets or attached_mcp_servers:
+                _du.append(f"{len(toolsets) + len(attached_mcp_servers)} bộ công cụ (MCP / cổng Tools)")
+            if self._validated_params.get("tools"):
+                _du.append("công cụ từ khối công cụ nối dây")
+            if self._sandbox_tools:
+                _du.append("hộp E2B")
+            if _du:
+                raise ValueError("Khối bật 'chạy code' không được có thêm: " + "; ".join(_du) + " (sandbox R12).")
+
+        capabilities = self._build_context_capabilities(resolved.registry_model_id)
+        # Tool-result offloading (ENG-4646) is appended by the pipeline —
+        # not the overridable hook above — so every subclass keeps the
+        # size guard regardless of how it composes its own capabilities.
+        offload_capability = self._build_tool_offload_capability(
+            resolved.registry_model_id
+        )
+        if offload_capability is not None:
+            capabilities = [*capabilities, offload_capability]
+
+        args = CompileAgentArgs(
+            name=self._validated_params.get(
+                "name", f"{self._agent_name_prefix}-{self.node_id}"
+            ),
+            model=self._validated_params["model"],
+            system_prompt=system_prompt,
+            instructions=self._validated_params.get("instructions", None),
+            tools=self._compose_agent_tools(),
+            toolsets=toolsets + attached_mcp_servers,
+            retries=int(self._validated_params.get("retries", 3)),
+            capabilities=capabilities,
+        )
+        if self._agent_deps_type is not None:
+            args["deps_type"] = self._agent_deps_type
+        # [VÁ 8 chay_thu 04/11] khuôn đầu ra có cấu trúc (ô output_schema) — trống thì giữ hành vi gốc (chữ)
+        from workflow.node.base.agent.structured_output import build_output_model
+
+        output_model = build_output_model(self._validated_params.get("output_schema"))
+        if output_model is not None:
+            args["output_type"] = output_model  # type: ignore[typeddict-unknown-key]
+        return args
+
+    @final
+    async def compile(self):
+        compilation_args = await self._get_compilation_args()
+
+        await self.emit_progress(
+            f"Agent '{compilation_args['name']}' compiled successfully",
+            {"agent_name": compilation_args["name"]},
+        )
+        agent = Agent(**compilation_args)
+        return agent
+
+    # ------------------------------------------------------------------
+    # Runtime args (final)
+    # ------------------------------------------------------------------
+
+    @final
+    def _get_runtime_args(self):
+        # Output-feedback follow-up turn ("Ask for feedback on outputs"):
+        # the user's review feedback IS the next user message, continuing
+        # the same conversation via the message history captured from the
+        # previous turn. Takes precedence over every other prompt source —
+        # the original task already lives in the history. ``_stream_agent``
+        # re-reads runtime args on its internal retries, which correctly
+        # replays the same feedback turn.
+        if self._pending_feedback_prompt:
+            feedback_args: RunAgentArgs = {
+                "user_prompt": self._pending_feedback_prompt,
+                "usage_limits": UsageLimits(request_limit=settings.AGENT_REQUEST_LIMIT),
+            }
+            if self._final_message_history:
+                feedback_args["message_history"] = self._final_message_history
+            return feedback_args
+
+        user_prompt = self._validated_params.get("user_prompt")
+        # Handle different user_prompt types - convert everything to string for AI agent
+        if isinstance(user_prompt, str):
+            # Ideal case - string prompt, use as-is
+            pass
+        elif isinstance(user_prompt, list):
+            # Convert list to readable enumerated string
+            items = [f"{i + 1}. {str(item)}" for i, item in enumerate(user_prompt)]
+            user_prompt = "\n".join(items)
+        elif isinstance(user_prompt, dict):
+            # Convert dict to readable key-value string
+            items = [f"{key}: {str(value)}" for key, value in user_prompt.items()]
+            user_prompt = "\n".join(items)
+        else:
+            # For any other type, force cast to string
+            user_prompt = str(user_prompt)
+
+        # Prepend a parse-files-first directive in the user message (models
+        # attend to user-turn content more reliably than the system prompt).
+        files_directive = self._build_user_prompt_files_directive()
+        if files_directive:
+            user_prompt = f"{files_directive}\n\n{user_prompt}"
+
+        # ----- ``message_history`` precedence chain -----
+        #
+        # 1. **A2A multi-turn** (ENG-1578 Layer 1). Populated by the
+        #    agentic-backend ``agents`` router from ``ChatMessagesClient``
+        #    when platform-api forwards prior turns on a ``chat`` skill /
+        #    multi-turn ``call_workflow``. Real prior turns, including
+        #    ThinkingPart blocks.
+        # 2. **None / single-turn**. The default: no history, the prompt is
+        #    the (optionally feedback-layered) ``user_prompt``.
+        # 3. **Clarification re-run snapshot** (Phase B v2). When a node is
+        #    re-dispatched after a clarification pause,
+        #    ``_clarification_message_history`` seeds the prior tool-call
+        #    history so the agent can compare it against the user's answer.
+        #    Lower precedence than a real A2A multi-turn history (the two
+        #    scenarios are mutually exclusive in practice).
+
+        a2a_history = self._resolve_message_history()
+        if a2a_history is not None:
+            resolved_prompt = user_prompt
+            message_history: list[Any] | None = a2a_history
+        else:
+            # Phase B v2: compute the clarification snapshot FIRST so the
+            # prompt composition knows whether history was actually seeded
+            # (the v2 prompt drops the task, so without history we must keep
+            # the v1 task block). No-op on every ordinary dispatch.
+            message_history = self._clarification_message_history()
+            resolved_prompt = self._compose_task_with_clarification(
+                user_prompt, has_history=message_history is not None
+            )
+
+        # Both branches above seed CROSS-RUN history (A2A multi-turn /
+        # clarification re-dispatch): any offload envelopes in it point at
+        # a previous run's sandbox files, which no longer exist — condense
+        # them so the model isn't sent at a dead tool/file (ENG-4646).
+        # Same-run feedback turns return earlier and are never scrubbed.
+        if message_history:
+            message_history = scrub_stale_offload_envelopes(message_history)
+
+        # Append per-run dynamic context (collection scope + sandbox manifest)
+        # that used to live in the system prompt. Kept in the user turn so the
+        # cached system prefix stays stable across runs (see
+        # ``_get_compilation_args``).
+        if self._dynamic_run_context:
+            resolved_prompt = f"{resolved_prompt}\n\n{self._dynamic_run_context}"
+
+        args: RunAgentArgs = {
+            "user_prompt": resolved_prompt,
+            "usage_limits": UsageLimits(request_limit=settings.AGENT_REQUEST_LIMIT),
+        }
+        if message_history:
+            args["message_history"] = message_history
+        return args
+
+    @final
+    def _resolve_message_history(self) -> list[Any] | None:
+        """Resolve A2A multi-turn prior history that should be passed to pydantic-ai.
+
+        Pulls from ``self._validated_params["message_history"]``, which is
+        populated either:
+
+        * Inline by the workflow author (rare; intended for
+          power-user scripted canvases), or
+        * Via the ``inputs`` mechanism in the agentic-backend agents
+          router when platform-api forwards prior turns from the
+          ChatMessagesClient store on a multi-turn chat call.
+
+        Each entry is a serialized pydantic-ai ``ModelMessage`` (the
+        dict shape produced by ``ModelMessagesTypeAdapter.dump_python``).
+        We rehydrate to ``ModelMessage`` objects here so pydantic-ai
+        receives the typed objects it expects.  Returns ``None`` for
+        single-turn runs (no history) so we don't pass a noise empty
+        list into ``Agent.iter`` (pydantic-ai treats them equivalently
+        but ``None`` is the documented default).
+
+        Important: ThinkingPart blocks must round-trip verbatim across
+        turns.  ``ModelMessagesTypeAdapter`` preserves them; do NOT
+        hand-convert dicts to ModelMessage by walking parts manually.
+        """
+
+        raw = self._validated_params.get("message_history")
+        if not raw:
+            return None
+        # Already a list of ModelMessage instances? (in-process callers)
+        if not isinstance(raw, list):
+            logger.warning(
+                "message_history is not a list (got %s); ignoring", type(raw).__name__
+            )
+            return None
+        if not raw:
+            return None
+        # If the first entry is already a ModelMessage-like object, pass
+        # through. Otherwise (dict shape from JSON wire) rehydrate via
+        # the type adapter.
+        first = raw[0]
+        if hasattr(first, "kind") or hasattr(first, "model_dump"):
+            return raw
+        try:
+            from pydantic_ai.messages import ModelMessagesTypeAdapter
+
+            return ModelMessagesTypeAdapter.validate_python(raw)
+        except Exception as e:
+            # Don't fail the whole run on bad history - log + drop.
+            logger.warning(
+                "Failed to rehydrate message_history (%d entries): %s; "
+                "running as single-turn",
+                len(raw),
+                e,
+            )
+            return None
+
+    # ------------------------------------------------------------------
+    # Output-feedback regeneration turn (final)
+    # ------------------------------------------------------------------
+
+    @final
+    async def _run_feedback_turn(self, agent: Agent, feedback: str) -> str:
+        """Run one follow-up agent turn carrying the user's review feedback.
+
+        Stages ``feedback`` for ``_get_runtime_args`` (which pairs it with
+        the captured message history) and re-runs the agent on the SAME
+        compiled instance, so tools, MCP connections, and the sandbox all
+        carry over. ``_final_message_history`` is refreshed by the run, so
+        consecutive feedback turns stack correctly.
+        """
+        self._pending_feedback_prompt = feedback
+        try:
+            if self._stream:
+                await self.emit_progress("Updating output based on your feedback...")
+                return await self._stream_agent(agent=agent)
+
+            run_result = await agent.run(**self._get_runtime_args())
+            self._log_run_cache_usage(run_result)
+            self._capture_final_message_history(run_result)
+            self._harvest_citations_from_run_result(run_result)
+            from workflow.node.base.agent.structured_output import output_to_text  # [VÁ 8]
+
+            return output_to_text(run_result.output)
+        finally:
+            self._pending_feedback_prompt = None
+
+    # ------------------------------------------------------------------
+    # Output assembly (final; shapes provided by hooks)
+    # ------------------------------------------------------------------
+
+    @final
+    def _build_node_output(
+        self,
+        *,
+        result: Any,
+        output_node_files: list[NodeFile],
+        input_file_names: set[str],
+    ) -> NodeOutput:
+        """Assemble the node's standard ``NodeOutput``.
+
+        Shared by the terminal emit at the end of ``execute()`` AND the
+        intermediate emits inside the "ask for feedback on outputs" review
+        loop, so the UI sees the exact final shape (files, display model,
+        metadata) for the artifact under review.
+        """
+        return NodeOutput(
+            files=output_node_files,
+            data=self._output_data(result),
+            display_model=self._output_display_model(result),
+            node=self,
+            metadata=self._output_metadata(
+                result=result,
+                output_node_files=output_node_files,
+                input_file_names=input_file_names,
+            ),
+        )
+
+    # ------------------------------------------------------------------
+    # Execute (final)
+    # ------------------------------------------------------------------
+
+    @final
+    async def execute(self) -> NodeOutput:
+        try:
+            await self.emit_begin()
+
+            # Per-run buffers (a node instance can execute more than once
+            # across retries/reruns in-process).
+            self._tool_call_log = []
+            self._executed_code = []
+            self._final_message_history = None
+            self._tool_offloader = None
+            self._sandbox_offload_only = False
+            self._sandbox_was_used = False
+
+            self._validated_params = await self._get_validated_params()
+
+            input_files: list[NodeFile] = []
+            if self._sandbox_mode != SandboxMode.NEVER:
+                input_files = await self._extract_input_files()
+            input_file_names: set[str] = set()
+            output_node_files: list[NodeFile] = []
+            executed_source: NodeFile | None = None
+
+            needs_sandbox = self._sandbox_mode == SandboxMode.ALWAYS or (
+                self._sandbox_mode == SandboxMode.IF_FILES and bool(input_files)
+            )
+
+            # [VÁ B2b chay_thu 09/11 — nhóm kỹ thuật, người vận hành] File đầu vào (vd từ khối Nhận file, nằm ở S3 / MinIO) đi vào HỘP CÁCH LY CỦA MÌNH
+            # thay vì E2B: chỉ khi lớp con có hook (khối agent_node, nodes/agent/node.py) và hook nhận (bật run_python). Hook tải file, ghi vào thư
+            # mục file của người chạy hộp, điền mã file cho run_python ⇒ ở đây bỏ danh sách file ⇒ không dựng E2B. Hook từ chối (False) ⇒ đi tiếp
+            # như cũ (R12 dưới vẫn chặn E2B). Hook lỗi ⇒ raise, khối báo lỗi rõ.
+            _nhan_vao_hop = getattr(self, "_chay_thu_nhan_file_vao_hop", None)
+            if _nhan_vao_hop is not None:
+                self._ma_file_tai = None   # mỗi lần chạy tính lại — không mang mã file của lần chạy trước (chạy lại / thử lại)
+            if input_files and self._sandbox_mode == SandboxMode.IF_FILES and _nhan_vao_hop is not None:
+                if await _nhan_vao_hop(input_files):
+                    input_files = []
+                    needs_sandbox = False
+
+            # [VÁ 10 chay_thu 06/11] sandbox R12 — D phát hiện (việc 4): khối Agent mặc định IF_FILES ⇒ hễ có FILE đầu vào là dựng máy ảo E2B CÓ
+            # MẠNG (sandbox_runtime.py:117, :457). File từ khối chạy code chảy xuống khối sau ⇒ E2B. Máy thử không dùng E2B ⇒ cấm bằng code, báo rõ
+            # (không im lặng bỏ qua). Tắt: CHAY_THU_CAM_E2B=false.
+            if needs_sandbox and os.environ.get("CHAY_THU_CAM_E2B", "true").strip().lower() not in ("false", "0", "no", "off"):
+                raise ValueError(
+                    f"Máy thử cấm hộp E2B (có mạng): khối nhận {len(input_files)} file đầu vào nên Capitol định dựng E2B. "
+                    "Phân tích file thì dùng công cụ 'chạy code' (hộp cách ly của mình) — sandbox R12."
+                )
+            try:
+                if needs_sandbox:
+                    input_file_names = await self._setup_sandbox(input_files)
+
+                await self._pre_compile()
+
+                agent: Agent | None = None
+                if self._compile_in_pipeline:
+                    await self.emit_progress("Compiling agent")
+                    agent = await self.compile()
+
+                result = await self._run(agent)
+
+                await self._before_persist()
+
+                persist = True
+                if self._persist_gated_by_param:
+                    _persist_raw = self._validated_params.get("persist_workspace", True)
+                    persist = _persist_raw if isinstance(_persist_raw, bool) else True
+
+                if (
+                    self._sandbox is not None
+                    and self._persist_outputs_enabled
+                    and persist
+                ):
+                    output_node_files = await self._persist_sandbox_files(
+                        input_file_names=input_file_names,
+                    )
+                    if output_node_files:
+                        await self.emit_progress(
+                            f"Saved {len(output_node_files)} generated file(s) to storage"
+                        )
+
+                # "Ask for feedback on outputs" review loop. Runs INSIDE the
+                # sandbox lifetime so a feedback turn keeps editing the same
+                # files; each pause is preceded by a sandbox TTL extension so
+                # the wait doesn't outlive the sandbox. No-op when the toggle
+                # is off (or the node doesn't declare the param), when the run
+                # produced no output files, or when a [[primary-output:glob]]
+                # marker on this node matches none of the persisted files.
+                if self._sandbox is not None and agent is not None:
+
+                    async def _regenerate(feedback: str) -> str:
+                        return await self._run_feedback_turn(agent, feedback)
+
+                    async def _repersist() -> list[NodeFile]:
+                        return await self._persist_sandbox_files(
+                            input_file_names=input_file_names,
+                        )
+
+                    async def _emit_intermediate(
+                        loop_result: Any, loop_files: list[NodeFile]
+                    ) -> None:
+                        await self.emit_node_result(
+                            self._build_node_output(
+                                result=str(loop_result),
+                                output_node_files=loop_files,
+                                input_file_names=input_file_names,
+                            )
+                        )
+
+                    result, output_node_files = await self.run_output_feedback_loop(
+                        result=result,
+                        output_files=output_node_files,
+                        regenerate=_regenerate,
+                        repersist=_repersist,
+                        emit_intermediate=_emit_intermediate,
+                        before_pause=self._sandbox.extend_sandbox_lifetime,
+                    )
+
+                # Executed source is run provenance, not an output: kept off
+                # ``files`` and surfaced through metadata. Gated on the same
+                # persist toggle because generated source can embed data the
+                # model wrote.
+                if self._sandbox is not None and persist:
+                    executed_source = await self._persist_executed_code()
+
+            finally:
+                await self._teardown_sandbox()
+
+            # ----------------------------------------------------------------
+            # Build and emit output
+            # ----------------------------------------------------------------
+            await self.emit_success(str(result))
+
+            output = self._build_node_output(
+                result=str(result),
+                output_node_files=output_node_files,
+                input_file_names=input_file_names,
+            )
+            if executed_source is not None:
+                output.metadata.update(
+                    {
+                        "executed_code_url": executed_source.presigned_url,
+                        "executed_code_s3_key": executed_source.s3_key,
+                    }
+                )
+            if self._tool_offloader is not None and self._tool_offloader.records:
+                output.metadata["tool_result_offloads"] = [
+                    record.to_metadata() for record in self._tool_offloader.records
+                ]
+
+            await self.emit_node_result(output)
+
+            if hasattr(self, "runtime") and self.runtime:
+                for port in self.output_ports:
+                    await self.runtime.emit_output(port.id, output)
+
+            await self.emit_end()
+
+            return output
+
+        except Exception as e:
+            # Phase B: ``ClarificationRequested`` is a control-flow
+            # signal, not an error. Re-raise so the activity wrapper converts
+            # it into a ``NodeActivityResult(clarification_request=...)``;
+            # without this the catch-all below swallows it, emits a node-error,
+            # and the activity retries (user sees the LLM "looping").
+            clar = extract_clarification_requested(e)
+            if clar is not None:
+                raise clar from e
+            capture_exception(e)
+            error_msg, details_str = self._unwrap_exception(e)
+            logger.error(error_msg, exc_info=True)
+            await self.emit_error({"error": error_msg, "details": details_str})
+            await self.emit_end({"error": error_msg})
+            return NodeOutput(data=None, node=self, error=error_msg)
+
+    @final
+    def _unwrap_exception(self, e: Exception) -> tuple[str, str]:
+        """Flatten ExceptionGroup/TaskGroup errors into a readable
+        ``(error_msg, details)`` pair, prefixed with this node's label."""
+        return _unwrap_exception_with_label(e, self._error_label)

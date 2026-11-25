@@ -1,0 +1,9 @@
+# CÔNG TẮC lớp kiểm số của câu trả lời KPI — đọc lại MỖI lượt (đổi một dòng là có hiệu lực ở lượt kế, không tạo lại hộp). Chỉ đổi khi không có lượt nào đang chạy.
+#   quyet_dinh = ai     : AI chấm số QUYẾT chặn / cho qua (khối Trợ lý chấm + viết lại một lần; khối Rào chỉ cho qua khi có phiếu ĐẠT của đúng câu). Lớp code vẫn chạy, CHỈ GHI nhật ký.
+#   quyet_dinh = code   : y như trước 20/11 — lớp code (luật của lõi KPI) quyết; AI chấm không chạy. ĐÂY LÀ CÁCH TẮT NHANH.
+#   luat_code_chan = khong | <loại lỗi>[, <loại lỗi>]   (chỉ có nghĩa khi quyet_dinh = ai): các loại lỗi của lớp code VẪN được chặn làm lưới đỡ, vd so_khong_nguon.
+#                    Mặc định khong = code chỉ ghi (người vận hành 20/11: "AI chặn, code chạy kèm chỉ ghi").
+# KHÔNG có file này ⇒ như quyet_dinh = code. File có mà dòng sai khuôn / thiếu dòng quyet_dinh ⇒ khối DỪNG với lỗi rõ (không tự chọn).
+# AI chấm không chạy được (lỗi gọi / quá giờ) ⇒ câu trả lời bị giữ lại với lời báo rõ — KHÔNG tự chuyển về code.
+quyet_dinh = ai
+luat_code_chan = khong

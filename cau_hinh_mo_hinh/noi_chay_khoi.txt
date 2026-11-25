@@ -1,0 +1,12 @@
+# NƠI CHẠY của các khối có AI viết code — mỗi dòng: <mac_dinh | loại khối> = e2b | may
+#   e2b = máy ảo E2B (dịch vụ ngoài; tính tiền E2B vào trần ngày; file + code đi ra ngoài)   ·   may = hộp kín trên máy (không mạng, 0 đồng E2B)
+# Đọc lại mỗi lần khối chạy — đổi dòng là có hiệu lực ở lượt kế, không cần tạo lại hộp. Dòng sai ⇒ khối dừng với lỗi rõ.
+# E2B lỗi / cầu dao E2B tắt mà dòng ghi e2b ⇒ khối BÁO LỖI, không tự chuyển về hộp máy (đã chốt 19/11).
+# Loại khối đặt được hiện nay: flexible_code_interpreter_node (khối "Chạy code"). Các khối khác thêm dần theo bậc.
+mac_dinh = may
+flexible_code_interpreter_node = e2b
+xlsx_chat_node = e2b   # [ghi chú] khối Excel chạy code trên máy ảo E2B; xoá dòng = về hộp máy
+data_analysis_agent_node = e2b   # [ghi chú] khối phân tích dữ liệu
+docx_chat_node = e2b   # [ghi chú] khối Word
+d3_data_visualization_node = e2b   # [ghi chú] khối biểu đồ
+pptx_chat_node = e2b

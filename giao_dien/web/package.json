@@ -1,0 +1,24 @@
+{
+ "name": "capitol-xuong-workflow",
+ "private": true,
+ "version": "0.1.0",
+ "type": "module",
+ "description": "Trang kéo–thả workflow trên bộ chạy thử Capitol (chay_thu) — chỉ chạy trên máy, 127.0.0.1",
+ "scripts": {
+  "dev": "vite --host 127.0.0.1 --port 18410",
+  "build": "vite build",
+  "kiem-kieu": "tsc --noEmit"
+ },
+ "dependencies": {
+  "@xyflow/react": "12.12.0",
+  "react": "19.3.1",
+  "react-dom": "19.3.1"
+ },
+ "devDependencies": {
+  "@types/react": "19.3.0",
+  "@types/react-dom": "19.3.0",
+  "@vitejs/plugin-react": "6.1.2",
+  "typescript": "5.9.3",
+  "vite": "8.3.5"
+ }
+}

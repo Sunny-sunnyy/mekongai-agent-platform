@@ -1,0 +1,2 @@
+# [ghi chú] Danh sách file GIẢ LẬP được gửi lên E2B (bậc 1). Mỗi dòng: sha256 + tên. File thật công ty (RAW, Tracking) KHÔNG vào đây khi User chưa nói rõ.
+905f0240692da4cb0573bf1fb8abcf90ed29e9dccb37f7fccd019fda7139c7c5  don_hang_gia_lap.csv

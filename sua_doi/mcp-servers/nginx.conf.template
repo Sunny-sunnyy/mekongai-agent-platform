@@ -1,0 +1,444 @@
+# MCP Servers Reverse Proxy Configuration
+
+worker_processes 1;
+error_log /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log /var/log/nginx/access.log main;
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    # Compression settings
+    gzip on;
+    gzip_disable "msie6";
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    server {
+        listen 8120;
+        server_name localhost;
+
+        # Liveness: nginx itself is responding (container alive)
+        location /health {
+            access_log off;
+            add_header Content-Type application/json;
+            return 200 '{"status": "ok"}';
+        }
+
+        # Version metadata. Values are interpolated at container start by
+        # envsubst (see supervisord nginx program); the static nginx.conf is
+        # rendered from nginx.conf.template. Mirrors the mcp-fastapi /version
+        # shape so platform-api /health/services can surface the running tag.
+        location = /version {
+            access_log off;
+            add_header Content-Type application/json;
+            return 200 '{"app_version": "${APP_VERSION}", "git_branch_name": "${GIT_BRANCH_NAME}", "git_short_sha": "${GIT_SHORT_SHA}", "image_uri": "${IMAGE_URI}"}';
+        }
+
+        # Readiness: workflow-builder-server is up.
+        # Any HTTP response from the backend proves it's listening.
+        # Connection failure → nginx 502 → K8s marks pod not-ready.
+        location /ready {
+            access_log off;
+            proxy_pass http://127.0.0.1:8020/;
+            proxy_connect_timeout 3;
+            proxy_read_timeout 3;
+            proxy_intercept_errors on;
+            error_page 400 401 403 404 405 500 = @backend_alive;
+        }
+
+        location @backend_alive {
+            add_header Content-Type application/json always;
+            return 200 '{"status": "ready"}';
+        }
+
+        # # Audio Server
+        # location /audio-server/ {
+        #     proxy_pass http://localhost:8001/;
+        #     proxy_http_version 1.1;
+        #     proxy_set_header Upgrade $http_upgrade;
+        #     proxy_set_header Connection "upgrade";
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        #     proxy_buffering off;
+        #     proxy_cache off;
+        #     proxy_read_timeout 600s;
+        #     proxy_connect_timeout 600s;
+        # }
+
+        # # Text Processing Server
+        # location /text-processing-server/ {
+        #     proxy_pass http://localhost:8004/;
+        #     proxy_http_version 1.1;
+        #     proxy_set_header Upgrade $http_upgrade;
+        #     proxy_set_header Connection "upgrade";
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        #     proxy_buffering off;
+        #     proxy_cache off;
+        #     proxy_read_timeout 300s;
+        #     proxy_connect_timeout 75s;
+        # }
+
+        # # Video Server
+        # location /video-server/ {
+        #     proxy_pass http://localhost:8005/;
+        #     proxy_http_version 1.1;
+        #     proxy_set_header Upgrade $http_upgrade;
+        #     proxy_set_header Connection "upgrade";
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        #     proxy_buffering off;
+        #     proxy_cache off;
+        #     proxy_read_timeout 600s;
+        #     proxy_connect_timeout 600s;
+        # }
+
+        # # Web Search Server
+        # location /web-search-server/ {
+        #     proxy_pass http://localhost:8006/;
+        #     proxy_http_version 1.1;
+        #     proxy_set_header Upgrade $http_upgrade;
+        #     proxy_set_header Connection "upgrade";
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        #     proxy_buffering off;
+        #     proxy_cache off;
+        #     proxy_read_timeout 300s;
+        #     proxy_connect_timeout 75s;
+        # }
+
+        # # Beatoven Server
+        # location /beatoven-server/ {
+        #     proxy_pass http://localhost:8007/;
+        #     proxy_http_version 1.1;
+        #     proxy_set_header Upgrade $http_upgrade;
+        #     proxy_set_header Connection "upgrade";
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        #     proxy_buffering off;
+        #     proxy_cache off;
+        #     proxy_read_timeout 300s;
+        #     proxy_connect_timeout 75s;
+        # }
+
+        # qdrant-api-mcp Server (match /qdrant-api-server and any subpaths such as /mcp)
+        # [ghi chú] CHẶN: bộ không dùng server này; có create / delete collection, không mã. Máy chủ con 8009 đưa về 127.0.0.1
+        # (sua_doi/mcp-servers/supervisord.conf). Bản trước khối này: /tmp/dis_b_truoc2_nginx.conf.template.
+        location ^~ /qdrant-api-server/ {
+            return 403 "chay_thu: qdrant-api-server bi chan (bo khong dung)";
+        }
+
+        # Structured Collections Server
+        # [ghi chú] CHẶN hỏi SQL kho bảng: AI sinh SQL chạy trong platform-api (llm_athena) ⇒ không qua giữ chỗ tiền của trang. Hai đường tới đây: khối công cụ nối vào Agent (AB toolsets.py:79-108)
+        # + công cụ kho của trợ lý chat (orchestrator make_collections_toolsets, sua_doi/api/a2a_gateway/orchestrator.py:3728). Máy chủ con
+        # nghe 127.0.0.1:8010 trong hộp ⇒ chỉ vào qua nginx này. Bản gốc: nginx.conf.template.goc.
+        location /structured-collections-server/ {
+            return 403 "chay_thu: structured-collections-server bi chan (chua co so tien)";
+        }   
+
+        # Context Graph Server
+        location /context-graph-server/ {
+            proxy_pass http://localhost:8038/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+
+        # Unstructured Collections Server
+        # [ghi chú] CHẶN tìm kho tài liệu: khi dựng khối tìm tài liệu GỐC (bậc sau) phải MỞ LẠI location này KÈM sổ tiền. Hai đường tới đây: khối công cụ nối vào Agent (AB toolsets.py:79-108)
+        # + công cụ kho của trợ lý chat (orchestrator make_collections_toolsets, sua_doi/api/a2a_gateway/orchestrator.py:3728). Máy chủ con
+        # nghe 127.0.0.1:8011 trong hộp ⇒ chỉ vào qua nginx này. Bản gốc: nginx.conf.template.goc.
+        location /unstructured-collections-server/ {
+            return 403 "chay_thu: unstructured-collections-server bi chan (chua co so tien)";
+        }
+
+        # Procured Data Server (Elasticsearch via Azure APIM)
+        location /procured-data-server/ {
+            proxy_pass http://localhost:8012/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+
+        # EY Unstructured Data Server (Azure AI Search)
+        location /ey-unstructured-server/ {
+            proxy_pass http://localhost:8013/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+
+        # Workflow Builder Server
+        location /workflow-builder-server/ {
+            proxy_pass http://localhost:8020/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 600s;
+            proxy_connect_timeout 600s;
+        }
+
+        # Flux Kontext Pro Server
+        location /flux-kontext-pro-server/ {
+            proxy_pass http://localhost:8030/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 120s;
+            proxy_connect_timeout 75s;
+        }
+
+        # Flux Kontext Max Server
+        location /flux-kontext-max-server/ {
+            proxy_pass http://localhost:8031/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 120s;
+            proxy_connect_timeout 75s;
+        }
+
+        # Time Server
+        location /time-server/ {
+            proxy_pass http://localhost:8032/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 30s;
+            proxy_connect_timeout 10s;
+        }
+
+
+
+        # GPT Image 2 Server
+        # [ghi chú] CHẶN tạo ảnh gpt-image-2: gọi thẳng api.openai.com/v1/images bằng khoá OpenAI của hộp này
+        # (services/openai/client.py:35-56,115) ⇒ không qua cổng AI, không sổ tiền. Máy chủ con nghe 127.0.0.1:8033 trong hộp ⇒ chỉ vào qua nginx này.
+        # Mở lại = người vận hành đường ảnh có giá + sổ. Bản gốc khối này: /tmp/dis_b_truoc_nginx.conf.template (và nginx.conf.template.goc).
+        location /gpt-image-2-server/ {
+            return 403 "chay_thu: gpt-image-2-server bi chan (chua co so tien)";
+        }
+
+
+        # CFR Search Server
+        location /cfr-search-server/ {
+            proxy_pass http://localhost:8034/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+
+        # Artifact Store Server (content-addressed blob store + registry)
+        location /artifact-store/ {
+            proxy_pass http://localhost:8037/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+
+        # Financial Regulation Server
+        location /financial-regulation-server/ {
+            proxy_pass http://localhost:8035/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+
+
+        # Getty Images Server
+        location /getty-images-server/ {
+            proxy_pass http://localhost:8036/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            # GETTY_CACHE_IMAGES_TO_S3 downloads + re-uploads each preview sequentially;
+            # large n_results can run long, so match the image-server timeout floor.
+            proxy_read_timeout 240s;
+            proxy_connect_timeout 75s;
+        }
+
+        # Carbon Arc Server (proxies to https://mcp.carbonarc.ai)
+        location /carbon-arc-server/ {
+            proxy_pass http://localhost:8039/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 600s;
+            proxy_connect_timeout 600s;
+        }
+
+        # Carbon Arc Research Server (proxies to https://mcp.carbonarc.ai/research)
+        location /carbon-arc-research-server/ {
+            proxy_pass http://localhost:8040/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 600s;
+            proxy_connect_timeout 600s;
+        }
+
+        # Carbon Arc Platform Server (search_docs, data_library)
+        location /carbon-arc-platform-server/ {
+            proxy_pass http://localhost:8041/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 600s;
+            proxy_connect_timeout 600s;
+        }
+
+        # Capitol Docs Server (release-bound platform documentation)
+        location /capitol-docs-server/ {
+            proxy_pass http://localhost:8042/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+
+        # Handle 404 errors
+        error_page 404 /404.html;
+        location = /404.html {
+            root /usr/share/nginx/html;
+        }
+
+        # Handle 50x errors
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root /usr/share/nginx/html;
+        }
+    }
+}

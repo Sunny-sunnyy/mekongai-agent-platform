@@ -1,0 +1,20 @@
+# MÔ HÌNH (+ MỨC SUY LUẬN) CHO KHỐI GỌI AI (kiểu Agent + tạo file / phân tích) — đọc MỖI LẦN khối chạy, đổi là có hiệu lực ngay ở lượt kế tiếp, không tạo lại hộp, không bật lại trang.
+# Ghi TẠI CHỖ (sửa rồi lưu; không xoá rồi tạo lại file). Chỉ đổi khi KHÔNG có lượt nào đang chạy.
+# Mỗi dòng:  <khoá> = <tên mô hình>            hoặc   <khoá> = <tên mô hình> / <mức suy luận>
+#   khoá       : mac_dinh (mọi loại khối dưới đây) hoặc tên MỘT loại khối (danh sách đúng = hằng trong bản vá va_mo_hinh_mac_dinh/model_resolution.py):
+#                · 6 loại khối kiểu Agent: agent_node (khối AI chính / Trợ lý KPI) · flexible_code_interpreter_node (chạy code) · mcp_agent_node (AI dùng máy chủ
+#                  công cụ) · vercel_deploy_agent_node (đăng trang) · skill_code_interpreter_node (chạy code có skill) · agentic_deep_research_node (tra cứu sâu)
+#                · 6 loại khối tạo file / phân tích: pptx_chat_node · docx_chat_node · xlsx_chat_node · data_analysis_agent_node · d3_data_visualization_node ·
+#                  network_graph_output_node
+#                Loại khối khác CHƯA hỗ trợ đổi (ghi vào ⇒ khối dừng với lỗi rõ). [chú thích sửa 19/11/2026: trước ghi 4 loại — cũ]
+#   tên mô hình: claude-sonnet-5-5 · claude-opus-5-5
+#   mức suy luận (mô hình nghĩ nhiều hay ít trước khi trả lời): low · medium · high · xhigh · max. Không ghi ⇒ mức mặc định của bảng cổng AI (medium).
+# Tên lạ / mức lạ / dòng sai khuôn ⇒ khối DỪNG với lỗi nói rõ dòng nào, KHÔNG gọi AI.
+# KHÔNG có dòng cấu hình nào bên dưới ⇒ mọi khối chạy theo ô model của nút (gpt-6-luna) như trước — đây cũng là cách LÙI.
+#
+# Ví dụ 1 — mọi khối kiểu Agent dùng Sonnet, mức mặc định:
+#   mac_dinh = claude-sonnet-5-5
+# Ví dụ 2 — mọi khối Sonnet mức low, riêng khối Agent (Trợ lý) dùng Opus mức high:
+#   mac_dinh = claude-sonnet-5-5 / low
+#   agent_node = claude-opus-5-5 / high
+mac_dinh = claude-sonnet-5-5 / medium

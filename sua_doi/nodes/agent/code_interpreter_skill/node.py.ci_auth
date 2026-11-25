@@ -1,0 +1,432 @@
+# [ghi chú] BẢN SAO có vá "skill giải nén TRONG BỘ NHỚ khi đi hộp phiên" (KE_HOACH_DUNG_TIEP_D việc 4) — gốc: node.py.goc
+# (AB release-4.10.0, sha16 3c79244f5f4e52d1). Chỗ sửa có nhãn [chay_thu CI]. Gắn ở V5 — CHƯA gắn.
+"""Skill-aware code interpreter node.
+
+A specialization of :class:`FlexibleCodeInterpreterNode` that requires a
+skill (a SKILL.md + optional supporting-files zip stored in platform-api)
+and loads it into the ephemeral sandbox before the agent runs.
+
+With the ``AgentBaseNode`` pipeline (ENG-4437) this subclass no longer
+copies its parent's ``execute()`` — it plugs into the real hooks:
+
+  * ``_pre_compile``            — download/extract the skill bundle into
+    ``/home/user/skills/`` and cache the SKILL.md prompt section.
+  * ``_augment_system_prompt``  — splice the cached section after the
+    parent's composition (so re-validation can't discard it).
+  * ``_before_persist``         — remove ``/home/user/skills/`` so the
+    persistence fallback scan never sweeps skill assets into the output.
+"""
+
+import io
+import logging
+import zipfile
+from typing import Any
+
+import httpx
+
+from nodes.agent.code_interpreter.node import FlexibleCodeInterpreterNode
+from nodes.agent.code_interpreter_skill.params import PARAMS
+from nodes.agent.code_interpreter_skill.ports.input import INPUT_PORTS
+from nodes.agent.code_interpreter_skill.ports.output import OUTPUT_PORTS
+from services.platform.client import PlatformAPIClient
+from workflow.node.base.file import NodeFile
+from workflow.node.registry import register
+
+logger = logging.getLogger(__name__)
+
+
+SKILL_SANDBOX_DIR = "/home/user/skills"
+
+# Generous timeout for the HTTP download of the skill archive from the
+# presigned URL platform-api returns. A 100 MB zip over a typical
+# connection takes well under this, but we want plenty of headroom on
+# slower links without inheriting httpx's stricter default.
+_PRESIGNED_DOWNLOAD_TIMEOUT_SECONDS = 60.0
+
+
+@register
+class SkillCodeInterpreterNode(FlexibleCodeInterpreterNode):
+    """Code Interpreter agent that loads a managed skill before running."""
+
+    version = "0.1.0"
+
+    display_name = "Code Interpreter (Skill)"
+    description = (
+        "Code Interpreter agent that loads a managed skill (SKILL.md + "
+        "bundled files) into the sandbox and follows its domain-specific "
+        "instructions. Use this when you have a curated skill in the "
+        "org's Skills library that the agent should apply to the task."
+    )
+    icon = "TerminalSquareIcon"
+
+    show = True
+    beta = False
+
+    node_id = "skill_code_interpreter_node"
+    node_type = "agent"
+    node_sub_type = "code_interpreter_skill"
+
+    input_ports = INPUT_PORTS
+    output_ports = OUTPUT_PORTS
+    params = PARAMS
+
+    def __init__(
+        self,
+        node_config: list[dict],
+        node_inputs=None,
+        validate_required=True,
+        validate_type=False,
+    ) -> None:
+        super().__init__(
+            node_config=node_config,
+            node_inputs=node_inputs,
+            validate_required=validate_required,
+            validate_type=validate_type,
+        )
+        # Skill instructions built by ``_load_skill`` and re-applied to the
+        # system prompt inside ``_augment_system_prompt`` — the pipeline's
+        # ``_get_compilation_args`` re-fetches validated params on every
+        # compile, so any direct param mutation would be discarded.
+        self._skill_prompt_section: str = ""
+
+    # ------------------------------------------------------------------
+    # Skill loading helpers
+    # ------------------------------------------------------------------
+
+    async def _fetch_skill_metadata(self, skill_id: str) -> dict | None:
+        """Fetch skill metadata (incl. presigned URLs) from platform-api
+        via ``PlatformAPIClient``, which handles M2M vs user-token auth
+        routing automatically.
+
+        Returns ``None`` and emits a warning on failure rather than
+        raising — the caller decides whether to abort or degrade.
+        """
+        orgid = (getattr(self, "_orgid", None) or "").strip()
+        if not orgid:
+            logger.warning("No orgid available; cannot fetch skill metadata.")
+            await self.emit_progress(
+                "Warning: organization context missing — skipping skill load."
+            )
+            return None
+
+        try:
+            client = PlatformAPIClient()
+            user_token = getattr(self, "_user_token", None) or None
+            # [ghi chú] máy thử: nhánh /public của platform-api đòi JWT Auth0 (không có trên máy) ⇒ 401
+            # "Invalid or expired token". ENVIRONMENT=local + cờ hộp phiên ⇒ gọi KHÔNG kèm token người dùng (client tự bỏ M2M ở local —
+            # services/platform/client.py:79-89). Giới hạn: mất lớp kiểm "user có quyền" của PA, chỉ còn org trong đường dẫn. Ngoài local ⇒ như gốc.
+            from core.settings import settings as _cs
+
+            _ci_hop = getattr(self, "_ci_dung_hop_phien", None)
+            if (getattr(_cs, "ENVIRONMENT", "") or "").lower() == "local" and _ci_hop is not None and _ci_hop():
+                user_token = None
+            return await client.make_request(
+                "GET", f"/skills/{orgid}/{skill_id}", user_token=user_token
+            )
+        except Exception as exc:
+            logger.error(f"Failed to fetch skill {skill_id}: {exc}", exc_info=True)
+            await self.emit_progress(f"Warning: could not load skill: {exc}")
+            return None
+
+    @staticmethod
+    async def _download_via_presigned_url(url: str) -> bytes:
+        """Fetch ``url`` and return the response body as bytes.
+
+        Uses a fresh ``httpx.AsyncClient`` with no auth headers so that
+        tokens are NOT leaked to S3 or the encryption proxy host — the
+        presigned / proxy URL carries its own authorization.
+        """
+        async with httpx.AsyncClient(
+            timeout=_PRESIGNED_DOWNLOAD_TIMEOUT_SECONDS,
+            follow_redirects=True,
+        ) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            return resp.content
+
+    async def _ci_giai_skill_trong_bo_nho(self, skill_id: str, archive: bytes) -> tuple[str, bool]:
+        """[chay_thu CI] Giải gói skill TRONG BỘ NHỚ (agentic-backend), kiểm HẾT các mục TRƯỚC khi upload file nào: không đường tuyệt đối,
+        không \\, không '' / '.' / '..', không symlink, trần cỡ từng file / số file / tổng (trần của V1 — một chỗ đặt). Lỗi ⇒ ném ⇒ nhánh
+        except của hàm gọi biến thành cảnh báo "could not load skill" như gốc (khối chạy tiếp KHÔNG có skill, 0 file nào đã lên hộp)."""
+        from services.pydantic_ai_skills.e2b_chat_service import _TRAN_SKILL_FILE, _TRAN_SKILL_SO, _TRAN_SKILL_TONG
+
+        tep: list[tuple[str, bytes]] = []
+        tong = 0
+        with zipfile.ZipFile(io.BytesIO(archive)) as zf:
+            muc = [i for i in zf.infolist() if not i.is_dir()]
+            if len(muc) > _TRAN_SKILL_SO:
+                raise ValueError(f"skill {skill_id}: {len(muc)} file > trần {_TRAN_SKILL_SO}")
+            for info in muc:
+                ten = info.filename
+                if ten.startswith("/") or "\\" in ten or any(x in ("", ".", "..") for x in ten.split("/")):
+                    raise ValueError(f"skill {skill_id}: tên trong gói không hợp lệ {ten!r}")
+                if (info.external_attr >> 16) & 0o170000 == 0o120000:
+                    raise ValueError(f"skill {skill_id}: {ten!r} là symlink — từ chối")
+                if info.file_size > _TRAN_SKILL_FILE:
+                    raise ValueError(f"skill {skill_id}: {ten!r} {info.file_size} byte > trần {_TRAN_SKILL_FILE}")
+                data = zf.read(info)
+                tong += len(data)
+                if len(data) != info.file_size or tong > _TRAN_SKILL_TONG:
+                    raise ValueError(f"skill {skill_id}: cỡ giải nén lệch / tổng > trần {_TRAN_SKILL_TONG}")
+                tep.append((ten, data))
+        skill_md = next((d for t, d in tep if t == "SKILL.md"), None)
+        if skill_md is None:
+            raise ValueError(f"skill {skill_id}: gói không có SKILL.md ở gốc")
+        for ten, data in tep:
+            await self._sandbox.upload_file(f"{SKILL_SANDBOX_DIR}/{ten}", data)
+        logger.info("[chay_thu CI] skill %s: %d file giải trong bộ nhớ ⇒ hộp phiên", skill_id, len(tep))
+        return skill_md.decode("utf-8", "replace"), any(t != "SKILL.md" for t, _ in tep)
+
+    async def _download_and_extract_skill_archive(
+        self, skill_id: str, archive_url: str | None
+    ) -> tuple[str | None, bool]:
+        """Download the skill archive (a zip containing SKILL.md at the
+        root plus any supporting files) from its presigned URL, extract
+        it under ``/home/user/skills/``, and return
+        ``(skill_md_content, has_supporting_files)``.
+
+        Returns ``(None, False)`` if anything goes wrong — a missing /
+        corrupt skill should degrade the run to a warning, not abort.
+        Always ``mkdir -p`` the skill dir so callers can rely on it
+        existing afterwards.
+
+        We download via the platform-api presigned URL rather than
+        re-deriving ``(bucket, key)`` on this side because agentic-
+        backend has no reliable way to discover which bucket platform-
+        api wrote to (different envs / clients use different buckets),
+        and the presigned URL inherits whatever encryption / download-
+        proxy behavior platform-api applied when it signed.
+
+        Unzip must inspect ``exit_code`` / ``stderr`` directly because
+        ``run_shell`` re-raises on failure by default and this path needs
+        a precise error message for archive extraction.
+        """
+        if not self._sandbox:
+            return None, False
+
+        try:
+            await self._sandbox.run_shell(f"mkdir -p {SKILL_SANDBOX_DIR}", timeout=10)
+
+            if not archive_url:
+                return None, False
+
+            archive_bytes = await self._download_via_presigned_url(archive_url)
+            # [chay_thu CI] hộp phiên: KHÔNG có `.sandbox.commands.run` (E2B) ⇒ giải nén ở đây, kiểm từng mục, upload từng file (luật V1)
+            _ci_hop = getattr(self, "_ci_dung_hop_phien", None)
+            if _ci_hop is not None and _ci_hop():
+                return await self._ci_giai_skill_trong_bo_nho(skill_id, archive_bytes)
+            await self._sandbox.upload_file(
+                f"{SKILL_SANDBOX_DIR}/skill.zip", archive_bytes
+            )
+            result = await self._sandbox.sandbox.commands.run(
+                f"cd {SKILL_SANDBOX_DIR} && unzip -o skill.zip && rm skill.zip",
+                timeout=30,
+            )
+            if getattr(result, "exit_code", 0) != 0:
+                err = (
+                    getattr(result, "stderr", "")
+                    or getattr(result, "stdout", "")
+                    or "unknown error"
+                )
+                raise RuntimeError(
+                    f"unzip failed (exit code "
+                    f"{getattr(result, 'exit_code', '?')}): {err.strip()[:300]}"
+                )
+
+            # Read the SKILL.md that came out of the archive. Platform-api
+            # validates this exists at the root before accepting the
+            # upload, so a missing file here is treated as a hard error
+            # (same handler as a download / unzip failure).
+            skill_md_content = await self._sandbox.read_file(
+                f"{SKILL_SANDBOX_DIR}/SKILL.md"
+            )
+            logger.info(
+                f"Loaded SKILL.md ({len(skill_md_content)} chars) for skill {skill_id}"
+            )
+
+            # An archive may contain SKILL.md alone (pure instructions)
+            # or SKILL.md plus supporting files. The prompt template
+            # tells the agent that bundled assets live in /home/user/
+            # skills/ only when there's actually something else there.
+            # grep exits 1 when only SKILL.md exists; must not raise or the
+            # broad handler below treats the whole skill load as failed.
+            listing = await self._sandbox.run_shell(
+                f"ls -A {SKILL_SANDBOX_DIR} | grep -v '^SKILL.md$' | head -1",
+                timeout=10,
+                raise_on_error=False,
+            )
+            has_supporting_files = bool(listing.stdout.strip())
+
+            await self.emit_progress(f"Skill files extracted to {SKILL_SANDBOX_DIR}/")
+            return skill_md_content, has_supporting_files
+        except Exception as exc:
+            logger.error(
+                f"Failed to download/extract skill archive: {exc}", exc_info=True
+            )
+            await self.emit_progress(f"Warning: could not load skill: {exc}")
+            return None, False
+
+    @staticmethod
+    def _build_skill_prompt(
+        skill_md: str,
+        skill_name: str,
+        skill_description: str = "",
+        has_supporting_files: bool = False,
+    ) -> str:
+        """Format the SKILL.md content as a clearly-bounded section to
+        append to the system prompt. The boundaries help the model treat
+        the content as authoritative domain instructions rather than as
+        user data, and the framing tells the model precisely where the
+        bundled files live and how they relate to the instructions.
+        """
+        parts: list[str] = [
+            "",
+            "=" * 60,
+            f"ACTIVE SKILL: {skill_name}",
+            "=" * 60,
+        ]
+        if skill_description:
+            parts.append(f"Description: {skill_description}")
+            parts.append("")
+
+        parts.append(
+            "The following skill instructions define your domain "
+            "expertise for this session. Follow them closely — they "
+            "take priority over generic approaches when they conflict "
+            "with default behavior."
+        )
+        parts.append("")
+
+        if has_supporting_files:
+            parts.append(
+                f"SKILL FILES: Supporting files from this skill have "
+                f"been extracted to {SKILL_SANDBOX_DIR}/. Use them as "
+                "reference data, templates, or scripts as described in "
+                "the instructions below."
+            )
+            parts.append("")
+
+        parts.append(
+            f"A copy of these instructions is also saved at "
+            f"{SKILL_SANDBOX_DIR}/SKILL.md in the sandbox for reference."
+        )
+        parts.append("")
+        parts.append("--- BEGIN SKILL INSTRUCTIONS ---")
+        parts.append("")
+        parts.append(skill_md.strip())
+        parts.append("")
+        parts.append("--- END SKILL INSTRUCTIONS ---")
+        parts.append("")
+
+        return "\n".join(parts)
+
+    async def _load_skill(self) -> None:
+        """Resolve the configured skill_id, download SKILL.md and any zip
+        bundle into the sandbox, and cache the skill instructions in
+        ``self._skill_prompt_section`` so they get spliced into the
+        system prompt by ``_augment_system_prompt``.
+
+        Raises ``RuntimeError`` if ``skill_id`` is set but the metadata
+        fetch fails, the archive URL is missing, or the archive
+        download/extraction fails — the system prompt unconditionally
+        references the skill directory, so running without it produces a
+        guaranteed crash downstream.
+        """
+        self._skill_prompt_section = ""
+
+        skill_id = (self._validated_params.get("skill_id") or "").strip()
+        if not skill_id:
+            await self.emit_progress(
+                "No skill selected — running without skill instructions."
+            )
+            return
+
+        skill_data = await self._fetch_skill_metadata(skill_id)
+        if not skill_data:
+            raise RuntimeError(
+                f"Could not load skill {skill_id}: metadata fetch failed. "
+                "Check that the skill exists and the user has access."
+            )
+
+        skill_name = skill_data.get("name") or "Skill"
+        skill_description = skill_data.get("description") or ""
+        await self.emit_progress(f"Loading skill: {skill_name}")
+
+        # A skill is a single archive containing SKILL.md plus any
+        # optional supporting files. platform-api validates the archive
+        # at upload time (zip-valid, SKILL.md at root, case-sensitive),
+        # so once extraction succeeds we can trust /home/user/skills/
+        # SKILL.md exists. The presigned URL on the response avoids us
+        # having to know which bucket platform-api wrote to.
+        archive_url = skill_data.get("skill_file_presigned_url")
+        if not archive_url:
+            raise RuntimeError(
+                f"Skill {skill_id} metadata has no archive URL "
+                "(skill_file_presigned_url missing). The skill may not "
+                "have been uploaded correctly."
+            )
+
+        skill_md, has_supporting_files = await self._download_and_extract_skill_archive(
+            skill_id=skill_id,
+            archive_url=archive_url,
+        )
+
+        if skill_md is None:
+            raise RuntimeError(
+                f"Could not load skill {skill_id}: archive download or "
+                "extraction failed. Check logs for details."
+            )
+
+        self._skill_prompt_section = self._build_skill_prompt(
+            skill_md=skill_md,
+            skill_name=skill_name,
+            skill_description=skill_description,
+            has_supporting_files=has_supporting_files,
+        )
+
+    # ------------------------------------------------------------------
+    # Pipeline hooks
+    # ------------------------------------------------------------------
+
+    async def _pre_compile(self) -> None:
+        """Skill-specific step: the sandbox is ready and input files are in
+        place — load SKILL.md + the zip bundle before the agent compiles."""
+        await self._load_skill()
+
+    def _augment_system_prompt(self, system_prompt: str) -> str:
+        # Parent first (artifact-reuse protocol), then the skill section so
+        # the skill instructions sit closest to the model's attention.
+        system_prompt = super()._augment_system_prompt(system_prompt)
+        if self._skill_prompt_section:
+            system_prompt = system_prompt + self._skill_prompt_section
+        return system_prompt
+
+    async def _before_persist(self) -> None:
+        """Skill files are inputs, not agent outputs. The persistence
+        fallback scans all of ``/home/user/`` when ``output/`` is empty,
+        which would otherwise sweep SKILL.md and any extracted bundle files
+        into the persisted result."""
+        if not self._sandbox:
+            return
+        try:
+            await self._sandbox.run_shell(f"rm -rf {SKILL_SANDBOX_DIR}", timeout=10)
+        except Exception as exc:
+            logger.warning(f"Failed to clean up skill dir before persistence: {exc}")
+
+    def _output_metadata(
+        self,
+        *,
+        result: Any,
+        output_node_files: list[NodeFile],
+        input_file_names: set[str],
+    ) -> dict[str, Any]:
+        metadata = super()._output_metadata(
+            result=result,
+            output_node_files=output_node_files,
+            input_file_names=input_file_names,
+        )
+        metadata["skill_id"] = self._validated_params.get("skill_id")
+        return metadata
+
+
+__all__ = ["SKILL_SANDBOX_DIR", "SkillCodeInterpreterNode"]

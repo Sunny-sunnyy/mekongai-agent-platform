@@ -1,0 +1,117 @@
+{
+ "_ghi_chu": "Mô tả 1–2 câu cho từng thẻ riêng của bộ định tuyến, KHOÁ THEO TÊN MẪU. lam = làm gì / trả gì / có dừng chờ duyệt; kd = KHÔNG dùng khi.",
+ "the": {
+  "KPI mẫu 1 — Một nhân viên được bao nhiêu": {
+   "lam": "Tính lương kinh doanh của MỘT nhân viên theo từng KPI. Lượt chạy DỪNG chờ người phụ trách duyệt rồi mới trả câu trả lời.",
+   "kd": "hỏi bình thường một nhân viên được bao nhiêu; cần phiếu đầy đủ kèm thưởng thêm."
+  },
+  "KPI mẫu 2 — Tổng thưởng cả đội": {
+   "lam": "Tính tổng lương kinh doanh của CẢ ĐỘI. Lượt chạy DỪNG chờ người phụ trách duyệt rồi mới trả câu trả lời.",
+   "kd": "chỉ hỏi tổng cả đội là bao nhiêu; cần bảng từng người hoặc file Excel; cần tổng gồm cả thưởng thêm."
+  },
+  "KPI mẫu 3 — Vì sao chưa có tiền": {
+   "lam": "Giải thích vì sao MỘT nhân viên chưa có tiền ở một KPI. Lượt chạy DỪNG chờ người phụ trách duyệt rồi mới trả câu trả lời.",
+   "kd": "hỏi nhanh vì sao chưa có tiền; nhân viên ĐẠT hoặc vượt mà khoản vẫn 0 đồng; thắc mắc cần nêu cả cách đếm + chỉ tiêu + cờ dữ liệu."
+  },
+  "KPI mẫu 4 — Còn thiếu bao nhiêu để đạt mốc": {
+   "lam": "Tính MỘT nhân viên còn thiếu bao nhiêu để chạm mốc thưởng kế tiếp của một KPI. Lượt chạy DỪNG chờ người phụ trách duyệt rồi mới trả câu trả lời.",
+   "kd": "hỏi bình thường còn thiếu bao nhiêu để lên mốc; hỏi cả đội ai sát mốc nhất; hỏi 'nếu bán thêm X thì sao'."
+  },
+  "KPI mẫu 5 — Thưởng thêm của một nhân viên": {
+   "lam": "Liệt kê các khoản THƯỞNG THÊM (ngoài 8 KPI) của MỘT nhân viên và tiền từng khoản. Lượt chạy DỪNG chờ người phụ trách duyệt rồi mới trả câu trả lời.",
+   "kd": "hỏi nhanh nhân viên có thưởng thêm gì; cần phiếu gồm cả 8 KPI lẫn thưởng thêm."
+  },
+  "KPI mẫu 7 — So hai nhân viên": {
+   "lam": "So lương kinh doanh của HAI nhân viên: ai nhiều hơn, hơn ở KPI nào. Lượt chạy DỪNG chờ người phụ trách duyệt rồi mới trả câu trả lời.",
+   "kd": "so nhanh hai người; so hai người KÈM giải thích vì sao lệch ở từng KPI."
+  },
+  "KPI mẫu 8 — Dữ liệu có gì cần để ý": {
+   "lam": "Nêu các cờ / điểm bất thường của dữ liệu kỳ đang tính (dòng bị loại, dữ liệu thiếu…). Lượt chạy DỪNG chờ người phụ trách duyệt rồi mới trả câu trả lời.",
+   "kd": "cần danh sách việc phải kiểm trước khi chốt kỳ; hỏi số đang xem lấy từ bản luật / ngày chốt nào; hỏi số liệu bán hàng thô."
+  },
+  "KPI mẫu 8 (khung chat) — Dữ liệu có gì cần để ý": {
+   "lam": "Nêu các cờ / điểm bất thường của dữ liệu kỳ đang tính (dòng bị loại, dữ liệu thiếu…). Trả lời ngay.",
+   "kd": "cần danh sách việc phải kiểm trước khi chốt kỳ; hỏi số đang xem lấy từ bản luật / ngày chốt nào; hỏi số liệu bán hàng thô."
+  },
+  "KPI mẫu 10 — Một KPI của cả đội ai ở mốc nào": {
+   "lam": "Xếp cả đội theo MỘT KPI, theo TỪNG NGƯỜI: ai ở mốc nào, bao nhiêu người chưa có tiền, kèm tổng tiền KPI đó của đội. Trả lời ngay.",
+   "kd": "chỉ hỏi tổng tiền một KPI của cả đội là bao nhiêu (không hỏi ai ở mốc nào); hỏi một nhân viên cụ thể; hỏi tổng mọi KPI của đội; hỏi các mốc thưởng của KPI là gì."
+  },
+  "KPI mẫu 11 — Ai có cơ hội lên mốc": {
+   "lam": "Tìm trong cả đội những ai có CƠ HỘI lên mốc kế tiếp, ở KPI nào, lên được thì thêm bao nhiêu tiền. Trả lời ngay.",
+   "kd": "hỏi một người còn thiếu bao nhiêu; hỏi ai SÁT mốc nhất của MỘT KPI."
+  },
+  "KPI mẫu 19 — Ai đang sát mốc kế tiếp": {
+   "lam": "Xếp cả đội theo mức còn thiếu để lên mốc kế tiếp của MỘT KPI: ai thiếu ít nhất, thiếu bao nhiêu. Trả lời ngay.",
+   "kd": "hỏi một người còn thiếu bao nhiêu; hỏi cơ hội lên mốc nói chung trên mọi KPI."
+  },
+  "KPI mẫu 12 — Số đang xem lấy từ đâu có tin được không": {
+   "lam": "Nói NGUỒN của con số đang xem: tính theo bản luật nào, dữ liệu chốt tới ngày nào, đã có người soát chưa, là tạm tính hay đã duyệt. Trả lời ngay.",
+   "kd": "hỏi chính con số thưởng; hỏi nội dung văn bản quy định; hỏi việc cần kiểm trước khi chốt."
+  },
+  "KPI mẫu 16 — So hai nhân viên rồi giải thích chỗ lệch": {
+   "lam": "So HAI nhân viên và GIẢI THÍCH chỗ lệch: ai nhiều hơn, hơn bao nhiêu, lệch ở KPI nào và vì sao. Trả lời ngay.",
+   "kd": "chỉ hỏi ai nhiều hơn / hơn bao nhiêu; so nhiều hơn hai người hoặc cả đội."
+  },
+  "KPI mẫu 18 — Chỉ tiêu và các mốc thưởng của một KPI": {
+   "lam": "Nêu CHỈ TIÊU và CÁC MỐC THƯỞNG của một KPI (mỗi mốc bao nhiêu phần trăm, được bao nhiêu tiền), có thể cho một nhân viên cụ thể. Trả lời ngay.",
+   "kd": "hỏi nhân viên ĐÃ được bao nhiêu; hỏi cách tính Turnover chi tiết kèm kiểm số và file; hỏi chữ trong văn bản quy định."
+  },
+  "KPI mẫu 20 — Giả định đạt đúng 100 phần trăm chỉ tiêu": {
+   "lam": "GIẢ ĐỊNH đạt đúng 100 % chỉ tiêu: nếu một nhân viên (hoặc mỗi người) đạt 100 % thì được bao nhiêu, hơn hiện tại bao nhiêu. Trả lời ngay.",
+   "kd": "giả định bán thêm một số tiền cụ thể; hỏi số hiện tại."
+  },
+  "KPI mẫu 9 — Giả định nếu bán thêm thì thưởng đổi thế nào": {
+   "lam": "GIẢ ĐỊNH bán thêm: nếu một nhân viên có thêm X đồng doanh số thì KPI đạt mốc nào, tiền thưởng đổi bao nhiêu. Trả lời ngay.",
+   "kd": "giả định đạt đúng 100 % chỉ tiêu; hỏi còn thiếu bao nhiêu để lên mốc; muốn kế hoạch dồn sức vào KPI nào."
+  },
+  "KPI mẫu 21 — Tổng chi cả đội gồm cả thưởng thêm": {
+   "lam": "Tính tổng chi của cả đội GỒM CẢ thưởng thêm: tổng 8 KPI, tổng thưởng thêm, cộng lại. Trả lời ngay.",
+   "kd": "chỉ hỏi tổng lương kinh doanh 8 KPI; hỏi khoản nào tốn nhất và tỷ trọng; cần bảng / file."
+  },
+  "KPI mẫu 22 — Trả lời thắc mắc của một nhân viên": {
+   "lam": "Trả lời một THẮC MẮC của một nhân viên về một khoản: hệ thống đếm thế nào, chỉ tiêu và thực hiện bao nhiêu, dữ liệu của người đó có cờ gì. Trả lời ngay.",
+   "kd": "chỉ hỏi vì sao chưa có tiền một câu ngắn; đạt mà vẫn 0 đồng; vượt chỉ tiêu mà tiền không tăng."
+  },
+  "KPI mẫu 23 — Còn gì cần xem trước khi chốt kỳ": {
+   "lam": "Liệt kê việc cần xem TRƯỚC KHI CHỐT KỲ: dữ liệu còn cờ gì, số đang tạm tính hay đã soát, bản tính nào đang dùng. Trả lời ngay.",
+   "kd": "chỉ hỏi dữ liệu có gì bất thường; hỏi nguồn con số."
+  },
+  "KPI mẫu 24 — Một câu gộp ba ý về một nhân viên": {
+   "lam": "Trả lời MỘT CÂU GỘP NHIỀU Ý về một nhân viên: được bao nhiêu, còn thiếu bao nhiêu để lên mốc ở KPI chưa đạt, dữ liệu của người đó có cờ gì. Trả lời ngay.",
+   "kd": "câu chỉ một ý; cần phiếu đầy đủ 8 KPI + thưởng thêm."
+  },
+  "KPI mẫu 25 — Câu hỏi chung chung": {
+   "lam": "Mẫu thử cho câu hỏi CHUNG CHUNG, không nói rõ muốn xem gì: trợ lý trả lời tổng quan ngắn về kỳ đang tính. Trả lời ngay.",
+   "kd": "câu có hỏi một con số, một người, một KPI cụ thể; chuyện ngoài KPI; câu mơ hồ không rõ có phải hỏi về KPI không (đừng chọn chắc — để hệ thống hỏi lại)."
+  },
+  "KPI mẫu 26 — Vượt chỉ tiêu sao tiền không tăng": {
+   "lam": "Giải thích vì sao VƯỢT chỉ tiêu mà tiền một KPI không tăng thêm (mốc trần), vượt thêm có được thêm không. Trả lời ngay.",
+   "kd": "đạt mà khoản bằng 0 đồng; chưa đạt nên chưa có tiền."
+  },
+  "KPI mẫu 27 — Đạt mà sao khoản này không có tiền": {
+   "lam": "Giải thích vì sao ĐÃ ĐẠT mà một khoản (thường là thưởng thêm) vẫn không có tiền: điều kiện kèm theo nào chưa thoả. Trả lời ngay.",
+   "kd": "chưa đạt chỉ tiêu nên chưa có tiền; vượt mà tiền không tăng thêm."
+  },
+  "KPI — Chi phí thưởng lớn nhất và tỷ trọng": {
+   "lam": "Phân tích CHI PHÍ thưởng: khoản / KPI nào tốn nhất, chiếm bao nhiêu phần trăm tổng chi; có bước tính bằng code và xuất file. Mẫu này đang ĐÓNG với khung chat.",
+   "kd": "chỉ hỏi tổng chi; hỏi một nhân viên."
+  },
+  "KPI — Chỉ tiêu Turnover từng người trong đội": {
+   "lam": "Lập BẢNG chỉ tiêu Turnover của TỪNG người trong đội; có bước tính bằng code và xuất file bảng.",
+   "kd": "hỏi chỉ tiêu của một người hoặc các mốc thưởng; hỏi tiền thưởng cả đội."
+  },
+  "KPI — Cách tính Turnover có kiểm số": {
+   "lam": "Giải thích CÁCH TÍNH Turnover từng bước, có bước kiểm số bằng code và xuất file kết quả (đắt và lâu hơn câu hỏi thường).",
+   "kd": "chỉ hỏi Turnover của ai được bao nhiêu; hỏi các mốc thưởng Turnover."
+  },
+  "KPI — Tối ưu KPI cho NV02": {
+   "lam": "Lập kế hoạch TỐI ƯU cho RIÊNG nhân viên NV02: nên dồn vào KPI nào để được thêm nhiều tiền nhất mà phải bán thêm ít nhất; có bước tính bằng code và xuất file.",
+   "kd": "hỏi về nhân viên KHÁC NV02 (mẫu này gắn cứng NV02 ⇒ dùng kpi_hoi_nhanh hoặc thẻ “Ai có cơ hội lên mốc”); chỉ hỏi NV02 được bao nhiêu."
+  },
+  "Tóm tắt văn bản thành 3 ý chính": {
+   "lam": "TÓM TẮT một đoạn văn bản người dùng dán vào thành 3 ý chính (không liên quan KPI). Mẫu này đang ĐÓNG với khung chat.",
+   "kd": "hỏi nội dung tài liệu đã nạp trong kho; hỏi KPI."
+  }
+ }
+}
