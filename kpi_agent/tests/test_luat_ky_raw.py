@@ -160,14 +160,15 @@ def test_rule_value_without_any_line_stops(tmp_path, key, value, absent):
 
 
 def test_allow_without_lines_needs_note(tmp_path):
-    for entry in ({"ma": "KHONGCO"}, {"ma": "KHONGCO", "ghi_chu": "  "}, "KHONGCO"):
+    for entry in ({"kpi": "ASO_Focus_2", "ma": "KHONGCO"}, {"kpi": "ASO_Focus_2", "ma": "KHONGCO", "ghi_chu": "  "}, "KHONGCO",
+                  {"ma": "KHONGCO", "ghi_chu": "thiếu kpi"}, {"kpi": "Turnover", "ma": "KHONGCO", "ghi_chu": "KPI không nêu mã / nhóm / ngành"}):
         with pytest.raises(ValueError, match="cho_qua_khong_co_don.*ghi_chu"):
             period_rules(rules(aso_focus_2_skus=["KHONGCO"], cho_qua_khong_co_don=[entry])["assumptions"])
 
 
 def test_allowed_value_without_lines_computes_and_leaves_a_notice(tmp_path):
     from kpi_agent.core.check_data import check_data
-    allowed = rules(aso_focus_2_skus=["KHONGCO"], cho_qua_khong_co_don=[{"ma": "KHONGCO", "ghi_chu": "tháng này chưa mở bán"}])
+    allowed = rules(aso_focus_2_skus=["KHONGCO"], cho_qua_khong_co_don=[{"kpi": "ASO_Focus_2", "ma": "KHONGCO", "ghi_chu": "tháng này chưa mở bán"}])
     tracking = {**load(tmp_path, BASE, allowed), "mcp": {"SM1": {"1": {"channel": OFF}}}}
     targets = {"employees": {"SM1": {}}, "targets": {"SM1": dict.fromkeys(KPIS, 1)}}
     assert compute_actuals(targets, tracking, allowed)["SM1"]["ASO_Focus_2"].actual == 0
@@ -175,7 +176,25 @@ def test_allowed_value_without_lines_computes_and_leaves_a_notice(tmp_path):
     assert len(notices) == 1 and "tháng này chưa mở bán" in notices[0]
     # luật tháng 10 trên file có đủ giá trị ⇒ không có dòng lưu ý nào loại này (sàn tháng 10 không đổi)
     full = {**load(tmp_path, BASE, rules()), "mcp": {"SM1": {"1": {"channel": OFF}}}}
-    assert full["rule_values_without_lines"] == []
+    assert full["rule_values_without_lines"] == [] and full["unused_rule_allowances"] == []
+
+
+def test_allowance_is_per_kpi_and_an_unused_one_leaves_a_notice(tmp_path):
+    # 19/11 (minor "sai lặng lẽ"): mục cho qua khớp theo giá trị không kèm KPI, và mục THỪA bị bỏ qua không ai thấy
+    from kpi_agent.core.check_data import check_data
+    note = "tháng này không bán"
+    # cho qua «Ngành lạ» ở KPI 8 không được cho qua luôn ở KPI 3
+    other_kpi = rules(lppc_excluded_subdiv=["Processed Meats", "Ngành lạ"], cho_qua_khong_co_don=[{"kpi": "LPPC_Meat", "ma": "Ngành lạ", "ghi_chu": note}])
+    with pytest.raises(ValueError, match="luật kỳ nêu KPI 3 .*Ngành lạ.*không có dòng nào"):
+        load(tmp_path, BASE, other_kpi)
+    # mục thừa: giá trị luật không nêu (gõ nhầm mã) và giá trị file CÓ dòng ⇒ vẫn tính, mỗi mục một dòng lưu ý
+    spare = [{"kpi": "ASO_Focus_2", "ma": "GONHAM", "ghi_chu": note}, {"kpi": "LPPC_Meat", "ma": "Processed Meats", "ghi_chu": note}]
+    tracking = {**load(tmp_path, BASE, rules(cho_qua_khong_co_don=spare)), "mcp": {"SM1": {"1": {"channel": OFF}}}}
+    assert tracking["rule_values_without_lines"] == []
+    assert tracking["unused_rule_allowances"] == [{"kpi": "ASO_Focus_2", "value": "GONHAM"}, {"kpi": "LPPC_Meat", "value": "Processed Meats"}]
+    targets = {"employees": {"SM1": {}}, "targets": {"SM1": dict.fromkeys(KPIS, 1)}}
+    notices = [issue["message"] for issue in check_data(targets, tracking, date(2026, 10, 31)) if "không dùng tới" in issue["message"]]
+    assert len(notices) == 2 and "GONHAM" in notices[0] and "Processed Meats" in notices[1]
 
 
 # ---------- (g) P4: chữ "cách đếm" + số mục công văn lấy từ luật kỳ ----------
@@ -202,3 +221,22 @@ def test_tool_section_cell_follows_rules_and_is_absent_when_not_written():
     without = rules()
     del without["cong_van_sections"]
     assert cong_van_section(SimpleNamespace(rules=without), "PC_ON") == {}
+
+
+# ---------- (h) sau kiểm độc lập 19/11 (m1): khoá LẠ trong file luật kỳ ⇒ dừng nêu tên khoá + gợi ý ----------
+def test_unknown_assumption_key_stops_with_its_name_and_a_hint(tmp_path):
+    # Trước khi sửa: gõ nhầm tên một khoá không bắt buộc ⇒ code coi như không có khoá, luật tưởng đang áp lại không áp, không ai báo
+    from kpi_agent.core.rules import RulesError, load_rules, validate_rules
+    typo = rules(cho_qua_khong_co_donn=[{"ma": "KHONGCO", "ghi_chu": "gõ nhầm tên khoá"}])
+    errors = validate_rules(typo)
+    assert len(errors) == 1 and "cho_qua_khong_co_donn" in errors[0] and "`cho_qua_khong_co_don`" in errors[0], errors
+    path = tmp_path / "rules_typo.yaml"
+    path.write_text(yaml.safe_dump(rules(late_invoice_kpi=["Turnover"]), allow_unicode=True, sort_keys=False), encoding="utf-8")
+    with pytest.raises(RulesError, match="late_invoice_kpi.*late_invoice_kpis"):
+        load_rules(path)
+
+
+@pytest.mark.parametrize("name", ["rules_2026_10.yaml", "rules_2026_10_raw.yaml"])
+def test_real_rule_files_have_only_known_assumption_keys(name):
+    from kpi_agent.core.rules import KNOWN_ASSUMPTIONS, load_rules
+    assert set(load_rules(ROOT / "kpi_agent/config" / name)["assumptions"]) <= KNOWN_ASSUMPTIONS

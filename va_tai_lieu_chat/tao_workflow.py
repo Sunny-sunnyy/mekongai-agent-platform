@@ -1,10 +1,10 @@
-"""[ghi chú kỹ thuật] TẠO workflow "Hỏi trên tài liệu" cho khung chat (ô nhập ⇒ khối AI Claude với lời dặn doc_tai_lieu.LOI_DAN ⇒ kết quả) qua ĐÚNG đường Lưu của
+"""[ghi chú] TẠO workflow "Hỏi trên tài liệu" cho khung chat (ô nhập ⇒ khối AI Claude với lời dặn doc_tai_lieu.LOI_DAN ⇒ kết quả) qua ĐÚNG đường Lưu của
 trang (POST /api/save — đi qua phép kiểm của trang; 0 đồng, không gọi AI). CHỈ CHẠY SAU khi A báo "E xong" (ghi cơ sở dữ liệu của bộ đang chạy).
   python3 -I chay_thu/va_tai_lieu_chat/tao_workflow.py            # XEM TRƯỚC: in workflow sẽ lưu, KHÔNG ghi gì
   GHI=co python3 -I chay_thu/va_tai_lieu_chat/tao_workflow.py     # lưu; in mã workflow + số lỗi kiểm
 Sau đó: GHI=co python3 -I chay_thu/va_mot_o_chat/gan/ghim.py (bản đã thêm thẻ hoi_tai_lieu) ⇒ the_ghim.json có thẻ ⇒ A bật lại may_chu ⇒ đường tải file hết báo 503.
 Đã có workflow cùng tên ⇒ DỪNG (không tạo bản thứ hai; ghim lấy bản tạo mới nhất cùng tên). Mã mở trang đọc từ file 600, KHÔNG in.
-Hình workflow lấy theo mẫu đã chạy thật 19/11 (fbfe5ec3: ô nhập ⇒ Agent claude-sonnet-5-5 ⇒ Markdown, lượt 17d73345 SUCCESS): cùng loại khối, cùng cổng nối, cùng nhiệt độ."""
+Hình workflow lấy theo mẫu đã chạy thật 19/11 (fbfe5ec3: ô nhập ⇒ Agent gpt-6-luna ⇒ Markdown, lượt 17d73345 SUCCESS): cùng loại khối, cùng cổng nối, cùng nhiệt độ."""
 import json
 import os
 import sys
@@ -19,9 +19,7 @@ import doc_tai_lieu as D  # noqa: E402
 import tai_lieu_chat as T  # noqa: E402
 
 TEN = T.TEN_WORKFLOW   # ghim.py tìm đúng tên này
-_STATE_DIR = Path(os.environ.get("CAPITOL_STATE_DIR") or (Path.home() / ".local" / "share" / "capitol-platform")).expanduser()
-_RUNTIME_DIR = Path(os.environ.get("CAPITOL_RUNTIME_DIR") or (G.parent / "runtime")).expanduser()
-d = (_STATE_DIR / "mo_trang_18400.txt").read_text().strip()
+d = (Path(os.environ.get("CAPITOL_STATE_DIR") or (Path.home() / ".local" / "share" / "capitol-platform")).expanduser() / "mo_trang_18400.txt").read_text().strip()
 assert d.startswith("http://127.0.0.1:18400/") and "#k=" in d
 GOC, _K = d.partition("#")[0].rstrip("/"), d.split("#k=", 1)[1]
 
@@ -41,7 +39,7 @@ def workflow() -> dict:
             "description": "Khung chat dùng: người dùng kéo file PDF / Word vào khung chat rồi hỏi. Ô nhập nhận TOÀN VĂN tài liệu + các lượt trước + câu hỏi (máy chủ trang ghép, "
                            "có mốc mang mã). Khối AI trả lời chỉ theo tài liệu, kèm chỗ dẫn [trang N] / [đoạn N]. Đừng sửa lời dặn ở đây — sửa ở va_tai_lieu_chat/doc_tai_lieu.py rồi tạo lại + ghim lại.",
             "nodes": [{"id": vao, "type": "text_input_node", "position": {"x": 0.0, "y": 200.0}, "params": {"text_input": "(khung chat điền tài liệu + câu hỏi vào đây lúc chạy)"}},
-                      {"id": ai, "type": "agent_node", "position": {"x": 400.0, "y": 200.0}, "params": {"model": "claude-sonnet-5-5", "system_prompt": D.LOI_DAN, "temperature": 0.3}},
+                      {"id": ai, "type": "agent_node", "position": {"x": 400.0, "y": 200.0}, "params": {"model": "gpt-6-luna", "system_prompt": D.LOI_DAN, "temperature": 0.3}},
                       {"id": ra, "type": "markdown_output_node", "position": {"x": 800.0, "y": 200.0}, "params": {}}],
             "edges": [{"from_node": vao, "from_port": "text", "to_node": ai, "to_port": "user_prompt"},
                       {"from_node": ai, "from_port": "text", "to_node": ra, "to_port": "markdown_content"}],
@@ -55,7 +53,7 @@ if __name__ == "__main__":
     try:
         sys.path.insert(0, str(G.parent / "giao_dien"))
         import xem_workflow as X
-        org = (_RUNTIME_DIR / "org_id.txt").read_text().strip()
+        org = (Path(os.environ.get("CAPITOL_RUNTIME_DIR") or (G.parent / "runtime")).expanduser() / "org_id.txt").read_text().strip()
         assert len(org) == 36 and set(org) <= set("0123456789abcdef-")
         n = X.sql("select json_build_object('n', count(*)) from workflow w where w.org_id::text = '" + org + "' and not coalesce(w.is_deleted, false) and w.name = '" + TEN.replace("'", "''") + "'")
         co = n.get("n") if isinstance(n, dict) else None

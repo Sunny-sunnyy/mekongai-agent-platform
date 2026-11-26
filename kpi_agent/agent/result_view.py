@@ -33,10 +33,10 @@ def _flat(item: dict, left: list) -> dict:
         else:
             left.append(key)
     # Thứ tự cột (trần cột cắt từ cuối): ô của chính dòng (mã NV, tổng) ⇒ các cột TIỀN trải từ đối tượng con ⇒ cột trải khác. Bảng thưởng cả đội có
-    # 3 đối tượng con × 8 KPI: người xem phải thấy ĐỦ 8 cột tiền KPI trước cột % / mốc (người kiểm 12/11: tiền LPPC_Meat từng rơi vào cột ẩn)
+    # 3 đối tượng con × 8 KPI: người xem phải thấy ĐỦ 8 cột tiền KPI trước cột % / mốc (12/11: tiền LPPC_Meat từng rơi vào cột ẩn)
     money = {key: value for key, value in children.items() if "amount" in key.split(".")[0]}
     # Tên / mã SM kèm theo mã nhân viên (khi bật KPI_NAMES) đứng SAU nhóm cột tiền: trang đang hiện tên thì ẩn hai cột này, nên không để chúng chiếm
-    # chỗ của cột tiền thứ 8 trong trần cột (người kiểm 12/11: bật tên ⇒ 5 ô + 8 cột tiền = 13 > 12 ⇒ tiền LPPC_Meat lại rơi vào cột ẩn)
+    # chỗ của cột tiền thứ 8 trong trần cột (12/11: bật tên ⇒ 5 ô + 8 cột tiền = 13 > 12 ⇒ tiền LPPC_Meat lại rơi vào cột ẩn)
     names = {key: value for key, value in own.items() if key in NAME_KEYS}
     return {**{key: value for key, value in own.items() if key not in names}, **money, **names,
             **{key: value for key, value in children.items() if key not in money}}
@@ -86,6 +86,6 @@ def result_view(result) -> dict:
                 facts.append({"key": key, "value": _cell(", ".join(str(item) for item in value))})   # danh sách mã ngắn (vd các NVxx có tiền) ⇒ một ô
         elif value not in ([], {}):
             left.append(key)
-    # Phần bị trần cắt phải KÈM SỐ để trang ghi "hiện 10 / 13 ghi chú" (người kiểm 12/11: cắt mà không nói)
+    # Phần bị trần cắt phải KÈM SỐ để trang ghi "hiện 10 / 13 ghi chú" (12/11: cắt mà không nói)
     return {"facts": facts[:MAX_FACTS], "tables": tables[:MAX_TABLES], "notes": notes[:MAX_NOTES], "nested_left": sorted(set(left)),
             "total_facts": len(facts), "total_tables": len(tables), "total_notes": len(notes)}

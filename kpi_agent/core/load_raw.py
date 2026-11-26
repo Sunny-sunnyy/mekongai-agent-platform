@@ -48,33 +48,43 @@ def period_rules(assumptions: dict) -> dict:
             "allow_no_lines": _allowed_without_lines(assumptions)}
 
 
-def _allowed_without_lines(assumptions: dict) -> dict[str, str]:
+ALLOWANCE_KPIS = ("LPPC", "LPPC_Meat", "ASO_Focus", "ASO_Focus_2")     # các KPI mà luật kỳ nêu mã / nhóm / ngành
+
+
+def _allowed_without_lines(assumptions: dict) -> dict[tuple[str, str], str]:
     """`cho_qua_khong_co_don` (không bắt buộc): mã / nhóm / ngành luật nêu mà kỳ này ĐÚNG LÀ không có dòng nào — mỗi mục phải có ghi chú vì sao
-    (cùng khuôn "cho qua phải có ghi chú" của bảng ghép cột). Trả {giá trị: ghi chú}."""
+    (cùng khuôn "cho qua phải có ghi chú" của bảng ghép cột) và ghi rõ cho KPI nào: cùng một ngành có thể được nêu ở hai KPI (ngành thịt chế biến: KPI 3
+    trừ, KPI 8 đếm) — cho qua ở KPI này không được lặng lẽ cho qua luôn ở KPI kia. Trả {(KPI, giá trị): ghi chú}."""
     entries = assumptions.get("cho_qua_khong_co_don", [])
     text = lambda value: isinstance(value, str) and bool(value.strip())
-    if not isinstance(entries, list) or not all(isinstance(e, dict) and set(e) == {"ma", "ghi_chu"} and text(e["ma"]) and text(e["ghi_chu"])
-                                                for e in entries):
-        raise ValueError("file luật kỳ: `cho_qua_khong_co_don` phải là danh sách {ma: …, ghi_chu: …} — ghi_chu bắt buộc (vì sao kỳ này không có dòng nào)")
-    return {entry["ma"]: entry["ghi_chu"] for entry in entries}
+    if not isinstance(entries, list) or not all(isinstance(e, dict) and set(e) == {"kpi", "ma", "ghi_chu"} and e["kpi"] in ALLOWANCE_KPIS
+                                                and text(e["ma"]) and text(e["ghi_chu"]) for e in entries):
+        raise ValueError(f"file luật kỳ: `cho_qua_khong_co_don` phải là danh sách {{kpi: …, ma: …, ghi_chu: …}} — kpi là một trong {list(ALLOWANCE_KPIS)}, "
+                         "ghi_chu bắt buộc (vì sao kỳ này không có dòng nào)")
+    return {(entry["kpi"], entry["ma"]): entry["ghi_chu"] for entry in entries}
 
 
-def rule_values_without_lines(lines: list[dict], rules: dict) -> list[dict]:
+def rule_values_without_lines(lines: list[dict], rules: dict) -> tuple[list[dict], list[dict]]:
     """Mã / nhóm hàng / ngành mà luật kỳ nêu nhưng file KHÔNG có dòng nào (xét MỌI dòng của file, chưa lọc): gõ sai tên hay chép luật tháng trước
-    sẽ làm KPI 5 / 6 / 8 ra 0, hoặc LPPC thôi trừ ngành, mà không ai thấy ⇒ dừng. Giá trị có trong `cho_qua_khong_co_don` thì cho qua và trả ra
-    để bộ kiểm dữ liệu ghi một dòng lưu ý. Trạng thái đơn không xét ở đây (RAW tháng 10 không có dòng Shipped nào mà luật vẫn đúng)."""
-    wanted = [("KPI 3 (LPPC) trừ ngành", "SUB DIV", name) for name in rules["lppc_excluded_subdiv"]]
-    wanted.append(("KPI 8 (LPPC_Meat) đếm ngành", "SUB DIV", rules["lppc_meat_subdiv"]))
+    sẽ làm KPI 5 / 6 / 8 ra 0, hoặc LPPC thôi trừ ngành, mà không ai thấy ⇒ dừng. Giá trị có trong `cho_qua_khong_co_don` (đúng KPI) thì cho qua.
+    Trả (các giá trị được cho qua, các mục cho qua THỪA) — cả hai để bộ kiểm dữ liệu ghi dòng lưu ý. Mục thừa = luật không nêu giá trị đó cho KPI đó,
+    hoặc file CÓ dòng mang giá trị đó: không làm sai số nên không dừng, nhưng phải thấy được (mục chép từ tháng trước, hoặc gõ nhầm mã).
+    Trạng thái đơn không xét ở đây (RAW tháng 10 không có dòng Shipped nào mà luật vẫn đúng)."""
+    wanted = [("LPPC", "KPI 3 (LPPC) trừ ngành", "SUB DIV", name) for name in rules["lppc_excluded_subdiv"]]
+    wanted.append(("LPPC_Meat", "KPI 8 (LPPC_Meat) đếm ngành", "SUB DIV", rules["lppc_meat_subdiv"]))
     for title, kpi in (("KPI 5", "ASO_Focus"), ("KPI 6", "ASO_Focus_2")):
         spec = rules["focus"][kpi]
-        wanted += [(f"{title} đếm {'mã hàng' if spec['field'] == 'SKU CODE' else 'nhóm hàng'}", spec["field"], value) for value in spec["values"]]
+        wanted += [(kpi, f"{title} đếm {'mã hàng' if spec['field'] == 'SKU CODE' else 'nhóm hàng'}", spec["field"], value) for value in spec["values"]]
     present = {field: {line[field] for line in lines} for field in ("SUB DIV", "DMS OBJ", "SKU CODE")}
-    missing = [(what, value) for what, field, value in wanted if value not in present[field]]
-    blocked = [f"{what} «{value}»" for what, value in missing if value not in rules["allow_no_lines"]]
+    allowed = rules["allow_no_lines"]
+    missing = [(kpi, what, value) for kpi, what, field, value in wanted if value not in present[field]]
+    blocked = [f"{what} «{value}»" for kpi, what, value in missing if (kpi, value) not in allowed]
     if blocked:
         raise ValueError(f"luật kỳ nêu {'; '.join(blocked)} nhưng file không có dòng nào mang giá trị đó — kiểm lại file luật kỳ hoặc file dữ liệu; "
-                         "kỳ này đúng là không có thì ghi giá trị đó vào `cho_qua_khong_co_don` của file luật kèm ghi_chu")
-    return [{"what": what, "value": value, "note": rules["allow_no_lines"][value]} for what, value in missing]
+                         "kỳ này đúng là không có thì ghi KPI + giá trị đó vào `cho_qua_khong_co_don` của file luật kèm ghi_chu")
+    used = {(kpi, value) for kpi, _, value in missing}
+    unused = [{"kpi": kpi, "value": value} for kpi, value in allowed if (kpi, value) not in used]
+    return [{"what": what, "value": value, "note": allowed[(kpi, value)]} for kpi, what, value in missing], unused
 
 
 def lppc_subdivs(assumptions: dict) -> tuple[tuple[str, ...], str]:
@@ -165,7 +175,7 @@ def load_raw(path: str | Path, cutoff: date, period: str, one_pc_per_outlet_day:
     - `period_rules` (bậc 3a): giá trị theo kỳ của file luật (`period_rules(assumptions)`) — bắt buộc, không có mặc định.
     """
     all_lines, file_total = _read_rows(path, period, mapping=mapping)   # `mapping` (bậc 2): bảng ghép của file; None ⇒ bố cục RAW T10
-    without_lines = rule_values_without_lines(all_lines, period_rules)
+    without_lines, unused_allowances = rule_values_without_lines(all_lines, period_rules)
     reasons = _exclude_reasons(all_lines, cutoff, period, invoice_required_status, period_rules)
     lines = _kept(all_lines, reasons, keep_late=bool(late_kpis))
     blocks = build_blocks(lines, one_pc_per_outlet_day, count_free_items, lppc_exclude_free_items, late_kpis, pc_bt_excluded_subdiv,
@@ -174,7 +184,7 @@ def load_raw(path: str | Path, cutoff: date, period: str, one_pc_per_outlet_day:
                                file_total=file_total)
     return {"blocks": blocks, "refreshed_at": max((line["ORDER DATE"] for line in lines), default=None),
             "late_invoice_lines": sum(reason in ("no_invoice_date", "invoice_late") for reason in reasons), "source": "raw",
-            "reconciliation": reconciliation, "rule_values_without_lines": without_lines}
+            "reconciliation": reconciliation, "rule_values_without_lines": without_lines, "unused_rule_allowances": unused_allowances}
 
 
 def read_raw_lines(path: str | Path, cutoff: date, period: str, extra_columns: tuple[str, ...] = (), keep_late: bool = False,
@@ -293,7 +303,7 @@ def _file_total(lines: list[dict], total_lines: list[dict]) -> float | None:
         lines_after = sum((Decimal(str(line["Sales After Discount"])) for line in lines if _is_number(line.get("Sales After Discount"))), Decimal(0))
         # lệch từ NỬA đồng ⇒ dừng (abs, không round: round(Decimal) làm tròn về số chẵn — nhóm kỹ thuật). Ngưỡng 0,5 vì: RAW thật có ô lẻ
         # (T10 3.520 ô, T11 682 ô) và Σ − Total chỉ là nhiễu số thực (T10 −0,000062 đ, T11 0,0000002 đ — đã đếm 18/11) ⇒ cần ngưỡng; < 0,5 giữ
-        # luật "đúng tới đồng" (lệch 0,5 đ ⇒ dừng — ca C5 giữ nguyên kỳ vọng).
+        # luật "đúng tới đồng" (lệch 0,5 đ ⇒ dừng — ca giữ nguyên kỳ vọng).
         if abs(lines_after - Decimal(str(after))) >= Decimal("0.5"):
             raise ValueError(f"{RECONCILE_STOP}: tổng doanh số SAU chiết khấu các dòng đọc được {_dots(round(lines_after))} đ ≠ dòng 'Total' của file "
                              f"{_dots(round(Decimal(str(after))))} đ — file thiếu / thừa dòng hoặc ô tiền đọc sai; kiểm lại file")

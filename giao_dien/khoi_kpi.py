@@ -1,4 +1,4 @@
-"""KHỐI KPI DỰNG SẴN — phần máy chủ trang (đối chiếu kỹ thuật).
+"""KHỐI KPI DỰNG SẴN — phần máy chủ trang (C 12/11/2026; User: "tạo sẵn các khối, điền sẵn system prompt, tools, tạo workflow mẫu… tôi chỉ biết kéo thả").
 Dữ liệu + luật là nhóm kỹ thuật, MỘT nguồn: chay_thu/kpi_capitol/khoi_dung_san.py (5 khối, bộ sẵn, mẫu, kiem_khoi_dung_san) + workflow_kpi.py (lời dặn,
 kiem_payload). File này chỉ NỐI vào trang: không có danh sách khối / ô khoá / chữ lời dặn riêng.
 
@@ -19,8 +19,8 @@ NHO_GIAY = 60
 
 # Lời của workflow_kpi.kiem_payload ⇒ lời thường (lời của kiem_khoi_dung_san đã là lời thường, hiện nguyên văn)
 _LOI_THUONG = (
-    (r"không có Rào chắn", "Thiếu khối “Kiểm số bằng code”. Mọi câu trả lời có số KPI phải đi qua khối này."),
-    (r"Đ-3b Rào chắn", "Khối Kiểm số phải đặt cách kiểm là “code”, không phải kiểm bằng AI."),
+    (r"không có Rào chắn", "Thiếu khối “Kiểm số KPI”. Mọi câu trả lời có số KPI phải đi qua khối này."),
+    (r"Đ-3b Rào chắn", "Khối Kiểm số KPI phải giữ cấu hình chế độ rào chuẩn của hệ thống."),
     (r"Đ-20", "Khối Trợ lý KPI và khối Kiểm số phải dùng CÙNG một bản dữ liệu."),
     (r"Đ-10b", "Workflow KPI không được chứa khối đưa dữ liệu ra ngoài hoặc lấy nội dung web. Tách sang workflow khác."),
     (r"không có Agent bật tool_kpi", "Không có khối Trợ lý KPI — khối Kiểm số / Giám sát duyệt chỉ dùng cho workflow KPI."),
@@ -32,7 +32,7 @@ _LOI_THUONG = (
     (r"tự duyệt khi hết giờ", "Khối Giám sát duyệt không được bật “tự duyệt khi hết giờ”."),
 )
 _CHUA_DUYET = "tạm tính — chưa phải số chốt, chưa duyệt"   # câu cố định của backend KPI khi bảng chưa được soát (store.py UNREVIEWED — B ghi ở khoi_dung_san._NGU_CANH)
-# [ghi chú kỹ thuật] ô bật / tắt quyết định "đây là workflow KPI" + đường ra ngoài: áp cho MỌI workflow — không được nhận giá trị qua dây
+# [D K2] ô bật / tắt quyết định "đây là workflow KPI" + đường ra ngoài: áp cho MỌI workflow — không được nhận giá trị qua dây
 _O_CO = {"agent_node": ("tool_kpi", "tool_web_search", "tool_fetch_url", "mcp_servers", "kpi_data_version"),
          "guardrails_node": ("che_do_kiem", "kpi_data_version"), "human_intervention_node": ("che_do_kpi", "auto_approve_on_timeout")}
 
@@ -72,15 +72,15 @@ def _cong_cu(hop: str) -> list[dict]:
 def ds(H, org: str, ds_wf) -> dict:
     mt = moi_truong(H, org)
     KD = mt["KD"]
-    if "cong_cu" not in mt:              # [ghi chú kỹ thuật] cùng bộ nhớ đệm 60 giây với danh mục + meta (không docker exec mỗi lần mở trang)
+    if "cong_cu" not in mt:              # [D minor 1] cùng bộ nhớ đệm 60 giây với danh mục + meta (không docker exec mỗi lần mở trang)
         mt["cong_cu"] = _cong_cu(H.chay_m3.HOP)
     d = KD.xuat_json(mt["chuan"])
     wf: dict = {}
-    for w in ds_wf() or []:          # [ghi chú kỹ thuật] ds_wf trả MỚI NHẤT TRƯỚC ⇒ giữ bản gặp đầu tiên của mỗi tên (trước đây bản cũ đè bản mới)
+    for w in ds_wf() or []:          # [ghi chú] ds_wf trả MỚI NHẤT TRƯỚC ⇒ giữ bản gặp đầu tiên của mỗi tên (trước đây bản cũ đè bản mới)
         wf.setdefault(w["ten"], w["id"])
     for m in d["mau"]:
         m["id"] = wf.get(m["ten"])
-    d["loi_dan"] = KD._loi_dan_tu_meta(mt["meta"]) if mt["meta"] else None   # [ghi chú kỹ thuật] CHỈ ĐỂ XEM; bản dùng lúc chạy do máy chủ so, không lấy từ trang
+    d["loi_dan"] = KD._loi_dan_tu_meta(mt["meta"]) if mt["meta"] else None   # [D minor 2] CHỈ ĐỂ XEM; bản dùng lúc chạy do máy chủ so, không lấy từ trang
     d["cong_cu"] = mt["cong_cu"]
     d["ky"] = {k: (mt["meta"] or {}).get(k) for k in ("period", "cutoff", "rule_version")}
     d["san_sang"] = mt["meta"] is not None
@@ -160,7 +160,7 @@ def kiem(H, org: str, payload: dict, luc_chay: bool = False) -> list[str]:
         mt = moi_truong(H, org)
         loi = []
         try:
-            # [ghi chú kỹ thuật] LƯU: meta=None — lời dặn so phần CỐ ĐỊNH từng ký tự + dòng ngữ cảnh đúng khuôn (workflow dựng cho lần bật khác vẫn
+            # [đã soát lần gắn 3] LƯU: meta=None — lời dặn so phần CỐ ĐỊNH từng ký tự + dòng ngữ cảnh đúng khuôn (workflow dựng cho lần bật khác vẫn
             # lưu được). CHẠY: meta THẬT của hộp KPI đang bật — dòng ngữ cảnh (kỳ, ngày chốt, bản luật, trạng thái) phải khớp từng ký tự, vì AI được dặn
             # một ngày chốt khác với dữ liệu công cụ trả thì câu trả lời ghi sai thời điểm. Lúc chạy không đọc được meta ⇒ chặn.
             if luc_chay and mt["meta"] is None:
@@ -168,7 +168,7 @@ def kiem(H, org: str, payload: dict, luc_chay: bool = False) -> list[str]:
             meta, lp = None, None
             if luc_chay:
                 # So CHẶT kỳ + ngày chốt + bản luật với hộp đang bật. "Trạng thái" đổi mỗi khi có người DUYỆT bảng thưởng ⇒ so chặt cả hai chiều thì sau
-                # lần duyệt đầu mọi workflow đã lưu bị chặn oan. [ghi chú kỹ thuật] trạng thái trong dòng ngữ cảnh hợp lệ khi (a) BẰNG từng ký tự
+                # lần duyệt đầu mọi workflow đã lưu bị chặn oan. [D phán — MỘT CHIỀU] trạng thái trong dòng ngữ cảnh hợp lệ khi (a) BẰNG từng ký tự
                 # trạng thái của hộp, HOẶC (b) đúng câu cố định "chưa duyệt" (nói THẤP hơn thật — vô hại). Workflow ghi "đã soát lúc …" mà hộp đang
                 # tạm tính / đã soát giờ khác ⇒ chặn (lời dặn bảo AI bảng đã được duyệt trong khi không phải; Rào chỉ kiểm số, không kiểm chữ này).
                 meta = dict(mt["meta"])

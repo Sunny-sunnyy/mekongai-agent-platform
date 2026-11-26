@@ -1,9 +1,8 @@
 """Lời từ chối / lời lỗi của backend không được lộ ĐƯỜNG DẪN TUYỆT ĐỐI của máy hay chuỗi lỗi của hệ điều hành ("[Errno 2] …") — 12/11.
 
-Vì sao: người kiểm độc lập thấy thiếu sổ nền của khoản 1 % gia vị ⇒ `/api/spice-loyalty` trả nguyên chuỗi `FileNotFoundError` (đường dẫn thư mục nhà
+Vì sao: thấy thiếu sổ nền của khoản 1 % gia vị ⇒ `/api/spice-loyalty` trả nguyên chuỗi `FileNotFoundError` (đường dẫn thư mục nhà
 trên máy) ra lời trả; thiếu bảng mã che ⇒ lỗi trần lúc bật. Lời trả đi tới trang, tới hộp Capitol và có thể tới mô hình AI.
-Backend chạy thật (TestClient, workflow RAW 31/10, dữ liệu trên máy), 0 lần gọi AI.
-"""
+Backend chạy thật (TestClient, workflow RAW 31/10, dữ liệu trên máy), 0 lần gọi AI."""
 from datetime import date
 from pathlib import Path
 

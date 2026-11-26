@@ -1,6 +1,6 @@
 # Hướng dẫn sử dụng, vận hành và phát triển tiếp
 
-Tài liệu hướng dẫn cách bật/tắt hệ thống hằng ngày, thao tác trên trang web `http://127.0.0.1:18400`, sử dụng Trợ lý KPI bản `252dc30a` (kèm 7 file dữ liệu đầu vào tháng 10), vận hành cổng RAG `19453`, và quy trình nhánh Git khi phát triển tính năng mới.
+Tài liệu hướng dẫn cách bật/tắt hệ thống hằng ngày, thao tác trên trang web `http://127.0.0.1:18400`, sử dụng Trợ lý KPI bản `c1b4111a` (hỗ trợ kỳ trống, ghép cột và 7 file dữ liệu tháng 10), vận hành cổng RAG `19453`, và quy trình nhánh Git khi phát triển tính năng mới.
 
 ---
 
@@ -35,22 +35,23 @@ Tài liệu hướng dẫn cách bật/tắt hệ thống hằng ngày, thao tá
 ## 2. Sử dụng trang web `http://127.0.0.1:18400`
 
 ### 2.1 Khung chat ("Trợ lý")
+- **Đăng nhập & lịch sử bền SQLite:** Hội thoại của từng tài khoản lưu bền trong `${CAPITOL_STATE_DIR}/chat_lich_su.db` theo `(user_id, conv)` và giữ nguyên sau khi tải lại trang hoặc khởi động lại máy chủ. Khi bật `CAPITOL_BAT_BUOC_DANG_NHAP=1`, hệ thống phân quyền 3 vai trò (`nhan_vien`, `nguoi_duyet`, `quan_tri`; chỉ `nguoi_duyet` và `quan_tri` được bấm duyệt trên `/api/approve`).
 - **Hỏi KPI nhanh:** Gõ câu hỏi tiếng Việt tự nhiên (ví dụ: *"Tháng 10 NV02 được lương kinh doanh bao nhiêu?"*, *"Tổng lương kinh doanh cả đội tháng 10?"*, *"So sánh NV02 và NV04"*).
-  - Bộ định tuyến sẽ tự chọn một trong **23 quy trình đang mở** (trong tổng số 25 thẻ khung chat). Nếu chưa rõ ý, khung chat hiện vài nút gợi ý để bấm chọn.
-  - Mọi câu trả lời KPI từ khung chat đều đi qua lớp **kiểm số có đáp án** (theo cấu hình mặc định `gpt-6-luna` dùng bộ luật kiểm số `quyet_dinh = code`, nếu bật Claude Bedrock có thể chuyển sang `quyet_dinh = ai`) và hiển thị nhãn **tạm tính, chưa có người duyệt** (không dừng chờ người duyệt).
+  - Bộ định tuyến khung chat tập trung vào các nhóm ý định lời thường không chồng lấn (tra cứu/bảng lương KPI, xuất bảng chính thức, hỏi tài liệu, tính trên bảng tính, hỏi kho, dựng quy trình mới; vẫn giữ đầy đủ 20–30 mẫu workflow ở tab Xưởng). Nếu câu hỏi KPI cá nhân thiếu tên/mã nhân viên, trợ lý hỏi thẳng trực tiếp (`0` nút chọn quy trình) và không để lộ tên quy trình nội bộ.
+  - Mọi câu trả lời KPI từ khung chat đều đi qua lớp **AI kiểm số (`vong_4`, chạy mặc định trên `gpt-6-luna`)** (kết hợp lớp kiểm số bằng code chạy ghi nhật ký; có thể đổi công tắc ở `cau_hinh_mo_hinh/kiem_so_kpi.txt`), kèm nút **Tải Excel** nháp ngay dưới câu trả lời và hiển thị nhãn **tạm tính, chưa có người duyệt** (không dừng chờ người duyệt).
 - **Hỏi trên tài liệu kéo thẳng vào chat:** Kéo file (`.pdf`, `.docx`, `.xlsx`, `.xlsm`, `.xls`, `.csv`, `.png`, `.jpg`/`.jpeg`, `.html`/`.htm`, `.json`, `.txt`, `.md`/`.markdown`) vào khung chat (file tạm được giữ 24 giờ).
   - PDF/Word có lớp chữ được đọc thẳng kèm dẫn `[trang N]` / `[đoạn N]`.
-  - PDF dạng ảnh chụp (không có lớp chữ), ảnh rời, HTML, JSON, bảng tính sẽ đi qua cổng RAG `19453`.
-  - Với PDF có biểu đồ/hình vẽ kéo thẳng: khi câu hỏi nhắc tới hình/biểu đồ, hệ thống đưa file vào dịch vụ RAG để mô tả hình và báo người dùng hỏi lại sau ít phút.
+  - PDF dạng ảnh chụp (không có lớp chữ), ảnh rời, HTML, JSON, bảng tính sẽ đi qua cổng RAG `19453` với 3 năng lực mức 1: tự viết lại câu hỏi nối tiếp theo ngữ cảnh hội thoại bằng `gpt-6-luna` (có ghi sổ chi phí), lấy trọn ngữ cảnh khi hỏi liệt kê/đếm (`whole_file_for_lists`), và hiển thị tối đa `4` ảnh biểu đồ an toàn (`png`/`jpeg`/`webp`/`gif`, cấm `svg+xml`) ngay trong câu trả lời (`include_images`).
 - **Tính toán trên bảng tính bất kỳ:** Kéo `.xlsx` hoặc `.csv` vào khung chat và hỏi phép tính (cộng, trung bình, đếm, lọc…); hệ thống chuyển sang khối Chạy code trên E2B để tính trên toàn bộ file. *(Kết quả do code tự tính trên file bất kỳ chưa qua lớp AI kiểm số như KPI).*
 - **Nhờ dựng quy trình mới:** Mô tả bằng lời để trợ lý dựng workflow mới (áp cho quy trình chung; quy trình KPI dùng bộ mẫu dựng sẵn).
 
 ### 2.2 Khung vẽ workflow (Xưởng)
-- Cho phép kéo khối, nối dây một chiều (DAG), kiểm tra (`Kiểm`), `Lưu` và `Chạy`.
+- Cho phép kéo khối, nối dây một chiều (DAG), bật/tắt tra cứu web **Exa** (`capitol-mcp-exa`) trên khối **Nghiên cứu sâu** (`agentic_deep_research_node`, vẫn chặn trộn vào quy trình KPI), kiểm tra (`Kiểm`), `Lưu` và `Chạy`.
+- Xem lại diễn biến khối chạy code/E2B ghi nhận đúng thời lượng thực tế trên dòng thời gian và màn kết quả lượt.
 - **Luồng bảng thưởng chính thức:** Chạy quy trình có khối **Người duyệt** từ khung vẽ sẽ tạm dừng để người phụ trách bấm `Duyệt` (xuất file Excel chính thức, không khoá trang tính) hoặc `Từ chối` (dừng lượt). Nếu quá hạn chờ duyệt mà không ai bấm, hệ thống tự đi tiếp nhưng chỉ trả bản nháp có nhãn *"tự duyệt khi quá hạn, chưa có người duyệt"*.
 
 ### 2.3 Trang Dữ liệu
-- **Phần 1 — Số liệu để tính thưởng KPI theo tháng:** Kéo thả file Excel (`.xlsx`, ≤ 20 MB) gồm **Đơn hàng** (`raw`) và **Chỉ tiêu nhân viên** (`chi_tieu`), chọn tháng/ngày chốt, dùng màn **Ghép cột** nếu tên cột khác mẫu, và xem bảng tình trạng *"Tháng này đã có gì"* lấy trực tiếp từ `kpi_agent`.
+- **Phần 1 — Số liệu để tính thưởng KPI theo tháng:** Kéo thả tuần tự đủ 4 loại file của kỳ (`raw` `.xlsx`, `chi_tieu` `.xlsx`, `so_tracking` `.xlsx`, và `trang_chi_tieu` `.html` ≤ 5 MB), xem thẻ trạng thái *"đã nhận, còn thiếu…"* và 3 con số tổng của kỳ, dùng màn **Ghép cột kỳ trống** nếu tên cột khác mẫu (tự động đọc lại trạng thái sau khi ghép), tự cấp mã che cho nhân viên mới (`K1`: `NV15…`, không lộ mã thật) và chặn file sai đội (`422 file_sai_doi`).
 - **Phần 2 — Tài liệu để hỏi đáp:** Nạp tài liệu dài hạn vào kho tổ chức qua cổng RAG, ẩn tài liệu không dùng nữa, hoặc bấm **"Hỏi trên tài liệu này"** để mở khung chat hỏi trên đúng tài liệu đó (hoặc hỏi tự do trên toàn bộ kho từ khung chat).
 
 ### 2.4 Xem lại lượt chạy
@@ -58,9 +59,9 @@ Tài liệu hướng dẫn cách bật/tắt hệ thống hằng ngày, thao tá
 
 ---
 
-## 3. Trợ lý KPI bản `252dc30a` & 7 file đầu vào tháng 10
+## 3. Trợ lý KPI bản `c1b4111a` & 7 file đầu vào tháng 10
 
-Kho bàn giao tích hợp sẵn thư mục `kpi_agent/` tự đứng được (đóng băng từ commit **`252dc30a`**) kèm **7 file dữ liệu đầu vào tháng 10/2026** tại `sample_data/thang_10/` (~16,38 MB):
+Kho bàn giao tích hợp sẵn thư mục `kpi_agent/` tự đứng được (bản **`c1b4111a`**) kèm **7 file dữ liệu đầu vào tháng 10/2026** tại `sample_data/thang_10/` (~16,38 MB):
 - **7 file đầu vào gồm:** file đơn hàng tháng 10, file chỉ tiêu nhân viên, danh sách tuyến cửa hàng, file luật tháng 10, file luật phụ (thưởng thêm, 1% gia vị, hội viên), bảng mã nhân viên (`NV01`–`NV14`), và sổ theo dõi/trang đối chiếu.
 - **Số liệu chuẩn tháng 10/2026 đã kiểm chứng:**
   - Tổng lương kinh doanh 8 KPI (14 nhân viên × 8 KPI = 112 ô): **`152.360.000 đ`** (khớp 112/112 ô so với trang theo dõi đội).
@@ -77,22 +78,22 @@ Kho bàn giao tích hợp sẵn thư mục `kpi_agent/` tự đứng được (�
   ```
 - **Thay đổi cấu hình nóng cho hệ thống (không cần tạo lại container):**
   - Đổi mô hình AI của khối: sửa tại chỗ `cau_hinh_mo_hinh/mo_hinh_khoi.txt` (mặc định đang comment `# mac_dinh = ...` để chạy **`gpt-6-luna`**).
-  - Đổi nơi chạy code (`e2b` hoặc `may`): sửa tại chỗ `cau_hinh_mo_hinh/noi_chay_khoi.txt`.
-  - Công tắc lớp kiểm số KPI: sửa tại chỗ `cau_hinh_mo_hinh/kiem_so_kpi.txt` (mặc định đi cùng `gpt-6-luna` là `quyet_dinh = code`, `luat_code_chan = khong`).
+  - Đổi nơi chạy code (`e2b` hoặc `may`): sửa tại chỗ `cau_hinh_mo_hinh/noi_chay_khoi.txt` (mặc định đã bật `= e2b` cho toàn bộ các loại khối chạy code, kể cả `skill_code_interpreter_node`, `agent_node` và `pptx_chat_node`).
+  - Công tắc lớp kiểm số KPI: sửa tại chỗ `cau_hinh_mo_hinh/kiem_so_kpi.txt` (mặc định đi cùng `gpt-6-luna` là `quyet_dinh = ai`, `luat_code_chan = khong`).
 
 ---
 
 ## 3b. Hướng dẫn sử dụng `gpt-6-luna` (mặc định) và chuyển đổi mô hình (Luna ↔ Claude Bedrock)
 
-Hệ thống bàn giao mặc định chạy **`gpt-6-luna` qua OpenAI API** (không đòi hỏi tài khoản AWS Bedrock khi dựng máy mới) và cho phép chuyển nóng sang **Claude 5.5 (Sonnet/Opus) qua AWS Bedrock** hoặc lùi ngược lại bất cứ lúc nào mà **không cần tạo lại container**.
+Hệ thống bàn giao chạy **`gpt-6-luna` qua OpenAI API** cho toàn bộ khối quy trình và AI kiểm số (`kiem_so_ai.py` `vong_4` gọi Cổng AI `/v1/responses`), **không đòi hỏi tài khoản AWS Bedrock khi dựng máy mới**, đồng thời cho phép chuyển nóng sang **Claude 5.5 (Sonnet/Opus) qua AWS Bedrock** hoặc lùi ngược lại bất cứ lúc nào mà **không cần tạo lại container**.
 
-### 1. Ba file cấu hình nóng phải đồng bộ khi chạy `gpt-6-luna` (cấu hình mặc định)
+### 1. Ba file cấu hình nóng khi chạy `gpt-6-luna` (cấu hình mặc định)
 
-| File cấu hình (`cau_hinh_mo_hinh/`) | Giá trị khi chạy `gpt-6-luna` | Ý nghĩa & lý do bắt buộc đồng bộ |
+| File cấu hình (`cau_hinh_mo_hinh/`) | Giá trị khi chạy `gpt-6-luna` | Ý nghĩa & lý do đồng bộ |
 |---|---|---|
-| `mo_hinh_khoi.txt` | Comment dòng `mac_dinh` (`# mac_dinh = claude-sonnet-5-5 / medium`, không để dòng hiệu lực nào) | Khi không có dòng `mac_dinh` hiệu lực, mọi khối Agent / tạo file / phân tích chạy theo ô model đã lưu trong workflow (`gpt-6-luna` đi qua Cổng AI tới OpenAI API). |
+| `mo_hinh_khoi.txt` | Comment dòng `mac_dinh` (`# mac_dinh = claude-sonnet-5-5 / medium`, không để dòng hiệu lực nào) | Khi không có dòng `mac_dinh` hiệu lực, mọi khối Agent / tạo file / phân tích chạy `gpt-6-luna` qua Cổng AI tới OpenAI API. |
 | `mo_hinh_operator.txt` | Comment dòng Claude (`# claude-sonnet-5-5`, không để dòng hiệu lực nào) | Trợ lý dựng workflow trên trang chạy bằng `gpt-6-luna` thay vì Claude. |
-| `kiem_so_kpi.txt` | `quyet_dinh = code`<br>`luat_code_chan = khong` | **Bắt buộc:** lớp AI kiểm số (`sua_doi/nodes/agent/kiem_so_ai.py`) ghim cứng `MO_HINH_GHIM = "claude-sonnet-5-5-medium"` để gọi Bedrock. Nếu giữ `quyet_dinh = ai` khi máy chỉ có `OPENAI_API_KEY`, lớp kiểm số sẽ lỗi gọi và đóng chặn mọi câu trả lời KPI. |
+| `kiem_so_kpi.txt` | `quyet_dinh = ai`<br>`luat_code_chan = khong` | Lớp AI kiểm số (`sua_doi/nodes/agent/kiem_so_ai.py` `vong_4`) chạy trực tiếp trên **`gpt-6-luna`** qua `/v1/responses` của Cổng AI (lớp kiểm bằng code vẫn chạy kèm chỉ ghi nhật ký; có thể đổi về `quyet_dinh = code` nếu muốn tắt AI kiểm số). |
 
 ### 2. Lưu ý vận hành khi chạy `gpt-6-luna`
 - **Giá tham khảo & trần tiền ngày USD:** `gpt-6-luna` có đơn giá `0,10 USD` / 1M token vào, `0,50 USD` / 1M token ra, và `0,01 USD` / 1M token đọc cache (`cache_read`), đi thẳng qua **trần tiền ngày USD** tại `${CAPITOL_STATE_DIR}/tran_ngay/<YYYY-MM-DD>.txt` (mặc định `2.0 USD`). Khi tổng chi tiêu OpenAI + OpenRouter + E2B + Exa chạm trần ngày, Cổng AI sẽ từ chối (HTTP `429`) cho tới khi quản trị viên nâng trần ngày.
@@ -105,11 +106,11 @@ Hệ thống bàn giao mặc định chạy **`gpt-6-luna` qua OpenAI API** (kh�
 - **Chuyển sang Claude Sonnet 5.5 / Opus 5.5 (khi đã đặt `${CAPITOL_STATE_DIR}/bedrock_046/bedrock-046-creds.json`):**
   1. Trong `cau_hinh_mo_hinh/mo_hinh_khoi.txt`: bỏ dấu `#` ở dòng `mac_dinh = claude-sonnet-5-5 / medium` (hoặc chọn `claude-opus-5-5 / medium`).
   2. Trong `cau_hinh_mo_hinh/mo_hinh_operator.txt`: bỏ dấu `#` ở dòng `claude-sonnet-5-5`.
-  3. Trong `cau_hinh_mo_hinh/kiem_so_kpi.txt`: đổi `quyet_dinh = code` thành `quyet_dinh = ai`.
+  3. Giữ `cau_hinh_mo_hinh/kiem_so_kpi.txt` ở `quyet_dinh = ai` (AI kiểm số vẫn chạy `gpt-6-luna` ổn định và độc lập).
 - **Lùi nhanh về `gpt-6-luna` (0 giây, không cần khởi động lại):**
   1. Đặt `#` trước dòng `mac_dinh = ...` trong `cau_hinh_mo_hinh/mo_hinh_khoi.txt`.
   2. Đặt `#` trước dòng `claude-sonnet-5-5` trong `cau_hinh_mo_hinh/mo_hinh_operator.txt`.
-  3. Đổi `quyet_dinh = ai` về `quyet_dinh = code` trong `cau_hinh_mo_hinh/kiem_so_kpi.txt`.
+  3. Giữ `quyet_dinh = ai` (hoặc chuyển sang `quyet_dinh = code` nếu muốn dùng bộ luật kiểm số thuần Python).
 
 ---
 

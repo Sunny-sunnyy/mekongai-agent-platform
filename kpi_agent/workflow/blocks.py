@@ -14,6 +14,7 @@ from kpi_agent.core.check_data import check_data as check_data_core
 from kpi_agent.core.compute_bonus import employee_bonus
 from kpi_agent.core.compute_kpi import compute_actuals
 from kpi_agent.core.load_data import load_targets, load_tracking
+from kpi_agent.core import load_tuyen
 from kpi_agent.core.load_raw import load_mcp_json, load_raw, period_rules
 from kpi_agent.core.rules import RulesError, load_rules as load_rules_core
 from kpi_agent.agent.backend_client import TOOL_PARAMS
@@ -64,6 +65,8 @@ TEXT = ("chữ khác rỗng", lambda value: isinstance(value, str) and value.str
 # vẫn nằm trong khoảng ⇒ ra "NPP 1.05 % < 100 % ⇒ 0 đ" — không đoán thay người ghi được; lời nhãn ghi rõ đơn vị.
 # Bảng ghép cột của file RAW (bậc 2, 17/11): đối tượng hoặc trống — khuôn chi tiết do lõi kiểm (`khuon.normalize_mapping`), sai ⇒ khối dừng
 MAPPING_OR_EMPTY = ("bảng ghép cột (đối tượng) hoặc để trống", lambda value: value is None or isinstance(value, dict))
+CODES_OR_EMPTY = ("danh sách mã nhân viên (chữ) hoặc để trống",
+                  lambda value: value is None or (isinstance(value, list) and all(isinstance(item, str) and item.strip() for item in value)))
 PERCENT_OR_EMPTY = ("phần trăm 0–300 (105 = 105 %) hoặc để trống",
                     lambda value: value is None or (isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value <= 300))
 # Tên công cụ nối được: một nguồn là danh sách tham số công cụ của agent (#5 — không chép danh sách). get_data_provenance đọc bảng lưu
@@ -127,7 +130,21 @@ def read_raw(inputs: dict, params: dict, run: dict) -> dict:
                             period_rules=period_rules(inputs["rules"]["assumptions"]))
     except ValueError as error:
         raise BlockStop(f"RAW DATA không dùng được: {error}") from error
-    return {"tracking": {**tracking, "mcp": load_mcp_json(_path(params["mcp_path"]))}}
+    return {"tracking": {**tracking, "mcp": routes_of(params)}}
+
+
+def routes_of(params: dict) -> dict:
+    """Bảng tuyến của khối read_raw — MỘT chỗ đọc cho khối này và mọi màn của backend cần tuyến của một bản (thưởng thêm, điểm bán, danh sách đơn):
+    đọc riêng bằng `load_mcp_json(mcp_path)` sẽ hỏng với bản lấy tuyến từ sổ. Không có `mcp_ghep` ⇒ `mcp_path` là file JSON như cũ. Có (2a-1: sổ theo dõi tải lên) ⇒ `mcp_path` là SỔ, đọc bằng
+    công thức đọc `mcp_ghep`; `mcp_doi` = mã nhân viên của file chỉ tiêu của bản (đường tải lên ghi) — khối này không có cổng vào chỉ tiêu, mà thêm dây
+    thì đổi hình workflow của mọi bản."""
+    if params.get("mcp_ghep") is None:
+        return load_mcp_json(_path(params["mcp_path"]))
+    try:
+        team = set(params["mcp_doi"]) if params.get("mcp_doi") is not None else None
+        return load_tuyen.read_routes(_path(params["mcp_path"]), params["mcp_ghep"], team)["mcp"]
+    except ValueError as error:   # RouteProblems là ValueError — lời chỉ có mã lỗi + tên trường + số dòng
+        raise BlockStop(f"sổ danh sách tuyến không dùng được: {error}") from error
 
 
 def check_data(inputs: dict, params: dict, run: dict) -> dict:
@@ -183,8 +200,9 @@ BLOCKS = {
     "read_targets": Block(read_targets, outputs=("targets",), params={"path": REQUIRED}, param_types={"path": TEXT}, file_params=("path",)),
     "read_tracking": Block(read_tracking, outputs=("tracking",), params={"path": REQUIRED}, param_types={"path": TEXT}, file_params=("path",)),
     # Đọc RAW DATA đơn hàng (10/11) — thay read_tracking trong workflow đường RAW; MCP = file JSON tách từ trang sếp
-    "read_raw": Block(read_raw, inputs=("rules",), outputs=("tracking",), params={"path": REQUIRED, "mcp_path": REQUIRED, "ghep": None},
-                      run_params=("cutoff",), param_types={"path": TEXT, "mcp_path": TEXT, "ghep": MAPPING_OR_EMPTY}, file_params=("path", "mcp_path")),
+    "read_raw": Block(read_raw, inputs=("rules",), outputs=("tracking",), params={"path": REQUIRED, "mcp_path": REQUIRED, "ghep": None, "mcp_ghep": None, "mcp_doi": None},
+                      run_params=("cutoff",), param_types={"path": TEXT, "mcp_path": TEXT, "ghep": MAPPING_OR_EMPTY, "mcp_ghep": MAPPING_OR_EMPTY,
+                                                          "mcp_doi": CODES_OR_EMPTY}, file_params=("path", "mcp_path")),
     "check_data": Block(check_data, inputs=("targets", "tracking"), outputs=("issues",), run_params=("cutoff",)),
     "compute_kpi": Block(compute_kpi, inputs=("targets", "tracking", "rules"), outputs=("results",)),
     "compute_bonus": Block(compute_bonus, inputs=("results", "rules", "targets"), outputs=("bonuses",), params={"npp_turnover_pct": None},

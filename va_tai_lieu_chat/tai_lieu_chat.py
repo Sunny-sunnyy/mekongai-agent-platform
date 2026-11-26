@@ -1,4 +1,4 @@
-"""[ghi chú kỹ thuật] Phần TRANG của đường "đọc thẳng": giữ "file đang mở" theo cuộc trò chuyện + ghép ô nhập
+"""[ghi chú] Phần TRANG của đường "đọc thẳng": giữ "file đang mở" theo cuộc trò chuyện + ghép ô nhập
 cho khối AI + kiểm sau trả lời. Module THUẦN (không mạng, không AI); tro_ly.py / noi_may_chu.py / may_chu.py gọi vào (bản nối: dung_ban_noi.py).
 
   KhoFile.mo(org, conv, ten, than)  ⇒ (http, dict cho trang) — kiểm tên (rào của kho_tai_lieu.lam_sach_ten truyền vào), cỡ, tách chữ (doc_tai_lieu.tach_chu);
@@ -9,7 +9,7 @@ cho khối AI + kiểm sau trả lời. Module THUẦN (không mạng, không AI
                                        Tài liệu đứng ĐẦU để phần đầu giống hệt giữa các câu hỏi về cùng file (bộ nhớ đệm của nhà cung cấp trúng được).
   hau_kiem(chu, f)                  ⇒ {"ten", "don_vi", "co_dan", "loi": [...]} — doc_tai_lieu.kiem_tra_loi; lỗi ⇒ trang hiện cảnh báo CẠNH câu trả lời.
   THE_TAI_LIEU                      ⇒ thẻ gửi bộ định tuyến, chỉ khi cuộc trò chuyện đang có file mở VÀ workflow "Hỏi trên tài liệu" đã ghim.
-Không đặt trần token (người dùng 19/11). Chốt RAM: số file giữ + tổng ký tự giữ — vượt ⇒ bỏ file CŨ NHẤT (người dùng hỏi lại sẽ được báo "hết hạn, kéo lại file")."""
+Không đặt trần token (người vận hành). Chốt RAM: số file giữ + tổng ký tự giữ — vượt ⇒ bỏ file CŨ NHẤT (người dùng hỏi lại sẽ được báo "hết hạn, kéo lại file")."""
 import hashlib
 import re
 import secrets
@@ -18,7 +18,7 @@ import time
 
 import doc_tai_lieu as D
 
-HAN_GIAY = 24 * 3600            # A tạm chọn theo đề xuất: giữ 24 giờ (câu 3 của kế hoạch, người dùng chưa trả lời)
+HAN_GIAY = 24 * 3600            # A tạm chọn theo đề xuất: giữ 24 giờ (câu 3 của kế hoạch, User chưa trả lời)
 CO_TOI_DA = 20 * 1024 * 1024    # = rào tải lên của trang
 SO_FILE_TOI_DA = 40             # số file đang mở giữ trong bộ nhớ máy chủ
 KY_TU_GIU_TOI_DA = 20_000_000   # tổng ký tự các file đang mở (~ 60–80 MB RAM) — máy 15 GB
@@ -30,12 +30,12 @@ CHU = {
     "ten": "Tên file không hợp lệ hoặc loại file chưa hỗ trợ. Khung chat nhận PDF, Word (.docx), .txt, .md, bảng tính (.xlsx, .xlsm, .xls, .csv), ảnh (.png, .jpg), "
            "trang web (.html) và .json; tên không chứa dấu / \\ ; | < > và không quá 120 ký tự.",
     "co": "File phải từ 1 byte tới 20 MB.",
-    # [ghi chú kỹ thuật] đường nạp kho (bản chụp)
+    # [ghi chú] đường nạp kho (bản chụp)
     "dang_doc": "File “{ten}” vẫn đang được đọc ({vi}; đã {giay} giây). Bạn hỏi lại sau ít phút nhé.",
     "nap_loi": "Mình chưa đọc được file “{ten}”: {ly_do} Bạn thử kéo lại file sau ít phút nhé.",
     "mat_dau": "Máy chủ vừa bật lại nên việc đọc file bị mất dấu. Bạn kéo lại file vào khung chat giúp mình nhé.",
     "khong_trang": "Mình chưa tìm thấy phần nào của “{ten}” liên quan tới câu hỏi này. Bạn thử hỏi bằng từ khoá cụ thể hơn (tên mục, con số, tên người…) nhé.",
-    "kho_khong_co": "Không thấy tài liệu này trong danh sách của bạn (có thể đã bị ẩn). Bạn tải lại trang Dữ liệu rồi thử lại nhé.",   # [ghi chú kỹ thuật]
+    "kho_khong_co": "Không thấy tài liệu này trong danh sách của bạn (có thể đã bị ẩn). Bạn tải lại trang Dữ liệu rồi thử lại nhé.",   # [ghi chú]
     "tim_loi": "Mình chưa tìm được trong file lúc này ({ly_do}). Bạn thử hỏi lại sau ít phút nhé.",
     "dich_vu_tat": "File loại này (bản chụp, ảnh, bảng tính, trang web, JSON) phải qua dịch vụ đọc tài liệu — dịch vụ đó hiện chưa bật trên máy chủ. Bạn báo người "
                    "phụ trách giúp nhé; file PDF / Word / chữ có sẵn chữ vẫn hỏi được bình thường.",
@@ -50,7 +50,7 @@ THE_TAI_LIEU = {"ma": MA_THE, "ten_tim": "Hỏi trên tài liệu đang mở",
                 "chay_tu_chat": True, "muc_toi_da_uoc": 0.0, "xuat_file": False, "co_nguoi_duyet": False, "goi_ra_ngoai": False, "gui_thay_nguoi_dung": False, "can_ma_nv": False}
 
 
-# [ghi chú kỹ thuật] tính trên CẢ bảng bằng code chạy ở máy ảo E2B (không phải tìm vài hàng rồi đọc)
+# [ghi chú] tính trên CẢ bảng bằng code chạy ở máy ảo E2B (không phải tìm vài hàng rồi đọc)
 MA_THE_TINH = "tinh_tren_bang"
 TEN_WF_TINH = "Tính trên bảng — chạy code (khung chat)"   # tên workflow ghim cho thẻ (va_tinh_tren_bang/tao_workflow.py tạo, ghim.py tìm ĐÚNG tên này)
 THE_TINH = {"ma": MA_THE_TINH, "ten_tim": "Tính toán trên bảng đang mở",
@@ -61,7 +61,7 @@ THE_TINH = {"ma": MA_THE_TINH, "ten_tim": "Tính toán trên bảng đang mở",
             "khong_dung_khi": "Chỉ tra cứu nội dung một dòng / một mục cụ thể hoặc hỏi nội dung văn bản (⇒ Hỏi trên tài liệu đang mở); câu hỏi về thưởng / KPI / lương của nhân viên; nhờ dựng quy trình mới.",
             "vi_du": ["tổng cột gia là bao nhiêu", "trung bình theo từng đơn vị tính", "file có bao nhiêu dòng, mặt hàng nào giá cao nhất"],
             "chay_tu_chat": True, "muc_toi_da_uoc": 0.05, "xuat_file": False, "co_nguoi_duyet": False, "goi_ra_ngoai": True, "gui_thay_nguoi_dung": False, "can_ma_nv": False}
-TRANG_HINH_TOI_DA = 200   # [ghi chú kỹ thuật] trần số trang app RAG chịu mô tả hình cho một file (nhóm phát triển xác nhận, từ code app) ⇒ PDF dài hơn KHÔNG chuyển sang kho
+TRANG_HINH_TOI_DA = 200   # [ghi chú] trần số trang app RAG chịu mô tả hình cho một file (nhóm kỹ thuật, từ code app) ⇒ PDF dài hơn KHÔNG chuyển sang kho
 # câu hỏi nhắc tới hình vẽ trong tài liệu. KHÔNG bắt chữ "hình" / "ảnh" trần ("tình hình", "mô hình", "hình thức", "ảnh hưởng").
 _HOI_HINH = re.compile(r"biểu\s*đồ|đồ\s*thị|sơ\s*đồ|lưu\s*đồ|hình\s*vẽ|hình\s*ảnh|bức\s*ảnh|(?:trong|theo|ở|tại|xem)\s+hình|hình\s*\d|\b(?:chart|figure|diagram)\b", re.I)
 _KHONG_DOC_HINH = re.compile(r"(?:biểu\s*đồ|đồ\s*thị|sơ\s*đồ|hình)[^.\n]{0,200}(?:lẫn thứ tự|không đọc được|không xác định|không đoán|không thấy|không có trong phần chữ)"
@@ -77,10 +77,10 @@ def can_goi_y_hinh(chu) -> bool:
     return bool(_KHONG_DOC_HINH.search(str(chu or "")))
 
 
-RAW_GIU_TOI_DA = 4   # [ghi chú kỹ thuật] số file bảng tính còn giữ byte gốc cùng lúc (mỗi file ≤ 20 MB) — quá thì bỏ byte của file mở cũ nhất (file đó vẫn hỏi theo đường tìm được)
+RAW_GIU_TOI_DA = 4   # [đã chốt 20/11: 8 ⇒ 4, máy chật RAM] số file bảng tính còn giữ byte gốc cùng lúc (mỗi file ≤ 20 MB) — quá thì bỏ byte của file mở cũ nhất (file đó vẫn hỏi theo đường tìm được)
 
 
-# [ghi chú kỹ thuật] hỏi tự do trên KHO tài liệu công ty đã nạp sẵn (không kéo file, không chọn tài liệu trước).
+# [ghi chú] hỏi tự do trên KHO tài liệu công ty đã nạp sẵn (không kéo file, không chọn tài liệu trước).
 MA_THE_KHO = "hoi_kho_tai_lieu"
 TEN_THE_KHO = "Hỏi trên kho tài liệu của công ty"
 THE_KHO = {"ma": MA_THE_KHO, "ten_tim": TEN_THE_KHO,
@@ -93,7 +93,7 @@ THE_KHO = {"ma": MA_THE_KHO, "ten_tim": TEN_THE_KHO,
 SO_DOAN_KHO_CHUNG, LO_KHO = 12, 5   # giữ 12 đoạn điểm cao nhất; cổng RAG nhận ≤ 5 kho mỗi lời gọi
 
 
-# [ghi chú kỹ thuật] Bộ định tuyến chạy qua OpenRouter — NGOÀI ba nơi người dùng cho gửi tài liệu (Bedrock, app RAG, E2B) ⇒ lịch sử gửi bộ định tuyến KHÔNG mang
+# [E T1 — A quyết 19/11] Bộ định tuyến chạy qua OpenRouter — NGOÀI ba nơi User cho gửi tài liệu (Bedrock, app RAG, E2B) ⇒ lịch sử gửi bộ định tuyến KHÔNG mang
 # tên file, không mang trích đoạn nào của tài liệu: hai mục dưới đây thay cho "Đã đọc <tên>…" và cho câu trả lời trên tài liệu (người dùng vẫn thấy bản đầy đủ).
 DT_TRA_LOI = "(Trợ lý đã trả lời một câu hỏi trên tài liệu đang mở trong cuộc trò chuyện.)"
 _LOAI_CHU = {"pdf": "PDF", "docx": "Word", "chu": "văn bản chữ", "anh": "ảnh", "bang_tinh": "bảng tính", "trang_web": "trang web", "json": "JSON"}
@@ -101,17 +101,17 @@ _LOAI_CHU = {"pdf": "PDF", "docx": "Word", "chu": "văn bản chữ", "anh": "�
 
 def dt_mo(r: dict) -> str:
     """Dòng trung tính gửi bộ định tuyến khi người dùng mở file: chỉ LOẠI + số phần, không tên, không nội dung."""
-    n = r.get("so_phan")   # [ghi chú kỹ thuật] bảng tính / trang web / JSON đang nạp kho: chưa biết số phần ⇒ không ghi số
+    n = r.get("so_phan")   # [ghi chú] bảng tính / trang web / JSON đang nạp kho: chưa biết số phần ⇒ không ghi số
     return (f"(Người dùng vừa mở một tài liệu {_LOAI_CHU.get(r.get('loai'), 'chữ')}" + (f" — {n} {r.get('don_vi')}" if n else "")
             + " — trong cuộc trò chuyện; có thể hỏi tiếp về tài liệu đó.)")
 
 
-MO_HINH_WORKFLOW = "claude-sonnet-5-5"
+MO_HINH_WORKFLOW = "gpt-6-luna"
 
 
 def kiem_workflow(pl) -> list[str]:
-    """[ghi chú kỹ thuật] Thẻ hỏi tài liệu nhận TOÀN VĂN tài liệu người dùng ⇒ lúc GHIM phải chắc workflow đúng là bản mình tạo (tao_workflow.py), không phải bản ai đó
-    lưu đè / tạo cùng tên: đúng 3 khối (ô nhập ⇒ agent_node ⇒ markdown), 2 dây đúng chiều, lời dặn == doc_tai_lieu.LOI_DAN từng ký tự, mô hình claude-sonnet-5-5,
+    """[E T5 19/11] Thẻ hỏi tài liệu nhận TOÀN VĂN tài liệu người dùng ⇒ lúc GHIM phải chắc workflow đúng là bản mình tạo (tao_workflow.py), không phải bản ai đó
+    lưu đè / tạo cùng tên: đúng 3 khối (ô nhập ⇒ agent_node ⇒ markdown), 2 dây đúng chiều, lời dặn == doc_tai_lieu.LOI_DAN từng ký tự, mô hình gpt-6-luna,
     KHÔNG công cụ / MCP / kho tài liệu / file. Trả danh sách lý do lệch (rỗng = đúng). Lệch ⇒ bộ ghim ĐÓNG thẻ kèm lý do."""
     try:
         nut = {n["id"]: (n.get("data") or {}).get("struct") or {} for n in pl.get("nodes") or []}
@@ -145,12 +145,56 @@ def token_uoc(ky_tu: int) -> int:
     return ky_tu // 3
 
 
+_LIET_KE = re.compile(
+    r"\b(?:liệt kê|danh sách|có bao nhiêu|tổng hợp các|tất cả các|những mục nào|kể tên|từng mục|mấy loại|toàn bộ)\b",
+    re.IGNORECASE,
+)
+_MIME_ANH = re.compile(r"^image/(png|jpeg|jpg|webp|gif)$", re.IGNORECASE)
+_B64_ANH = re.compile(r"^[A-Za-z0-9+/=\s]{10,2500000}$")
+ANH_TOI_DA_LUOT = 4
+
+
+def _la_cau_liet_ke(cau: str) -> bool:
+    return bool(_LIET_KE.search(str(cau or "")))
+
+
+def _goi_tim(tim_fn, org, kho, q, k, *, include_images: bool = True, whole_file_for_lists: bool = False):
+    if not tim_fn:
+        return 0, [], "chưa nối cổng tìm tài liệu"
+    try:
+        return tim_fn(org, kho, q, k, include_images=include_images, whole_file_for_lists=whole_file_for_lists)
+    except TypeError:
+        return tim_fn(org, kho, q, k)
+
+
+def _trich_anh(ds: list, *, ten_mac_dinh: str = "") -> list[dict]:
+    anh, da_thay = [], set()
+    for x in ds or []:
+        if not isinstance(x, dict):
+            continue
+        b64, mime = x.get("image_base64"), str(x.get("image_mime") or "image/png").strip().lower()
+        if not isinstance(b64, str) or not _MIME_ANH.fullmatch(mime) or not _B64_ANH.fullmatch(b64):
+            continue
+        sach = "".join(b64.split())
+        khoa = sach[:80]
+        if khoa in da_thay:
+            continue
+        da_thay.add(khoa)
+        ten_f = Path(str(x.get("file") or ten_mac_dinh or "")).name.strip()
+        pg = x.get("page")
+        ct = f"{ten_f} — trang {pg}" if ten_f and pg else (f"trang {pg}" if pg else ten_f)
+        anh.append({"image_base64": sach, "image_mime": "image/jpeg" if mime == "image/jpg" else mime, **({"chu_thich": ct} if ct else {})})
+        if len(anh) >= ANH_TOI_DA_LUOT:
+            break
+    return anh
+
+
 class KhoFile:
-    def __init__(self, lam_sach_ten, gio=time.time, ghi=None, nap=None, viec=None, tim=None):
-        """[ghi chú kỹ thuật] nap(org, tên, byte) ⇒ (http, {"ma"} | {"loi"}) — bắt đầu nạp kho TẠM (kho_tai_lieu.bat_dau_nap) · viec(org, mã) ⇒ (http, trạng thái)
-        · tim(org, kho, câu, k) ⇒ (http, [trang…], lỗi). Thiếu nap ⇒ bản chụp bị từ chối như cũ."""
+    def __init__(self, lam_sach_ten, gio=time.time, ghi=None, nap=None, viec=None, tim=None, viet_lai_cau=None):
+        """[ghi chú] nap(org, tên, byte) ⇒ (http, {"ma"} | {"loi"}) — bắt đầu nạp kho TẠM (kho_tai_lieu.bat_dau_nap) · viec(org, mã) ⇒ (http, trạng thái)
+        · tim(org, kho, câu, k) ⇒ (http, [trang…], lỗi) · viet_lai_cau(cau, lich_su) ⇒ câu truy vấn độc lập (gpt-6-luna qua sổ). Thiếu nap ⇒ bản chụp bị từ chối như cũ."""
         self.lam_sach_ten, self.gio, self.ghi, self.f = lam_sach_ten, gio, ghi or (lambda s: None), {}
-        self.nap, self.viec, self.tim = nap, viec, tim
+        self.nap, self.viec, self.tim, self.viet_lai_cau = nap, viec, tim, viet_lai_cau
 
     def _don(self):
         t = self.gio()
@@ -167,7 +211,7 @@ class KhoFile:
             x["raw"] = None; x["raw_vb"] = None
 
     def chuyen_sang_kho(self, conv: str) -> tuple[int, dict]:
-        """[ghi chú kỹ thuật] File đọc thẳng (PDF / Word) đang mở ⇒ đưa byte gốc vào kho TẠM để app RAG mô tả hình; bản ghi file đang mở đổi sang kiểu "kho"
+        """[ghi chú] File đọc thẳng (PDF / Word) đang mở ⇒ đưa byte gốc vào kho TẠM để app RAG mô tả hình; bản ghi file đang mở đổi sang kiểu "kho"
         (cùng hình với PDF chụp). 200 = đã bắt đầu nạp; khác 200 = không chuyển được (bản ghi GIỮ NGUYÊN, người gọi đi tiếp đường đọc thẳng)."""
         f = self.f.get(conv)
         if not f or f.get("kieu") or f.get("raw_vb") is None or not self.nap:
@@ -188,7 +232,7 @@ class KhoFile:
                             + (f" ({so_trang} trang, ước khoảng {phut} phút)" if phut else "") + ". Bạn hỏi lại câu này sau ít phút nhé — đọc xong mình mới trả lời được."}
 
     def mo(self, org: str, conv: str, ten, than: bytes) -> tuple[int, dict]:
-        if D.goi_y_luu_lai(ten):   # [ghi chú kỹ thuật] .doc / .pptx / .xlsb / .ods: nói đúng cách lưu lại (không lặp tên file)
+        if D.goi_y_luu_lai(ten):   # [ghi chú] .doc / .pptx / .xlsb / .ods: nói đúng cách lưu lại (không lặp tên file)
             return 422, {"loi": D.goi_y_luu_lai(ten)}
         ten_sach = self.lam_sach_ten(ten)
         if not ten_sach or not (ten_sach.lower().endswith(D.DUOI) or D.duoi_cua(ten_sach) in D.DUOI_KHO):
@@ -197,7 +241,7 @@ class KhoFile:
             return 413, {"loi": CHU["co"]}
         try:
             kq = D.tach_chu(ten_sach, bytes(than))
-        except D.CanNapKho as e:   # [ghi chú kỹ thuật] bản chụp / lẫn trang chụp ⇒ tự nạp kho (có đường nạp) thay vì từ chối
+        except D.CanNapKho as e:   # [ghi chú] bản chụp / lẫn trang chụp ⇒ tự nạp kho (có đường nạp) thay vì từ chối
             return self._mo_kho(org, conv, ten_sach, bytes(than), e)
         except D.TuChoi as e:
             self.ghi(f"TAI-LIEU-CHAT từ chối file ({len(than)} byte): {str(e)[:80]}")   # KHÔNG ghi tên file vào nhật ký
@@ -209,7 +253,7 @@ class KhoFile:
         while ranh in van:            # tài liệu tình cờ chứa đúng mã vừa sinh ⇒ sinh lại (không từ chối file)
             ranh = secrets.token_hex(8)
         self.f[conv] = {"ranh": ranh, "org": org, "ten": ten_sach, "sha": hashlib.sha256(bytes(than)).hexdigest(), "kq": kq, "luc": self.gio(), "het": self.gio() + HAN_GIAY}
-        if kq.get("loai") in ("pdf", "docx") and not (kq.get("don_vi") == "trang" and len(kq["phan"]) > TRANG_HINH_TOI_DA):   # [ghi chú kỹ thuật]
+        if kq.get("loai") in ("pdf", "docx") and not (kq.get("don_vi") == "trang" and len(kq["phan"]) > TRANG_HINH_TOI_DA):   # [ghi chú]
             self.f[conv]["raw_vb"] = bytes(than)
             self._giu_raw()
         self._don()
@@ -238,7 +282,7 @@ class KhoFile:
         self._don()
         cu = self.f.get(conv)
         loai = getattr(e, "loai", "pdf")
-        don_vi = "trang" if loai in ("pdf", "anh") else "đoạn"   # [ghi chú kỹ thuật] PDF chụp / ảnh dẫn theo trang; bảng tính / trang web / JSON dẫn theo đoạn tìm được
+        don_vi = "trang" if loai in ("pdf", "anh") else "đoạn"   # [ghi chú] PDF chụp / ảnh dẫn theo trang; bảng tính / trang web / JSON dẫn theo đoạn tìm được
         vi = ("bản chụp" if e.ly_do == "ban_chup" else f"có {len(e.trang_chup)} trang là ảnh chụp") if loai == "pdf" else D.LOAI_KHO[loai][0]
         self.f[conv] = {"kieu": "kho", "viec": r["ma"], "kho": None, "ly_do": e.ly_do, "vi": vi, "so_trang": e.so_trang, "ranh": secrets.token_hex(8), "org": org, "ten": ten_sach,
                         "sha": hashlib.sha256(than).hexdigest(), "kq": {"loai": loai, "phan": [], "ky_tu": 0, "don_vi": don_vi, "ghi_chu": ""},
@@ -246,7 +290,7 @@ class KhoFile:
         chung = {"ten": ten_sach, "loai": loai, "so_phan": e.so_trang, "don_vi": don_vi, "ky_tu": 0, "token_uoc": 0, "dang_doc": True,
                  "thay_file_cu": cu["ten"] if cu and cu["org"] == org else None, "giu_gio": HAN_GIAY // 3600}
         if loai != "pdf":   # KHÔNG nêu "khoảng N phút": chưa có số đo thật cho các loại này (bài học 19/11: không đưa số suy ra làm số đo)
-            if loai == "bang_tinh":   # [ghi chú kỹ thuật] giữ byte gốc để tính trên CẢ bảng bằng code; giới hạn số file giữ byte
+            if loai == "bang_tinh":   # [ghi chú] giữ byte gốc để tính trên CẢ bảng bằng code; giới hạn số file giữ byte
                 self.f[conv]["raw"] = bytes(than)
                 self._giu_raw()
             self.ghi(f"TAI-LIEU-CHAT nhận file {loai} ({len(than)} byte) ⇒ NẠP KHO việc {str(r['ma'])[:8]} · sha {self.f[conv]['sha'][:8]}")
@@ -259,7 +303,7 @@ class KhoFile:
                          "Bạn cứ gõ câu hỏi; đọc xong mình mới trả lời được, câu trả lời sẽ dẫn theo số trang.")
 
     def mo_tu_kho(self, org: str, conv: str, muc: dict) -> tuple[int, dict]:
-        """[ghi chú kỹ thuật] Nút "Hỏi trên tài liệu này" của trang Dữ liệu: gắn một tài liệu ĐÃ nạp kho vào cuộc trò chuyện — không nạp lại, không gọi AI,
+        """[ghi chú] Nút "Hỏi trên tài liệu này" của trang Dữ liệu: gắn một tài liệu ĐÃ nạp kho vào cuộc trò chuyện — không nạp lại, không gọi AI,
         không gửi gì đi. `muc` = MỘT dòng của sổ kho mà NGƯỜI GỌI đã tra theo sha trong sổ của ĐÚNG tổ chức `org` (hàm này không tự tra, không nhận tên kho từ trình duyệt).
         Đơn vị dẫn: PDF / ảnh = trang; loại khác = đoạn tìm được (dịch vụ đọc không trả số trang cho Word / chữ)."""
         ten, kho, ma = (muc or {}).get("ten"), (muc or {}).get("kho"), (muc or {}).get("sha")
@@ -287,7 +331,7 @@ class KhoFile:
                             f"các phần liên quan nhất trong tài liệu rồi trả lời, có dẫn {don_vi}."}
 
     def mo_kho_chung(self, org: str, conv: str, ds: list) -> tuple[int, dict]:
-        """[ghi chú kỹ thuật] Gắn "kho tài liệu của công ty" (mọi kho BỀN chưa ẩn — `ds` là các dòng sổ kho NGƯỜI GỌI đã lọc theo ĐÚNG tổ chức) làm tài liệu
+        """[ghi chú] Gắn "kho tài liệu của công ty" (mọi kho BỀN chưa ẩn — `ds` là các dòng sổ kho NGƯỜI GỌI đã lọc theo ĐÚNG tổ chức) làm tài liệu
         đang mở của cuộc trò chuyện. Không nạp gì, không gọi AI. Kho rỗng ⇒ 404."""
         kho = [(str(x.get("ten") or "tài liệu"), x["kho"]) for x in (ds or []) if isinstance(x, dict) and isinstance(x.get("kho"), str) and x["kho"].strip()]
         if not (isinstance(org, str) and org and kho):
@@ -301,21 +345,41 @@ class KhoFile:
             self.ghi(f"TÀI LIỆU CHAT: mở kho chung {len(kho)} tài liệu cho cuộc trò chuyện")
         return 200, {"ten": self.f[conv]["ten"], "so_tai_lieu": len(kho)}
 
-    def _tim_kho_chung(self, f, cau: str, cau_truoc: str | None, k: int) -> tuple[dict, dict]:
+    def _ds_cau_tim(self, cau: str, cau_truoc: str | None, lich_su: list | None = None) -> list[str]:
+        c1 = " ".join(str(cau).split())[:500]
+        c0 = " ".join(str(cau_truoc or "").split())
+        cau_tim = [c1] if c1 else []
+        if (c0 and c0 != c1) or lich_su:
+            da_viet = None
+            if self.viet_lai_cau:
+                try:
+                    viet = " ".join(str(self.viet_lai_cau(c1, lich_su or ([{"vai": "nguoi_dung", "noi_dung": c0}] if c0 else [])) or "").split())[:500]
+                    if viet and viet.lower() != c1.lower():
+                        da_viet = viet
+                except Exception:  # noqa: BLE001
+                    da_viet = None
+            if da_viet:
+                cau_tim.append(da_viet)
+            elif c0 and c0 != c1:
+                cau_tim.append((c0 + " " + c1)[:500])
+        return cau_tim
+
+    def _tim_kho_chung(self, f, cau: str, cau_truoc: str | None, k: int, lich_su: list | None = None) -> tuple[dict, dict]:
         """Tìm trên MỌI kho của kho chung: mỗi câu tìm gọi theo lô ≤ LO_KHO kho; gộp, bỏ trùng chữ, xếp theo điểm (cao trước; thiếu điểm xếp cuối), giữ SO_DOAN_KHO_CHUNG đoạn.
         Mỗi đoạn mở bằng dòng "Nguồn: <tên file> — trang N" (tên file do dịch vụ đọc trả). f["nguon_doan"] = {số đoạn: nhãn nguồn} để trợ lý in dòng Nguồn."""
-        hs = {"k": k, "luot": [], "trang": [], "so_trang_tra": 0, "ky_tu": 0, "so_kho": len(f["kho_ds"]), "kho_chung": True}
-        c1, c0 = " ".join(str(cau).split()), " ".join(str(cau_truoc or "").split())
-        cau_tim = [c1[:500]] + ([(c0 + " " + c1)[:500]] if c0 and c0 != c1 else [])
-        ung, da_co = [], set()
+        hs = {"k": k, "luot": [], "trang": [], "so_trang_tra": 0, "ky_tu": 0, "so_kho": len(f["kho_ds"]), "kho_chung": True, "anh": []}
+        cau_tim = self._ds_cau_tim(cau, cau_truoc, lich_su)
+        liet_ke = _la_cau_liet_ke(cau)
+        ung, da_co, ds_tho = [], set(), []
         for q in cau_tim:
             for i in range(0, len(f["kho_ds"]), LO_KHO):
                 lo = f["kho_ds"][i:i + LO_KHO]
                 try:
-                    ma, ds, loi = self.tim(f["org"], lo, q, k) if self.tim else (0, [], "chưa nối cổng tìm tài liệu")
+                    ma, ds, loi = _goi_tim(self.tim, f["org"], lo, q, k, include_images=True, whole_file_for_lists=liet_ke)
                 except Exception as x:  # noqa: BLE001
                     ma, ds, loi = 0, [], type(x).__name__
                 hs["luot"].append({"cau_tim": q, "http": ma, "so_trang": len(ds), "so_kho": len(lo), "trang": [x["page"] for x in ds], "loi": loi})
+                ds_tho.extend(ds or [])
                 for x in ds:
                     khoa = " ".join(x["text"].split())
                     if khoa in da_co:
@@ -333,7 +397,9 @@ class KhoFile:
             # chỗ dẫn báo lỗi và không ra dòng Nguồn. Tên file + trang vẫn tới người dùng qua dòng "Nguồn: [đoạn N] = …" do code thêm sau câu trả lời (f["nguon_doan"]).
             phan.append({"so": i + 1, "nhan": f"đoạn {i + 1}", "chu": f"(thuộc file: {ten})\n" + D._sach(chu)})
         f["nguon_doan"] = nguon
-        hs.update(trang=[x["so"] for x in phan], so_trang_tra=len(phan), ky_tu=sum(len(x["chu"]) for x in phan), don_vi="đoạn", so_ung_vien=len(ung))
+        hs["anh"] = _trich_anh(ds_tho)
+        hs.update(trang=[x["so"] for x in phan], so_trang_tra=len(phan), ky_tu=sum(len(x["chu"]) for x in phan), don_vi="đoạn", so_ung_vien=len(ung),
+                  whole_file_for_lists=liet_ke, viet_lai=cau_tim[1] if len(cau_tim) > 1 else None)
         return {"loai": "kho_chung", "phan": phan, "ky_tu": hs["ky_tu"], "don_vi": "đoạn", "ghi_chu": "", "doan": True, "tong_trang": None}, hs
 
     def trang_thai_kho(self, f) -> tuple[str, dict]:
@@ -354,24 +420,25 @@ class KhoFile:
         return "dang_nap", {"chu": CHU["dang_doc"].format(ten=f["ten"], vi=(f.get("vi") or "bản chụp") + (" nên lâu hơn" if f["kq"].get("loai") == "pdf" else ""),
                                                           giay=int(self.gio() - f["luc"]))}
 
-    def tim_trang(self, f, cau: str, cau_truoc: str | None = None, k: int = 8) -> tuple[dict, dict]:
-        """Tìm trong kho của file: lượt 1 = câu hỏi; lượt 2 (chỉ khi có câu trước) = câu trước + câu hỏi (câu nối tiếp kiểu "còn mục 3 thì sao"). Gộp theo số trang.
+    def tim_trang(self, f, cau: str, cau_truoc: str | None = None, k: int = 8, lich_su: list | None = None) -> tuple[dict, dict]:
+        """Tìm trong kho của file: lượt 1 = câu hỏi; lượt 2 (khi có câu trước / lịch sử) = câu viết lại độc lập hoặc câu trước + câu hỏi. Gộp theo số trang.
         Trả (kq kiểu tach_chu nhưng chỉ gồm các trang tìm được — có khoá "doan": True, hồ sơ tìm để ghi vào lượt).
-        [ghi chú kỹ thuật] File KHÔNG dẫn theo trang (bảng tính / trang web / JSON): app trả `page` = thứ tự SHEET / mục, mỗi kết quả là MỘT hàng / một mục ⇒ KHÔNG gộp
+        [ghi chú] File KHÔNG dẫn theo trang (bảng tính / trang web / JSON): app trả `page` = thứ tự SHEET / mục, mỗi kết quả là MỘT hàng / một mục ⇒ KHÔNG gộp
         theo `page` (gộp là mất hàng cùng sheet); giữ mọi kết quả khác chữ, đánh số "đoạn 1…n" theo thứ tự tìm thấy trong lượt này."""
-        if f.get("kieu") == "kho_chung":   # [ghi chú kỹ thuật]
-            return self._tim_kho_chung(f, cau, cau_truoc, k)
-        hs = {"k": k, "luot": [], "trang": [], "so_trang_tra": 0, "ky_tu": 0}
-        trang, doan, da_co = {}, [], set()
+        if f.get("kieu") == "kho_chung":   # [ghi chú]
+            return self._tim_kho_chung(f, cau, cau_truoc, k, lich_su=lich_su)
+        hs = {"k": k, "luot": [], "trang": [], "so_trang_tra": 0, "ky_tu": 0, "anh": []}
+        trang, doan, da_co, ds_tho = {}, [], set(), []
         theo_trang = f["kq"].get("don_vi") != "đoạn"
-        c1, c0 = " ".join(str(cau).split()), " ".join(str(cau_truoc or "").split())
-        cau_tim = [c1[:500]] + ([(c0 + " " + c1)[:500]] if c0 and c0 != c1 else [])   # câu trước trùng câu đang hỏi (hỏi lại) ⇒ không tìm lần hai
+        cau_tim = self._ds_cau_tim(cau, cau_truoc, lich_su)
+        liet_ke = _la_cau_liet_ke(cau)
         for q in cau_tim:
             try:
-                c, ds, loi = self.tim(f["org"], f["kho"], q, k) if self.tim else (0, [], "chưa nối cổng tìm tài liệu")
+                c, ds, loi = _goi_tim(self.tim, f["org"], f["kho"], q, k, include_images=True, whole_file_for_lists=liet_ke)
             except Exception as x:  # noqa: BLE001
                 c, ds, loi = 0, [], type(x).__name__
             hs["luot"].append({"cau_tim": q, "http": c, "so_trang": len(ds), "trang": [x["page"] for x in ds], "loi": loi})
+            ds_tho.extend(ds or [])
             for x in ds:
                 if not theo_trang:
                     khoa = " ".join(x["text"].split())
@@ -383,7 +450,9 @@ class KhoFile:
             phan = [{"so": p, "nhan": f"trang {p}", "chu": D._sach(trang[p])} for p in sorted(trang)]
         else:
             phan = [{"so": i + 1, "nhan": f"đoạn {i + 1}", "chu": D._sach(c)} for i, c in enumerate(doan)]
-        hs.update(trang=[x["so"] for x in phan], so_trang_tra=len(phan), ky_tu=sum(len(x["chu"]) for x in phan), don_vi="trang" if theo_trang else "đoạn")
+        hs["anh"] = _trich_anh(ds_tho, ten_mac_dinh=f.get("ten") or "")
+        hs.update(trang=[x["so"] for x in phan], so_trang_tra=len(phan), ky_tu=sum(len(x["chu"]) for x in phan), don_vi="trang" if theo_trang else "đoạn",
+                  whole_file_for_lists=liet_ke, viet_lai=cau_tim[1] if len(cau_tim) > 1 else None)
         return {"loai": f["kq"].get("loai", "pdf"), "phan": phan, "ky_tu": hs["ky_tu"], "don_vi": "trang" if theo_trang else "đoạn", "ghi_chu": "", "doan": True,
                 "tong_trang": f.get("so_trang") or None}, hs
 
@@ -401,12 +470,12 @@ class KhoFile:
 
 def o_nhap(f: dict, cau: str, lich_su: list | None = None) -> str:
     """Chữ đưa vào ô nhập. KHÔNG cắt tài liệu, KHÔNG cắt câu hỏi. Lịch sử: các lượt trước của chính cuộc trò chuyện (đã có chốt RAM ở Kho của khung chat).
-    [ghi chú kỹ thuật] MỐC CÓ MÃ: tài liệu là chữ người ngoài viết — nó có thể chứa dòng "CÂU HỎI CỦA NGƯỜI DÙNG:" giả. Mỗi lần MỞ file máy chủ sinh một mã 16 hex
+    [ghi chú] MỐC CÓ MÃ: tài liệu là chữ người ngoài viết — nó có thể chứa dòng "CÂU HỎI CỦA NGƯỜI DÙNG:" giả. Mỗi lần MỞ file máy chủ sinh một mã 16 hex
     (f["ranh"]) mà tài liệu không chứa; bốn dòng mốc mang mã đó, lời dặn bảo mô hình chỉ tin dòng mốc mang đúng mã ở DÒNG ĐẦU. Mã giữ nguyên giữa các câu hỏi
     trên cùng file (phần đầu ô nhập giống hệt ⇒ bộ nhớ đệm của nhà cung cấp trúng). Câu hỏi / lượt trước chứa mã ⇒ đổi mã của file rồi mới ghép."""
     ls = [m for m in (lich_su or []) if isinstance(m, dict) and str(m.get("noi_dung") or "").strip()]
     truoc = "\n".join(("Người dùng: " if m.get("vai") == "nguoi_dung" else "Trợ lý: ") + str(m["noi_dung"]).strip() for m in ls)
-    van = D.van_ban_doan(f["kq"], f["ten"]) if f["kq"].get("doan") else D.van_ban_cho_ai(f["kq"], f["ten"])   # [ghi chú kỹ thuật] chỉ các trang tìm được
+    van = D.van_ban_doan(f["kq"], f["ten"]) if f["kq"].get("doan") else D.van_ban_cho_ai(f["kq"], f["ten"])   # [ghi chú] chỉ các trang tìm được
     while f["ranh"] in cau or f["ranh"] in truoc or f["ranh"] in van:
         f["ranh"] = secrets.token_hex(8)
     r = f["ranh"]

@@ -1,8 +1,8 @@
-/* [ghi chú kỹ thuật] giấy ngà kẻ ô như sổ
+/* [ghi chú] giấy ngà kẻ ô như sổ
    kế toán, mực xanh ngọc, chi tiết màu đồng, chờ duyệt màu mận; tiêu đề / tên khối / câu trả lời / số lớn dùng chữ CÓ CHÂN của máy (không tải);
    chữ thường Be Vietnam Pro TỰ PHỤC VỤ (src/fonts/, giấy phép OFL.txt) ⇒ trang vẫn 0 request ra ngoài. Sáng + tối. Tên biến giữ như cũ để không đổi mã.
    Màu trạng thái lấy theo bảng token mekongai đặt thêm (CHANGELOG_DRAFT_E.md, tương phản ≥ 4,95:1).
-   File này là PHẦN GHÉP: phần trên dòng "@@GIUA@@" thay khối :root của CSS cũ; phần dưới nối vào cuối (ghép bằng lệnh ghi trong hồ sơ cũ). */
+   File này là PHẦN GHÉP: phần trên dòng "@@GIUA@@" thay khối :root của CSS cũ; phần dưới nối vào cuối (ghép bằng lệnh ghi trong tài liệu kỹ thuật). */
 @font-face { font-family: "Be Vietnam Pro"; src: url("./fonts/BeVietnamPro-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Be Vietnam Pro"; src: url("./fonts/BeVietnamPro-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
 :root {
@@ -197,7 +197,7 @@ table.bang td.so, table.bang th.so { text-align: right; font-variant-numeric: ta
 
 @media (max-width: 1100px) { .giua { grid-template-columns: 220px 1fr; } .phai { display: none; } }
 
-/* ô nhận: chấm màu từng khối nguồn + số dây (người dùng 04/11: dây chồng nhau dễ lộn) */
+/* ô nhận: chấm màu từng khối nguồn + số dây (người vận hành: dây chồng nhau dễ lộn) */
 .khoi .cong .nguon { margin-left: 6px; display: inline-flex; align-items: center; gap: 3px; }
 .khoi .cong .nguon i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .khoi .cong .nguon b { font-weight: 600; font-size: 10.5px; color: var(--muc); margin-left: 2px; }
@@ -400,7 +400,7 @@ details.khoa > .hop { max-height: 260px; background: var(--giay); }
 .khoi.chon .stt, .khoi.s-xong .stt { color: var(--nhan); opacity: .55; }
 .khoi.s-chay .stt { color: var(--dong); opacity: .7; }
 
-/* ================= LẦN GẮN 6 (đối chiếu kỹ thuật): menu 3 trang · màn Kết quả kiểu sổ · vá chỗ tràn ở màn hẹp ================= */
+/* ================= LẦN GẮN 6 (C 12/11): menu 3 trang · màn Kết quả kiểu sổ · vá chỗ tràn ở màn hẹp ================= */
 /* thanh trên không còn tràn ở 1366 px: tên workflow + dòng phiên bản co lại được, nút giữ nguyên */
 .tren > * { flex: none; }
 .tren .ten-wf { flex: 1 1 150px; min-width: 110px; max-width: 420px; }
@@ -480,7 +480,7 @@ table.bang.tien td.ly-do { font-size: 12px; min-width: 220px; }
 .kq-nhan.bang b { font-size: 18px; }
 .kq-nhan.bang + .kq-so { margin-top: 10px; border-top: 0; }
 
-/* ---- [ghi chú kỹ thuật] Hỏi KPI ngay trong xưởng: chế độ, thẻ kết quả, bảng số, sổ nhật ký các bước (theo mẫu tĩnh mau_tro_ly_12_11) ---- */
+/* ---- [ghi chú] Hỏi KPI ngay trong xưởng: chế độ, thẻ kết quả, bảng số, sổ nhật ký các bước (theo mẫu tĩnh mau_tro_ly_12_11) ---- */
 .hn-che-do { display: flex; border: 1px solid var(--vien); border-radius: 8px; overflow: hidden; margin-left: 4px; }
 .hn-che-do button { padding: 4px 11px; font-size: 12.5px; color: var(--muc2); background: none; border: 0; cursor: pointer; white-space: nowrap; }
 .hn-che-do button.on { background: var(--nhan); color: var(--tren-nhan); font-weight: 600; }
@@ -525,14 +525,14 @@ table.bang.tien td.ly-do { font-size: 12px; min-width: 220px; }
 .hn-chan { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 12px; }
 @media (prefers-reduced-motion: reduce) { .hn-cho .dot, .hn-gap .mui { animation: none; transition: none; } }
 
-/* ---- [ghi chú kỹ thuật] cửa sổ Trợ lý GẮN MÉP PHẢI: cột cao hết màn hình; phần còn lại của xưởng co lại (không bị che khi workflow chạy) ---- */
+/* ---- [ghi chú] cửa sổ Trợ lý GẮN MÉP PHẢI: cột cao hết màn hình; phần còn lại của xưởng co lại (không bị che khi workflow chạy) ---- */
 :root { --rong-chat-gan: min(460px, 46vw); }
 .chat-cua.gan { top: 0; right: 0; bottom: 0; width: var(--rong-chat-gan); height: 100vh; border-radius: 0; border-top: 0; border-right: 0; border-bottom: 0; animation: none; }
 .app.chat-gan { padding-right: var(--rong-chat-gan); box-sizing: border-box; }
 .app.chat-gan .react-flow__minimap { transform: none; visibility: visible; }
 @media (max-width: 900px) { .app.chat-gan { padding-right: 0; } .chat-cua.gan { width: 100vw; } }
 
-/* [ghi chú kỹ thuật] thẻ trả lời Hỏi KPI: dải xếp hạng do code dựng + ô số nổi / mờ */
+/* [ghi chú] thẻ trả lời Hỏi KPI: dải xếp hạng do code dựng + ô số nổi / mờ */
 .hn-so > div.noi b { color: var(--nhan); } .hn-so > div.mo { opacity: .55; }
 .hn-xh { margin: 8px 0 2px; padding: 8px 10px; border: 1px solid var(--vien); border-radius: 8px; background: var(--nen2, transparent); font-size: 12.5px; }
 .hn-xh .xh-dau { color: var(--muc2); margin-bottom: 6px; }
@@ -540,11 +540,11 @@ table.bang.tien td.ly-do { font-size: 12px; min-width: 220px; }
 .hn-xh .xh-nhan { min-width: 62px; color: var(--muc2); font-size: 11.5px; }
 .hn-xh .xh-o { padding: 2px 8px; border: 1px solid var(--vien2); border-radius: 999px; white-space: nowrap; }
 .hn-xh .xh-o.nhac { border-color: var(--nhan); box-shadow: inset 0 0 0 1px var(--nhan); }
-/* [ghi chú kỹ thuật] dòng công cụ đã gọi + gợi ý hỏi tiếp */
+/* [ghi chú] dòng công cụ đã gọi + gợi ý hỏi tiếp */
 .hn-goi, .hn-tiep { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0 4px; font-size: 12.5px; }
 .hn-goi .xh-o { padding: 2px 8px; border: 1px solid var(--vien2); border-radius: 999px; }
 
-/* [ghi chú kỹ thuật] ≤ 640 px: thanh trên tự cuộn trong chính nó (không đẩy cả trang), bỏ cột trái + khung dưới (xưởng kéo thả
+/* [ghi chú] ≤ 640 px: thanh trên tự cuộn trong chính nó (không đẩy cả trang), bỏ cột trái + khung dưới (xưởng kéo thả
    không dùng được trên điện thoại), khung chat gần kín màn hình. Khổ máy tính không đổi. */
 @media (max-width: 640px) {
   .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: 56px 1fr; }
@@ -555,12 +555,12 @@ table.bang.tien td.ly-do { font-size: 12px; min-width: 220px; }
   .app.chat-gan { padding-right: 0; }
   .chat-cua table { display: block; max-width: 100%; overflow-x: auto; }
 }
-/* [ghi chú kỹ thuật] thẻ "file đang mở" của khung chat */
+/* [ghi chú] thẻ "file đang mở" của khung chat */
 .chat-tep { display: flex; gap: 6px; align-items: baseline; padding: 6px 16px; border-top: 1px solid var(--vien2); background: var(--nhan-nhat); font-size: 12.5px; }
 .chat-tep b { overflow-wrap: anywhere; }
 .bong .canh-bao ul { margin: 4px 0 0 18px; padding: 0; }
 
-/* [ghi chú kỹ thuật] thẻ công cụ ảo + dây nét đứt vào khối AI — chỉ để nhìn */
+/* [ghi chú] thẻ công cụ ảo + dây nét đứt vào khối AI — chỉ để nhìn */
 .the-cong-cu { display: flex; align-items: center; gap: 6px; width: 240px; height: 42px; box-sizing: border-box; padding: 3px 8px; border: 1.5px dashed var(--g-tool); border-radius: 8px;
   background: var(--giay); font-size: 12px; line-height: 1.25; cursor: pointer; }
 .the-cong-cu .ic-cc { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--g-tool); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
@@ -568,11 +568,11 @@ table.bang.tien td.ly-do { font-size: 12px; min-width: 220px; }
 .the-cong-cu .react-flow__handle, .react-flow__handle.cong-cong-cu { width: 7px; height: 7px; background: var(--g-tool); border: none; pointer-events: none; }
 .react-flow__edge.day-cong-cu path { stroke: var(--g-tool); stroke-width: 1.6; stroke-dasharray: 5 4; }
 
-/* [ghi chú kỹ thuật] dòng kỳ dữ liệu do code in dưới câu trả lời KPI */
+/* [ghi chú] dòng kỳ dữ liệu do code in dưới câu trả lời KPI */
 .dong-ky { margin-top: 6px; padding: 5px 9px; border-left: 3px solid var(--g-output); background: var(--giay3); font-size: 13px; line-height: 1.45; }
 .dong-ky.khong-ro { border-left-color: var(--loi); }
 
-/* [ghi chú kỹ thuật] ô "Xem cài đặt đã khoá": nhãn trên, giá trị dưới — không bẻ chữ từng ký tự */
+/* [ghi chú] ô "Xem cài đặt đã khoá": nhãn trên, giá trị dưới — không bẻ chữ từng ký tự */
 details.khoa > .ds-khoa { margin: 0 10px 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
 .muc-khoa { border-top: 1px solid var(--vien2); padding-top: 6px; }
 .muc-khoa:first-child { border-top: none; padding-top: 0; }
@@ -580,7 +580,7 @@ details.khoa > .ds-khoa { margin: 0 10px 10px; display: flex; flex-direction: co
 .gt-khoa { color: var(--muc); overflow-wrap: break-word; word-break: normal; white-space: pre-wrap; }
 .the-cong-cu .tien-to-cc { color: var(--g-tool); font-weight: 700; }
 
-/* [ghi chú kỹ thuật] trang "Dữ liệu" */
+/* [ghi chú] trang "Dữ liệu" */
 .menu .menu-nut { background: none; border: none; font: inherit; color: var(--muc2); cursor: pointer; padding: 4px 8px; border-radius: var(--r-o); }
 .menu .menu-nut:hover, .menu .menu-nut.on { color: var(--nhan); background: var(--nhan-nhat); }
 .dl-dan { padding: 8px 12px; font-size: 13px; color: var(--muc2); border-bottom: 1px solid var(--vien2); }
@@ -603,3 +603,8 @@ details.khoa > .ds-khoa { margin: 0 10px 10px; display: flex; flex-direction: co
 .dl-viec { margin-top: 10px; padding: 9px 12px; background: var(--nhan-nhat); border-radius: var(--r-o); font-size: 14.5px; }
 .dl-ls { margin-top: 12px; font-size: 13.5px; }
 .dl-ls summary { cursor: pointer; color: var(--muc2); margin-bottom: 6px; }
+.dl-ba-tong { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 10px 0 12px; }
+.dl-ba-tong > div { border: 1px solid var(--vien2); border-radius: var(--r-o); padding: 10px 14px; background: var(--nen); min-width: 0; }
+.dl-ba-tong span { display: block; font-size: 12.5px; color: var(--muc2); }
+.dl-ba-tong b { display: block; font-family: var(--f-serif); font-size: 20px; margin-top: 2px; color: var(--nhan); }
+.dl-ba-tong small { display: block; margin-top: 4px; font-size: 12px; }

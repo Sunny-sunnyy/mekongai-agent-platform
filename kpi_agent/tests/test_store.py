@@ -37,8 +37,14 @@ def test_update_and_delete_are_refused_on_every_table(paths):
                                         inputs={"sha256": "x"}, summary={})   # bảng 2b — cũng phải có dòng
         store.record_capitol_approval(conn, run_id, "a" * 64, "org-thu", "người duyệt thử")   # bảng Người duyệt Capitol (10/11) — cũng phải có dòng
         store.record_mapping(conn, "don_hang", "f" * 64, {"sheet": "S"}, "b" * 64, "người ghép thử", "")   # bậc 2: cách ghép đã xác nhận — cũng phải có dòng
+        # 2j: bảng ghi các bản đã tải lên (để nạp lại lúc bật) — cũng phải có dòng
+        store.record_uploaded_version(conn, data_version="d" * 64, kind="raw", period="2026-10", wanted_cutoff=None, base_data_version=None,
+                                      file_sha256="e" * 64, mapping_sha=None)
+        store.record_pending_upload(conn, kind="raw", period="2026-10", wanted_cutoff=None, file_sha256="e" * 64)   # bộ chờ của kỳ trống
+        store.record_auto_employee_masks(conn, {"NV01": "SM01"}, {"SM99": "Nhân viên mới"})                        # K1: bảng mã che tự cấp
     conn = sqlite3.connect(db)
     for table in store.TABLES:
+        assert conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] > 0, f"bảng {table} rỗng ⇒ phép thử không chứng minh được gì"
         with pytest.raises(sqlite3.IntegrityError, match="chỉ thêm"):
             conn.execute(f"UPDATE {table} SET id = id")
         with pytest.raises(sqlite3.IntegrityError, match="chỉ thêm"):

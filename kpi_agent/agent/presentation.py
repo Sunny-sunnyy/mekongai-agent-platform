@@ -28,7 +28,7 @@ PERCENT_STUCK = re.compile(r"(\d)%")
 # bản cuối 2: cả DANH SÁCH sau từ khoá — "mục 2.2, 2.3, 2.7", "mục 6.1 và 6.3", "mục 9.1, 10.1–10.3", "các mục 2.1 đến 2.8"
 SECTION_WORD_BEFORE = re.compile(r"(?:mục|điều|khoản|bước|phần|chương|mẫu|tiểu mục|section)\s*"
                                  r"(?:\d+(?:\.\d+)*\s*(?:,|và|hoặc|đến|tới|–|-|—)\s*)*$", re.IGNORECASE)
-# 13/11 (người kiểm độc lập, 4 / 4 câu): tên khoản Thưởng thêm "Thưởng 7.1 / 7.2 / 7.3" bị đổi thành "Thưởng 7,1" — mô hình viết đúng, bước này đổi.
+# 13/11 (4 / 4 câu): tên khoản Thưởng thêm "Thưởng 7.1 / 7.2 / 7.3" bị đổi thành "Thưởng 7,1" — mô hình viết đúng, bước này đổi.
 # "thưởng" khác các chữ trên ở chỗ nó cũng đứng trước SỐ ĐO ("được thưởng 1.5 triệu") ⇒ chỉ coi là tên khoản khi sau số KHÔNG có đơn vị tiền / %.
 REWARD_ITEM_BEFORE = re.compile(r"\bthưởng\s*(?:\d+(?:\.\d+)*\s*(?:,|và|hoặc|đến|tới|–|-|—)\s*)*$", re.IGNORECASE)
 UNIT_AFTER = re.compile(r"\s*(?:%|đ\b|đồng|vnđ|vnd|triệu|tr\b|nghìn|ngàn|k\b|tỷ|ty\b)", re.IGNORECASE)

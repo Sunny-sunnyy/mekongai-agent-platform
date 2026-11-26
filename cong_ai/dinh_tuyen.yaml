@@ -34,7 +34,7 @@ mo_hinh:   # danh sách cho phép — CHỈ mục ở đây mới được gọi
 
 dinh_tuyen:   # (đường, tên Capitol gửi) ⇒ mô hình. Khớp đúng đường trước, rồi "*".
   - {duong: "*", ten: gpt-6-luna, toi: luna, ghi_chu: "khối Agent + che / rào / tóm tắt duyệt / kiểm sau ghép / kho bảng (đã vá ⇒ luna)"}
-  - {duong: messages, ten: claude-opus-4-7, toi: sonnet_55_med, ghi_chu: "NHÃN tóm gọn hội thoại (hộp đặt CONTEXT_COMPACTION_MODEL=claude-opus-4-7 — summarizer.py:367-390 bắt buộc tên Anthropic hợp lệ) ⇒ Sonnet 5.5 medium [ghi chú]; trước: luna"}
+  - {duong: messages, ten: claude-opus-4-7, toi: luna, ghi_chu: "NHÃN tóm gọn hội thoại (hộp đặt CONTEXT_COMPACTION_MODEL=claude-opus-4-7 — summarizer.py:367-390 bắt buộc tên Anthropic hợp lệ) ⇒ luna [ghi chú]; trước: sonnet_55_med"}
 
   - {duong: messages, ten: claude-sonnet-5-5,        toi: sonnet_55_med,   ghi_chu: "Sonnet 5.5 mặc định (đã chỉnh effort tại đây)"}
   - {duong: messages, ten: claude-opus-5-5,          toi: opus_55_med,     ghi_chu: "Opus 5.5 mặc định (đã chỉnh effort tại đây)"}

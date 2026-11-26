@@ -92,12 +92,16 @@ class AgentNode(AgentBaseNode):
             # Ô tĩnh chứa "tai_" (bất kể hoa / thường / tiền tố đường dẫn) ⇒ bỏ ⇒ run_python trả chua_co_file. Ô tĩnh = file mẫu du_lieu/excel/ vẫn dùng.
             logger.warning("[NATIVE_TOOL] bỏ ô tool_ma_file tĩnh dạng tai_* (chỉ hệ thống được gắn file tải lên)")
             params["tool_ma_file"] = ""
-        from nodes.agent.native_tools import kiem_kpi_khong_ra_ngoai
+        from nodes.agent.native_tools import _on, kiem_kpi_khong_ra_ngoai
 
         kiem_kpi_khong_ra_ngoai(params, co_khoi_cong_cu=bool(getattr(self, "handle_nodes", None)))   # [ghi chú]
+        _e2b_fn = getattr(self, "_e2b_dung", None)
+        _e2b_bat = bool(_e2b_fn is not None and _e2b_fn())
+        _e2b_code = _e2b_bat and (_on(params.get("tool_run_python")) or getattr(self, "_sandbox", None) is not None)
         # [ghi chú] công cụ KPI: mã lượt = WorkflowRun.id (temporal/utils/node_factory.py:118) + tổ chức — thuộc tính hệ thống của khối
         return super()._compose_agent_tools() + build_native_tools(params, run_id=str(getattr(self, "_run_id", "") or "").strip(),
-                                                                   orgid=str(getattr(self, "_orgid", "") or "").strip())
+                                                                   orgid=str(getattr(self, "_orgid", "") or "").strip(),
+                                                                   e2b_run_code=_e2b_code)
 
     async def _run(self, agent):
         """[chan_loi_mem B 16/11/2026 — đã giao, đã soát giấy ĐẠT; bản sao va_chan_loi_mem/, gắn thứ Tư] Bọc NGOÀI vòng KPI bên dưới:
@@ -322,10 +326,40 @@ class AgentNode(AgentBaseNode):
 
     async def _chay_thu_nhan_file_vao_hop(self, input_files: list) -> bool:
         """[VÁ B2b chay_thu 09/11, C] Gọi từ workflow/node/base/agent/node.py trước chỗ R12 cấm E2B.
-        Chỉ nhận khi khối bật run_python; khác ⇒ False (giữ nguyên hành vi cũ: R12 báo lỗi E2B)."""
+        Chỉ nhận khi khối bật run_python VÀ nơi chạy không đặt E2B; khác ⇒ False."""
         from nodes.agent.native_tools import _on, nhan_file_vao_hop
 
+        _e2b_fn = getattr(self, "_e2b_dung", None)
+        if _e2b_fn is not None and _e2b_fn():
+            return False
         if not _on((self._validated_params or {}).get("tool_run_python")):
             return False
         self._ma_file_tai = await nhan_file_vao_hop(input_files, str(getattr(self, "_orgid", "") or ""))
         return True
+
+    def _chay_thu_chuan_bi_file_e2b(self) -> None:
+        """[ghi chú] Khi agent_node bật run_python và đi E2B: nạp sẵn file mẫu tĩnh ở /srv/du_lieu/excel/ (nếu có, không phải tai_*)
+        qua đúng rào _e2b_kiem_noi_dung TRƯỚC khi tạo máy ảo E2B."""
+        import os
+        from pathlib import Path
+        from nodes.agent.native_tools import _on
+        from workflow.node.base.agent import sandbox_runtime as _sr
+
+        self._ct_ma_file_e2b = None
+        params = self._validated_params or {}
+        if not _on(params.get("tool_run_python")):
+            return
+        ma = str(params.get("tool_ma_file") or "").strip()
+        if not ma or "tai_" in ma.lower():
+            return
+        if "/" in ma or "\\" in ma or ma in (".", "..") or ".." in ma:
+            raise ValueError("E2B (chay_thu): tên file mẫu Excel không hợp lệ")
+        goc = Path(os.environ.get("CHAY_THU_DU_LIEU_EXCEL", "/srv/du_lieu/excel")).resolve()
+        duong = (goc / ma).resolve()
+        if duong.parent != goc or not duong.is_file():
+            raise ValueError(f"E2B (chay_thu): không thấy file mẫu '{ma[:80]}'")
+        data = duong.read_bytes()
+        if len(data) > _sr._E2B_TRAN_FILE_NGUOI_DUNG:
+            raise ValueError(f"E2B (chay_thu): file mẫu '{ma[:80]}' vượt trần {_sr._E2B_TRAN_FILE_NGUOI_DUNG} byte")
+        _sr._e2b_kiem_noi_dung(ma, data)
+        self._ct_ma_file_e2b = (ma, data)

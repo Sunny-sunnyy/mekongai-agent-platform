@@ -17,8 +17,15 @@ NOTE = "file thử tự dựng của test không có dòng nào mang giá trị 
 
 def raw_rules_allowing(*absent: str) -> dict:
     """Luật RAW tháng 10 thật + cho qua (có ghi chú) đúng các giá trị `absent`."""
+    from kpi_agent.core.load_raw import period_rules
     rules = copy.deepcopy(load_rules(RULES_RAW_OCT))
-    rules["assumptions"]["cho_qua_khong_co_don"] = [{"ma": value, "ghi_chu": NOTE} for value in absent]
+    period = period_rules(rules["assumptions"])
+    # Mục cho qua ghi theo KPI: một giá trị được nêu ở KPI nào của luật thật thì cho qua ở đúng các KPI đó ("Processed Meats": KPI 3 trừ + KPI 8 đếm)
+    named = {"LPPC": period["lppc_excluded_subdiv"], "LPPC_Meat": (period["lppc_meat_subdiv"],),
+             "ASO_Focus": period["focus"]["ASO_Focus"]["values"], "ASO_Focus_2": period["focus"]["ASO_Focus_2"]["values"]}
+    entries = [{"kpi": kpi, "ma": value, "ghi_chu": NOTE} for value in absent for kpi, values in named.items() if value in values]
+    assert {entry["ma"] for entry in entries} == set(absent), f"giá trị luật tháng 10 không nêu: {set(absent) - {e['ma'] for e in entries}}"
+    rules["assumptions"]["cho_qua_khong_co_don"] = entries
     return rules
 
 

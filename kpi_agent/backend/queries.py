@@ -58,11 +58,11 @@ class KpiContext:
     status_label_full: str = STATUS_LABEL
     # Bước 1 S3: lượt chạy workflow đã tạo ra các số trên (bước, dấu vân tay đầu vào) — backend ghi vào bảng workflow_run
     workflow_result: object = None
-    # Nhóm A — A6 (09/11): MỌI cờ của khối Kiểm dữ liệu (cả mức "info"), đã che mã — `data_flags` ở trên chỉ giữ cờ ngắn (trang); kết quả công cụ dùng `data_flags_for_model` dưới
+    # Nhóm A — (09/11): MỌI cờ của khối Kiểm dữ liệu (cả mức "info"), đã che mã — `data_flags` ở trên chỉ giữ cờ ngắn (trang); kết quả công cụ dùng `data_flags_for_model` dưới
     data_issues: list = field(default_factory=list)
     # mức tra cứu vòng 3 ( hướng (a) 09/11): cờ gắn vào MỌI kết quả công cụ = `data_flags` BỎ cờ của riêng người trong đội
     # (K3 vòng 2: câu về một người, mô hình nhận cờ của NV14 — chữ không nêu người — thành cờ của người được hỏi). Cờ đó chỉ còn ở
-    # get_data_issues (A6, có mã NV). `data_flags` đủ vẫn cho trang qua /api/meta (giám sát cần thấy mọi cờ).
+    # get_data_issues (có mã NV). `data_flags` đủ vẫn cho trang qua /api/meta (giám sát cần thấy mọi cờ).
     data_flags_for_model: list = field(default_factory=list)
     # Bậc 1 nạp chung (17/11): kết quả cổng đối soát RAW (`load_raw.reconcile`: dòng vào / tính / loại theo lý do + tiền); đường sổ Tracking ⇒ None
     raw_reconciliation: dict | None = None
@@ -113,15 +113,17 @@ def context_from_outputs(cutoff: date, to_real: dict, outputs: dict, rule_versio
 
 
 def _names_team_member(issue: dict, to_real: dict) -> bool:
-    """Cờ gắn ≥ 1 người TRONG đội — cùng cách A6 xếp `scope` "nhan_vien". Cờ chỉ có mã ngoài đội (vd "Rawdata có mã NV không có trong
-    file chỉ tiêu") vẫn là cờ cả đội, vẫn vào mọi kết quả công cụ."""
+    """Cờ gắn ≥ 1 người TRONG đội — cùng cách xếp `scope` "nhan_vien". Cờ chỉ có mã ngoài đội (vd "Rawdata có mã NV không có trong
+    file chỉ tiêu") vẫn là cờ cả đội, vẫn vào mọi kết quả công cụ.
+    """
     team = set(to_real.values())
     return any(code in team for code in issue.get("employees", []))
 
 
 def _masked_data_issues(issues: list[dict], to_real: dict) -> list[dict]:
-    """Cờ của khối Kiểm dữ liệu cho công cụ A6: câu chữ che bằng `runner.mask_codes` (mã thật NGOÀI đội — vd mã lạ trong Rawdata — thành
-    "NV??", không lộ); `employee_ids` chỉ giữ mã che của người trong đội (mã ngoài đội không có mã che ⇒ bỏ, cờ đó coi là cấp đội)."""
+    """Cờ của khối Kiểm dữ liệu cho công cụ: câu chữ che bằng `runner.mask_codes` (mã thật NGOÀI đội — vd mã lạ trong Rawdata — thành
+    "NV??", không lộ); `employee_ids` chỉ giữ mã che của người trong đội (mã ngoài đội không có mã che ⇒ bỏ, cờ đó coi là cấp đội).
+    """
     to_mask = {real: masked for masked, real in to_real.items()}
     return [{"level": issue["level"], "message": runner.mask_codes(issue["message"], to_mask),
              "employee_ids": sorted(to_mask[code] for code in issue.get("employees", []) if code in to_mask)} for issue in issues]
@@ -157,7 +159,6 @@ def _mask_codes(text: str, to_mask: dict) -> str:
     for real, masked in to_mask.items():
         text = text.replace(real, masked)
     return text
-
 
 # ---------- kiểm tham số (code quyết, không để mô hình quyết) ----------
 
@@ -242,7 +243,6 @@ def _pct(fraction: float) -> float:
     """% thực hiện 2 chữ số lẻ, làm tròn XUỐNG — cùng hàm `floor_pct` với chữ lý do của lõi (một cách làm tròn)."""
     return float(floor_pct(fraction))
 
-
 def _envelope(ctx: KpiContext, params: dict, body: dict) -> dict:
     # Bậc 4b: bản luật + trạng thái trong MỌI kết quả công cụ — để mô hình nói được "theo bản luật nào", "tạm tính" (dev 4a: A2, D1 trượt)
     return {"period": ctx.period, "cutoff": ctx.cutoff.isoformat(), "params_used": params, **body, "data_flags": ctx.data_flags_for_model,
@@ -271,6 +271,7 @@ def bonus_lines(ctx: KpiContext) -> list[dict]:
     return [{"employee_id": masked, "kpi": line.kpi, "pct": _pct(ctx.results[real][line.kpi].pct),
              "reached_tier": line.reached_label, "amount": line.amount, "reason": _mask_codes(line.reason, _masked_of(ctx))}
             for real, masked in sorted(_masked_of(ctx).items(), key=lambda item: item[1]) for line in ctx.bonuses[real]["lines"]]
+
 
 # ---------- 4 công cụ ----------
 
@@ -364,6 +365,7 @@ def explain_kpi(ctx: KpiContext, employee_id: str, kpi: str, period: str | None 
             "reason": line.reason}
     return _envelope(ctx, {"employee_id": employee_id.strip().upper(), "kpi": name, "period": ctx.period}, body)
 
+
 # nhóm A bậc mức tra cứu — chỉ đọc lõi tính sẵn có ----------
 
 NOT_REACHED = "chưa tới mốc thấp nhất"
@@ -436,8 +438,9 @@ LEVEL_LABEL = {"error": "lỗi", "warning": "cảnh báo", "info": "thông tin"}
 
 
 def get_data_issues(ctx: KpiContext, employee_id: str | None = None, period: str | None = None) -> dict:
-    """A6 — MỌI cờ của khối Kiểm dữ liệu (lỗi / cảnh báo / thông tin), lọc theo một NV nếu có: cờ gắn NV đó + cờ cả đội.
-    Một lần chụp dữ liệu — không có xu hướng theo thời gian (nói rõ trong kết quả để mô hình không suy ra "đang tốt lên / xấu đi")."""
+    """MỌI cờ của khối Kiểm dữ liệu (lỗi / cảnh báo / thông tin), lọc theo một NV nếu có: cờ gắn NV đó + cờ cả đội.
+    Một lần chụp dữ liệu — không có xu hướng theo thời gian (nói rõ trong kết quả để mô hình không suy ra "đang tốt lên / xấu đi").
+    """
     if refusal := _check_period(ctx, period):
         return _refused(refusal, employee_id=employee_id, period=period)
     code = None
@@ -453,6 +456,7 @@ def get_data_issues(ctx: KpiContext, employee_id: str | None = None, period: str
             "level_counts": {LEVEL_LABEL[level]: sum(1 for i in issues if i["level"] == level) for level in LEVEL_LABEL},
             "note": f"một lần chụp dữ liệu (pivot làm mới {snapshot}) — không có xu hướng theo thời gian"}
     return _envelope(ctx, {"employee_id": code or "cả đội", "period": ctx.period}, body)
+
 
 # ---------- bảng cho trang (KHÔNG phải công cụ của agent) ----------
 

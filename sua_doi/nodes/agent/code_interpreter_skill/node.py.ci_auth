@@ -211,9 +211,10 @@ class SkillCodeInterpreterNode(FlexibleCodeInterpreterNode):
                 return None, False
 
             archive_bytes = await self._download_via_presigned_url(archive_url)
-            # [chay_thu CI] hộp phiên: KHÔNG có `.sandbox.commands.run` (E2B) ⇒ giải nén ở đây, kiểm từng mục, upload từng file (luật V1)
+            # [ghi chú] hộp phiên hoặc máy ảo E2B: giải nén trong bộ nhớ, kiểm zip-slip / symlink / trần cỡ, rồi upload từng file
             _ci_hop = getattr(self, "_ci_dung_hop_phien", None)
-            if _ci_hop is not None and _ci_hop():
+            _e2b = getattr(self, "_e2b_dung", None)
+            if (_ci_hop is not None and _ci_hop()) or (_e2b is not None and _e2b()):
                 return await self._ci_giai_skill_trong_bo_nho(skill_id, archive_bytes)
             await self._sandbox.upload_file(
                 f"{SKILL_SANDBOX_DIR}/skill.zip", archive_bytes

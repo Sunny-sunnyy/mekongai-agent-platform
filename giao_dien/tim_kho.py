@@ -1,4 +1,4 @@
-"""[ghi chú kỹ thuật] TRANG tự gọi đường TÌM của cổng RAG (127.0.0.1:19453 ⇒ app RAG mekongai /api/v1/search) cho MỘT kho của MỘT tổ chức.
+"""[ghi chú] TRANG tự gọi đường TÌM của cổng RAG (127.0.0.1:19453 ⇒ app RAG mekongai /api/v1/search) cho MỘT kho của MỘT tổ chức.
 Chỉ một đường: POST /api/v1/search {"collections": [kho], "query": chữ ≤ 500, "k": 1–8} + X-Rag-Ma + X-Rag-Org. Cổng tự suy user_id từ tổ chức và chỉ nhận kho mang tiền
 tố của tổ chức đó ⇒ module này không khai user_id. Không gọi mô hình trả lời; bên app có tạo vector cho câu hỏi (tiền rất nhỏ, ghi SỔ BÊN HỌ — bên mình chỉ đếm số lần
 tìm ở sổ của trang, may_chu._tim_tai_lieu). Bí mật RAG_MA đọc từ env tiến trình may_chu; không in, không ghi nhật ký.
@@ -13,22 +13,30 @@ import urllib.parse
 
 _ORG = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 _KHO = re.compile(r"CHATBOT_capitol_[0-9a-f]{32}_[A-Za-z0-9_\-]{1,200}")
-CAU_TOI_DA, K_TOI_DA, TRA_TOI_DA, HET_GIO = 500, 8, 8 * 1024 * 1024, 20   # câu ≤ 500 ký tự và k ≤ 8 là luật của CỔNG (rag_cong.py); trả ≤ 8 MB phía trang
+_MIME_ANH = re.compile(r"^image/(png|jpeg|jpg|webp|gif)$", re.IGNORECASE)
+_B64 = re.compile(r"^[A-Za-z0-9+/=\s]+$")
+CAU_TOI_DA, K_TOI_DA, TRA_TOI_DA, HET_GIO, ANH_B64_TOI_DA = 500, 8, 8 * 1024 * 1024, 20, 2_500_000
 
 
-def tim(org: str, kho: str, cau: str, k: int = K_TOI_DA, goc: str | None = None, ma: str | None = None, ket_noi=None):
+def tim(org: str, kho: str, cau: str, k: int = K_TOI_DA, goc: str | None = None, ma: str | None = None, ket_noi=None,
+        include_images: bool = False, whole_file_for_lists: bool = False):
     goc = goc or os.environ.get("RAG_CONG_GOC") or ""
     ma = ma or os.environ.get("RAG_MA") or ""
     if not goc or not ma:
         return 0, [], "chưa nối cổng tìm tài liệu"
-    ds_kho = [kho] if isinstance(kho, str) else list(kho) if isinstance(kho, (list, tuple)) else []   # [ghi chú kỹ thuật] ≤ 5 kho mỗi lời gọi (trần của cổng)
+    ds_kho = [kho] if isinstance(kho, str) else list(kho) if isinstance(kho, (list, tuple)) else []   # [ghi chú] ≤ 5 kho mỗi lời gọi (trần của cổng)
     if not _ORG.fullmatch(str(org)) or not 1 <= len(ds_kho) <= 5 or not all(isinstance(x, str) and _KHO.fullmatch(x) for x in ds_kho):
         return 400, [], "tổ chức / kho không hợp lệ"
     cau = " ".join(str(cau or "").split())[:CAU_TOI_DA]
     if not cau:
         return 400, [], "câu tìm rỗng"
     u = urllib.parse.urlsplit(goc)
-    than = json.dumps({"collections": ds_kho, "query": cau, "k": max(1, min(int(k), K_TOI_DA))}, ensure_ascii=False).encode()
+    goi_than = {"collections": ds_kho, "query": cau, "k": max(1, min(int(k), K_TOI_DA))}
+    if include_images:
+        goi_than["include_images"] = True
+    if whole_file_for_lists:
+        goi_than["whole_file_for_lists"] = True
+    than = json.dumps(goi_than, ensure_ascii=False).encode()
     try:
         c = (ket_noi or http.client.HTTPConnection)(u.hostname, u.port or 80, timeout=HET_GIO)
         c.request("POST", "/api/v1/search", body=than, headers={"Content-Type": "application/json", "X-Rag-Ma": ma, "X-Rag-Org": org})
@@ -47,5 +55,13 @@ def tim(org: str, kho: str, cau: str, k: int = K_TOI_DA, goc: str | None = None,
     ra = []
     for x in ds if isinstance(ds, list) else []:
         if isinstance(x, dict) and isinstance(x.get("text"), str) and x["text"].strip() and isinstance(x.get("page"), int) and not isinstance(x.get("page"), bool):
-            ra.append({"page": x["page"], "text": x["text"], "file": str(x.get("file") or "")[:200], "kind": str(x.get("kind") or "")[:40], "score": x.get("score")})
+            muc = {"page": x["page"], "text": x["text"], "file": str(x.get("file") or "")[:200], "kind": str(x.get("kind") or "")[:40], "score": x.get("score")}
+            b64 = x.get("image_base64")
+            mime = str(x.get("image_mime") or "image/png").strip()
+            if isinstance(b64, str) and 10 <= len(b64) <= ANH_B64_TOI_DA and _MIME_ANH.fullmatch(mime) and _B64.fullmatch(b64):
+                muc["image_base64"] = "".join(b64.split())
+                muc["image_mime"] = "image/jpeg" if mime.lower() == "image/jpg" else mime.lower()
+                if x.get("figure_id") is not None:
+                    muc["figure_id"] = str(x["figure_id"])[:80]
+            ra.append(muc)
     return 200, ra, None

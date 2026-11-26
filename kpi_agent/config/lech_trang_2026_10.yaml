@@ -10,7 +10,7 @@ reasons: {}
 
 # 12/11 (E — tab "Chi tiết" điểm bán thuộc tuyến, backend/outlets.py): ghi chú hiện dưới bảng, KHÔNG phải lý do của ô nào ở tab Theo dõi ⇒ khoá riêng
 # ngoài `reasons`. File này CHỈ giữ số của TRANG (đọc từ tab "Chi tiết" của trang, file phân tích 10/11) + lời; số của MÌNH do backend điền từ tổng
-# đang hiện (người kiểm 12/11: chữ cứng "ở đây … đ" sẽ lệch với màn khi đổi ngày chốt / file đơn hàng).
+# đang hiện (12/11: chữ cứng "ở đây … đ" sẽ lệch với màn khi đổi ngày chốt / file đơn hàng).
 # 13/11 (E — dòng 13 bài 15b): ĐÃ GIẢI — trang cộng doanh số SAU chiết khấu, gồm cả hoá đơn xuất trễ (đếm lại bằng script riêng: khớp 2.501 / 2.501 điểm)
 # ⇒ backend tính thêm tiền "như trang" (outlets.py `page_*`) và so tổng với số dưới; chỉ giữ SỐ của trang (lời do backend viết).
 outlet_sales_page_total: 10144849688

@@ -166,7 +166,7 @@ def test_total_needs_a_tool_result_carrying_it(client, money):
     assert _kiem(client, answer, BOTH_CALLS)["dat"] is True
 
 
-# ---------- kiem_so@25: ba lỗ CÓ TỪ TRƯỚC người kiểm tìm khi dò @24 (câu SAI mà @23 lẫn @24 đều cho qua) ----------
+# kiem_so@25: ba lỗ CÓ TỪ TRƯỚC tìm khi dò @24 (câu SAI mà @23 lẫn @24 đều cho qua) ----------
 
 @pytest.fixture(scope="module")
 def part(client, money) -> dict:
@@ -184,7 +184,7 @@ HEAD = "| NV | 8 KPI | Thưởng thêm | Tổng 8 KPI + thưởng thêm |\n|---|
 
 # (a) BẢNG: tên khoản nằm ở TIÊU ĐỀ CỘT, không ở dòng của số
 TABLE_BAD = [
-    HEAD + "| NV03 | {K} đ | {T} đ | {T} đ |",                       # ô "Thưởng thêm" ghi số tổng (ca R2a của người kiểm)
+    HEAD + "| NV03 | {K} đ | {T} đ | {T} đ |",                       # ô "Thưởng thêm" ghi số tổng (ca R2a của)
     HEAD + "| NV03 | {E} đ | {E} đ | {T} đ |",                       # ô "8 KPI" ghi số thưởng thêm
     HEAD + "| NV03 | {K} đ | {E} đ | {K} đ |",                       # ô tổng ghi số 8 KPI
     "| Nhân viên | Lương kinh doanh | Thưởng thêm |\n|---|---|---|\n| NV03 | {E} đ | {K} đ |",        # đảo hai cột
@@ -239,7 +239,7 @@ def test_team_total_without_team_tool_result_is_blocked(client, part):
 
 
 # ---------- kiem_so@29 (19/11): dòng TỔNG GỘP không nêu tên khoản, đứng sau hai phần 8 KPI + thưởng thêm ----------
-# Ca dự án bên cạnh báo + người kiểm độc lập phát lại trên @26 / @27 / @28: 6 / 6 cách viết sai đều QUA. Hai câu đầu của GRAND_BAD là NGUYÊN VĂN người
+# Ca dự án bên cạnh báo + phát lại trên @26 / @27 / @28: 6 / 6 cách viết sai đều QUA. Hai câu đầu của GRAND_BAD là NGUYÊN VĂN người
 # kiểm gửi (S1, S6 — đỏ trước); số cố định trong câu được test tự kiểm còn khớp công cụ. Các câu khác do người sửa thêm, kỳ vọng ghi trước khi chạy.
 NV7 = "NV07"
 NV7_QUESTION = "NV07 được những khoản thưởng thêm nào, mỗi khoản bao nhiêu, tổng 8 KPI cộng thưởng thêm là bao nhiêu?"
@@ -282,10 +282,10 @@ def test_grand_total_line_with_the_true_total_passes(client, answer):
     assert result["dat"] is True, result["loi"]
 
 
-# ---------- Vòng 2 của @29 (người kiểm độc lập 19/11): test theo LOẠI — mọi cách gọi một con số là "tổng của cả hai phần" ----------
+# Vòng 2 của @29: test theo LOẠI — mọi cách gọi một con số là "tổng của cả hai phần" ----------
 # Loại lỗ: câu trả lời đã nêu TIỀN của cả 8 KPI lẫn thưởng thêm của một người, rồi một NHÃN KIỂU TỔNG không nêu tên khoản mang số của MỘT phần.
 # Nhãn × cách trình bày (dòng riêng, cùng dòng, câu riêng sau dấu chấm, ô bảng, in đậm, cách một dòng trống) × phần bị lấy nhầm × hai nhân viên.
-# Hai nhãn "Tổng cả hai khoản" và "Tổng gộp" + cách trình bày "câu riêng" là nguyên văn người kiểm (lọt trên bản đầu @29).
+# Hai nhãn "Tổng cả hai khoản" và "Tổng gộp" + cách trình bày "câu riêng" là nguyên văn (lọt trên bản đầu @29).
 TOTAL_LABELS = ["Tổng cộng", "Tổng cả hai khoản", "Tổng gộp", "Cộng hai phần", "Cộng lại", "Gộp cả hai", "Tổng thực nhận", "Tất cả", "Tổng số tiền",
                 "Tổng thu nhập", "Tổng"]                                     # "Tổng" đứng một mình: siết ở commit riêng
 LAYOUTS = {
@@ -362,7 +362,7 @@ def test_bare_total_word(client, two_people, template, passes, code):
     assert _kiem(client, template.format(nv=code, **numbers), calls, f"{code} nhận tổng cộng bao nhiêu?")["dat"] is passes
 
 
-# ---------- kiem_so@30 (19/11): MỘT KHOẢN LẺ nhắc lại dưới nhãn KHÔNG nêu tên khoản (người kiểm độc lập: "thôi dò theo chữ của nhãn") ----------
+# kiem_so@30 (19/11): MỘT KHOẢN LẺ nhắc lại dưới nhãn KHÔNG nêu tên khoản ("thôi dò theo chữ của nhãn") ----------
 # Loại lỗ: câu trả lời đã nêu tiền của CẢ HAI phía (8 KPI và thưởng thêm) của một người, rồi một số tiền đứng sau BẰNG đúng số 8 KPI (K) hoặc đúng số
 # thưởng thêm của người đó mà nhãn / vế của nó KHÔNG nêu tên khoản đó ⇒ người đọc hiểu như một khoản khác / số tổng. Nhãn ở đây cố ý KHÔNG có chữ
 # tổng / cộng / gộp (lưới @29 đã phủ nhãn có chữ tổng); thêm "Tổng thu nhập tháng" vì số đứng ngay sau chữ "tháng" từng bị che như "tháng 10".
@@ -447,7 +447,7 @@ def test_money_after_month_word_must_have_a_source(client, two_people):
 
 
 # ---------- kiem_so@30 vòng 2 (20/11): nhãn NÊU CẢ HAI phía (8 KPI / lương kinh doanh VÀ thưởng thêm) mà số chỉ là MỘT khoản lẻ ----------
-# Hồi quy người kiểm độc lập tìm ở vòng 1: "- 8 KPI và thưởng thêm: K đ" — bản 29 chặn (nhờ chữ số của "8 KPI" cắt nhãn), bản 30 cho qua vì nhãn có
+# Hồi quy tìm ở vòng 1: "- 8 KPI và thưởng thêm: K đ" — bản 29 chặn (nhờ chữ số của "8 KPI" cắt nhãn), bản 30 cho qua vì nhãn có
 # tên khoản của K. Luật theo LOẠI: nhãn / vế nêu cả hai phía ⇒ người đọc hiểu là tổng hai khoản ⇒ số phải là ô tổng gộp; bằng đúng một khoản lẻ ⇒ chặn,
 # KỂ CẢ khi chưa nêu riêng hai phía ở phía trước. Không dò theo chữ nối ("và", ",", "+", "cùng", "kèm") — chỉ xét nhãn có tên của cả hai phía.
 BOTH_LABELS = ["8 KPI và thưởng thêm:", "Lương kinh doanh 8 KPI, thưởng thêm:", "Lương kinh doanh 8 KPI + thưởng thêm:", "8 KPI cùng thưởng thêm là",
@@ -484,7 +484,7 @@ def test_true_total_under_label_naming_both_sides_passes(client, two_people, lab
 
 
 # Câu ĐÚNG có tên của cả hai phía quanh một khoản lẻ ⇒ phải qua: tên kia đứng sau lời LOẠI TRỪ ("không tính / chưa gồm thưởng thêm" = đang nói về 8 KPI),
-# hai số kể "lần lượt", tên khoản đứng sau số qua chữ "từ". Hai câu đầu là chặn oan MỚI của bản 30 người kiểm ghi ở vòng 1.
+# hai số kể "lần lượt", tên khoản đứng sau số qua chữ "từ". Hai câu đầu là chặn oan MỚI của bản 30 ghi ở vòng 1.
 @pytest.mark.parametrize("code", ["NV03", "NV07"])
 @pytest.mark.parametrize("template", [
     PART_BASE + "\n- Nhận về: {T} đ (trong đó {K} đ từ 8 KPI)",
@@ -509,7 +509,7 @@ def test_excluded_side_number_is_blocked(client, two_people, template, code):
     assert _kiem(client, answer, _calls_of(code), f"{code} nhận tổng cộng bao nhiêu?")["dat"] is False, answer
 
 
-# ---------- kiem_so@30 vòng 3 (20/11, M2 người kiểm): lời loại trừ BỊ PHỦ ĐỊNH không phải lời loại trừ ----------
+# kiem_so@30 vòng 3 (20/11, M2): lời loại trừ BỊ PHỦ ĐỊNH không phải lời loại trừ ----------
 # "không bỏ / chưa trừ / chẳng bớt thưởng thêm" nghĩa là CÓ gồm khoản đó — vòng 2 đọc thành "loại trừ thưởng thêm" rồi bỏ lớp kiểm khoản ⇒ số một khoản
 # lẻ dưới nhãn như vậy lọt. Theo LOẠI: chữ phủ định × động từ loại trừ × khoản bị nhắc × cách trình bày.
 NEGATIONS = ["không", "chưa", "chẳng", "không hề", "chả"]   # không dùng "không cần": chữ "cần" làm số thành số CÓ ĐIỀU KIỆN (luật mốc) — loại khác
@@ -551,7 +551,7 @@ def test_excluded_part_under_two_names_is_blocked_without_prior_parts(client, tw
     assert _kiem(client, answer, _calls_of(code), f"{code} nhận tổng cộng bao nhiêu?")["dat"] is False, answer
 
 
-# Hai câu ĐÚNG người kiểm thấy bị chặn oan ở vòng 2
+# Hai câu ĐÚNG thấy bị chặn oan ở vòng 2
 @pytest.mark.parametrize("code", ["NV03", "NV07"])
 @pytest.mark.parametrize("template", [
     "{K} đ là lương kinh doanh 8 KPI, {E} đ là thưởng thêm.",       # không có mã đứng trước — người được hỏi ở câu hỏi

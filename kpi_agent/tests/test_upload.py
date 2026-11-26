@@ -277,27 +277,22 @@ def test_12_m1_refused_files_leave_nothing_and_do_not_fill_the_cap(raw_client):
     assert _post(raw_client, RAW.read_bytes(), ngay_chot="2026-10-31").status_code == 200
 
 
-def test_15_spice_is_refused_for_uploaded_version(raw_client, raw_until_20):
-    # nhóm kỹ thuật tìm 16/11: bản tải lên không có ô `spice` ⇒ công cụ get_spice_loyalty với ?data_version= rơi về số 1 % gia vị của bản LÚC BẬT.
-    # Ca xấu: bản tải lên ⇒ lời từ chối, KHÔNG có số. Ca thật: bản lúc bật vẫn 11.868.854 (công cụ + đường hệ thống).
-    from kpi_agent.backend import main
+def test_15_uploaded_version_has_its_own_spice_not_the_startup_numbers(raw_client, raw_until_20):
+    # 16/11 (nhóm kỹ thuật tìm): bản tải lên không có ô `spice` ⇒ công cụ với ?data_version= rơi về số 1 % gia vị của bản LÚC BẬT ⇒ khi đó chọn từ chối.
+    # 20/11 (2a-2 nấc 1): bản tải lên TỰ tính từ file của nó ⇒ trả số CỦA NÓ. Điều rào cũ bảo vệ vẫn giữ: không bao giờ trả số bản lúc bật cho bản khác
+    # (ca đủ sáu đường + hai bản xen kẽ: test_gia_vi_ban_tai_len.py). Ca thật: bản lúc bật vẫn 11.868.854.
     up = _post(raw_client, raw_until_20, ngay_chot="2026-10-20")
     assert up.status_code == 200, up.text[:300]
     q = {"data_version": up.json()["data_version"]}
     uploaded = raw_client.post("/api/tool/get_spice_loyalty", json={"args": {}}, params=q)
-    assert uploaded.status_code == 200 and uploaded.json().get("refused", "").startswith(main.SPICE_BASE_ONLY), uploaded.text[:300]
-    assert "team" not in uploaded.json() and "by_salesperson_in_charge" not in uploaded.json()
-    one = raw_client.post("/api/tool/get_spice_loyalty", json={"args": {"employee_id": "NV05"}}, params=q).json()
-    assert "refused" in one and "by_salesperson_in_charge" not in one
+    assert uploaded.status_code == 200 and "refused" not in uploaded.json(), uploaded.text[:300]
     base = raw_client.post("/api/tool/get_spice_loyalty", json={"args": {}}).json()
     assert base["team"]["reward_paid_to_customers"] == 11_868_854, str(base)[:300]
+    assert uploaded.json()["team"]["reward_paid_to_customers"] != 11_868_854        # số của bản 20/10, không phải số bản lúc bật
     system = raw_client.get("/api/system/spice-loyalty", headers=KEY)
     assert system.status_code == 200 and system.json()["team_reward"] == 11_868_854
-    assert raw_client.get("/api/system/spice-loyalty", headers=KEY, params=q).status_code == 409
-    # đường trang (không qua _for_version) với mã bản khác ⇒ lời từ chối, không trả số / khách của bản lúc bật
-    for path in ("/api/spice-loyalty", "/api/spice-tool", "/api/spice-customers"):
-        page = raw_client.get(path, params=q).json()
-        assert page.get("refused", "").startswith(main.SPICE_BASE_ONLY) and "rows" not in page and "team_reward" not in page, (path, str(page)[:200])
+    own = raw_client.get("/api/system/spice-loyalty", headers=KEY, params=q)
+    assert own.status_code == 200 and own.json()["team_reward"] == uploaded.json()["team"]["reward_paid_to_customers"]
     assert raw_client.get("/api/spice-customers").json()["customers"] == 1351          # không mã bản ⇒ như cũ
 
 
@@ -453,13 +448,12 @@ def test_26_meta_of_one_version(raw_client, raw_until_20):
     assert unknown.status_code == 404 and version not in unknown.text
 
 
-def test_27_membership_is_refused_for_uploaded_version(raw_client, raw_until_20):
-    # m6: /api/membership bỏ qua ?data_version= ⇒ bản tải lên nhận số hội viên của bản LÚC BẬT. Ca xấu: bản tải lên ⇒ lời từ chối, không có
-    # khách nào. Ca thật: không data_version / data_version của bản lúc bật ⇒ như cũ (cùng danh sách).
-    from kpi_agent.backend import main
+def test_27_uploaded_version_has_its_own_membership_list(raw_client, raw_until_20):
+    # m6 (17/11): /api/membership bỏ qua ?data_version= ⇒ bản tải lên nhận số hội viên của bản LÚC BẬT ⇒ khi đó chọn từ chối.
+    # 20/11 (2a-2 nấc 1): bản tải lên có danh sách của CHÍNH nó (doanh số tới ngày chốt của nó) — khác bản lúc bật; không mã bản ⇒ như cũ.
     version = _post(raw_client, raw_until_20, ngay_chot="2026-10-20").json()["data_version"]
     uploaded = raw_client.get("/api/membership", params={"data_version": version}).json()
-    assert uploaded.get("refused", "").startswith(main.MEMBERSHIP_BASE_ONLY) and "rows" not in uploaded and "customers" not in uploaded, str(uploaded)[:300]
+    assert "refused" not in uploaded and uploaded["cutoff"] == "2026-10-20", str(uploaded)[:300]
     base = raw_client.get("/api/membership").json()
     assert "refused" not in base, str(base)[:300]
     assert raw_client.get("/api/membership", params={"data_version": raw_client.app.state.data_version}).json() == base

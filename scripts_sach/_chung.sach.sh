@@ -28,6 +28,7 @@ COMPOSE_FILES=(
   -f "${ROOT_DIR}/compose.mcp_shop.yaml"
   -f "${ROOT_DIR}/compose.mo_hinh_mac_dinh.yaml"
   -f "${ROOT_DIR}/compose.rao_code.yaml"
+  -f "${ROOT_DIR}/compose.kpi_mang.yaml"
   -f "${ROOT_DIR}/compose.khong_ve_may.yaml"
 )
 
@@ -36,7 +37,11 @@ if [[ -f "${SCRIPT_DIR}/compose.sach.override.yaml" ]]; then
 fi
 
 dc() {
-  docker compose --project-directory "${ROOT_DIR}" "${COMPOSE_FILES[@]}" "$@"
+  local proj=()
+  if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
+    proj=(-p "${COMPOSE_PROJECT_NAME}")
+  fi
+  docker compose "${proj[@]}" --project-directory "${ROOT_DIR}" "${COMPOSE_FILES[@]}" "$@"
 }
 
 can_ram() {

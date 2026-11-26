@@ -175,7 +175,7 @@ CALLS = [("get_team_bonus_table", {}), ("get_team_bonus_table", {"period": "2026
          ("simulate_kpi_change", {"employee_id": "NV05", "kpi": "ASO_ALL", "extra": "abc"}),
          ("simulate_kpi_change", {"employee_id": "NV05", "kpi": "ASO_ALL", "extra": -5}),
          ("simulate_kpi_change", {"employee_id": "NV05", "kpi": "ASO_ALL"}),
-         # Nhóm A bậc mức tra cứu (A1, A3, A6 — gộp e-a-i-v3 10/11): đúng + thiếu / sai tham số
+         # Nhóm A bậc mức tra cứu (A1, A3 — gộp e-a-i-v3 10/11): đúng + thiếu / sai tham số
          ("get_team_kpi_summary", {"kpi": "ASO_ALL"}), ("get_team_kpi_summary", {"kpi": "turnover"}), ("get_team_kpi_summary", {}),
          ("get_team_kpi_summary", {"kpi": "XYZ"}), ("get_team_kpi_summary", {"kpi": "ASO_ALL", "period": "2026-09"}),
          ("compare_employees", {"employee_a": "NV05", "employee_b": "NV14"}),

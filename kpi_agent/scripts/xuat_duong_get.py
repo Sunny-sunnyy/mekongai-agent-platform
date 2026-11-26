@@ -25,13 +25,13 @@ from kpi_agent.backend import main, queries
 
 # "/api/order-lines": danh sách đơn của một nhân viên — CHƯA cho qua cổng xem ở bậc này (không đổi sha file đường trước mốc 3; bậc sau tính)
 # "/api/membership", "/api/spice-customers" (13/11): danh sách từng KHÁCH (tên + mã) của Hội viên / 1 % gia vị — đường CHỈ CHO TRANG trên máy, không cho
-# qua cổng xem của Capitol (người kiểm 13/11: thiếu dòng này thì chạy lại script sẽ đưa đường có tên khách vào danh sách cổng xem).
+# qua cổng xem của Capitol (13/11: thiếu dòng này thì chạy lại script sẽ đưa đường có tên khách vào danh sách cổng xem).
 # "/api/calc" (17/11, E — công cụ tính cho ĐƯỜNG CHAT trên máy): tham số `args` là JSON lồng nhau tự do — không viết được regex chặt; Capitol gọi công
 # cụ tính qua `/api/tool/{name}` (đã loại ở trên) ⇒ không cho qua cổng xem; sha `duong_get_xem.json` giữ nguyên. Giới hạn: chat chế độ "một nguồn số"
 # (qua cổng xem) chưa có công cụ tính.
 EXCLUDED_PREFIXES = ("/api/system", "/api/tool", "/api/export", "/api/workflow", "/api/blocks", "/api/order-lines", "/api/membership", "/api/spice-customers",
                      "/api/calc")
-# Regex viết để an toàn với MỌI cách so của bên dùng (người kiểm độc lập 12/11): chỉ `[0-9]` (không `\d` — `\d` nhận cả chữ số Unicode như "５");
+# Regex viết để an toàn với MỌI cách so của bên dùng: chỉ `[0-9]` (không `\d` — `\d` nhận cả chữ số Unicode như "５");
 # kết thúc bằng `END` = `(?![\s\S])$` — "không còn ký tự nào sau đó" — vì `$` trần khớp TRƯỚC dấu xuống dòng cuối khi so bằng re.match ("NV05\n" lọt).
 # Bên dùng vẫn nên so bằng fullmatch.
 END = r"(?![\s\S])$"

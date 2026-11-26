@@ -151,7 +151,7 @@ await phone.waitForSelector(".page-kpi table.matrix", { timeout: 120000 });
 check("390 px: trang không tràn ngang (bảng cuộn trong khung riêng)", (await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0);
 await phone.screenshot({ path: `${out}/theo_doi_8kpi_390.png`, fullPage: true });
 check("0 lỗi JS / console", errors.length === 0, errors.slice(0, 3).join(" | "));
-// ---- thẻ điểm bán chưa có đơn (người kiểm 13/11: API có tên + địa chỉ mà thẻ vẫn in câu cũ "chưa có tên và địa chỉ") — kiểm TRÊN MÀN, không chỉ API
+// thẻ điểm bán chưa có đơn (13/11: API có tên + địa chỉ mà thẻ vẫn in câu cũ "chưa có tên và địa chỉ") — kiểm TRÊN MÀN, không chỉ API
 await page.click('.tracking-bar .tracking-tabs button:has-text("Chi tiết")');
 await page.waitForSelector(".outlets-view .outlet-card", { timeout: 120000 });
 const noOrder = outletRows.find((row) => row.name_from_route_sheet);

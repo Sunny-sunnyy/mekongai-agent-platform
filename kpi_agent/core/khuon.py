@@ -36,18 +36,32 @@ _DON_HANG = [
     ("outlet_name", "tên cửa hàng (dữ liệu khách — chỉ cho trang)", "chuoi", False, "OUTLET NAME", "Chi tiết, xem đơn"),
     ("address", "địa chỉ cửa hàng (dữ liệu khách — chỉ cho trang)", "chuoi", False, "ADDRESS", "Chi tiết"),
 ]
-SCHEMAS = {"don_hang": [{"field": f, "meaning": m, "kind": k, "required": r, "default_column": c, "used_for": u, "may_be_blank": f == "invoiced_at"}
-                        for f, m, k, r, c, u in _DON_HANG]}
+# Bảng `tuyen` (giai đoạn 2a-1, 20/11): danh sách điểm bán trong tuyến của từng nhân viên — ĐẦU VÀO lấy từ sổ theo dõi tải lên (sheet MCP), thay file
+# JSON tách tay từ trang. Không có trường tiền. Chỉ 4 trường lõi đang dùng (tần suất viếng thăm của sổ không vào bảng — file đang dùng không có ô đó,
+# thêm vào là đổi hình bảng lõi đọc).
+_TUYEN = [
+    ("sm_code", "mã nhân viên bán hàng phụ trách điểm bán", "chuoi", True, "SM code", ""),
+    ("outlet_code", "mã điểm bán (ô số ⇒ đổi về chuỗi không '.0'; số 0 đầu chỉ giữ được khi ô là chữ)", "chuoi", True, "Outlet_code", ""),
+    ("channel", "kênh bán (Off / On)", "tap", True, "L1", ""),
+    ("visit_day", "ngày viếng thăm trong tuần (chữ của sổ, giữ nguyên)", "chuoi", False, "Viếng thăm", "Điểm bán, Hội viên"),
+]
+_as_fields = lambda rows: [{"field": f, "meaning": m, "kind": k, "required": r, "default_column": c, "used_for": u, "may_be_blank": f == "invoiced_at"}
+                           for f, m, k, r, c, u in rows]
+SCHEMAS = {"don_hang": _as_fields(_DON_HANG), "tuyen": _as_fields(_TUYEN)}
 # Bộ cột của file xuất DMS đã gặp (RAW T10 = T11, 38 cột, B đọc 17/11). Chỉ tên trong bộ này được trả lại cho trang; tên khác là chữ người đặt
 # ⇒ che (rào U1, `backend/upload.py` đầu file: lời trả không lặp chữ người tải đặt). Danh sách này KHÔNG phải luật ghép — chỉ để biết tên nào an toàn.
 KNOWN_COLUMNS = {"don_hang": (
     "SHIP TO", "DISTRIBUTOR", "SS CODE", "SS NAME", "SM CODE", "SM_NAME", "SALETEAM", "POS_CODE", "ORDER NUM", "ORDER STATUS", "ORDER DATE",
     "OUTLET CODE", "OUTLET NAME", "ADDRESS", "PROVINCE", "Ward", "SUB DIV", "DMS OBJ", "SKU CODE", "SKU DESC", "UNIT PRICE", "CASE/PACK",
     "QUANTITY CASE", "QUANTITY PIECE", "TOTAL CASES", "TOTAL PIECES", "Sales Before Discount", "Discount value", "Sales After Discount",
-    "FREE ITEM FLAG", "Promotion value", "INVOICED DATE", "INVOICE NUMBER", "L1", "L2", "L3", "MOQ_FLAG", "BRAND")}
-KNOWN_SHEETS = {"don_hang": ("Export",)}
+    "FREE ITEM FLAG", "Promotion value", "INVOICED DATE", "INVOICE NUMBER", "L1", "L2", "L3", "MOQ_FLAG", "BRAND"),
+    # sheet MCP của sổ tháng 10 (B mở 20/11): "Position code / SM code / SM name" LẶP 4 lần trên dòng tiêu đề ⇒ bảng tuyến ghép theo VỊ TRÍ cột
+    "tuyen": ("Position code", "SM code", "SM name", "Total", "L1", "Outlet_code", "Outlet_name", "Address", "Ward", "Frequency",
+              "Tuần viếng thăm", "Viếng thăm", "VIP MCH")}
+KNOWN_SHEETS = {"don_hang": ("Export",), "tuyen": ("MCP",)}
 # Vân tay bố cục đã biết = bố cục RAW T10 / T11 (B tính 17/11 bằng `layout_fingerprint("Export", 1, <38 cột>)`). Bước 2.3 thêm bố cục người đã xác nhận (kho)
-KNOWN_LAYOUTS = {"don_hang": "4ad9d836443f5a17ad608c2cf61333a4feee4896874e3bf1d3d63a0959f0d341"}
+# "tuyen": sheet MCP, tiêu đề dòng 7, 51 cột của sổ tháng 10 (B tính 20/11 bằng `layout_fingerprint("MCP", 7, <dòng 7>)`)
+KNOWN_LAYOUTS = {"don_hang": "4ad9d836443f5a17ad608c2cf61333a4feee4896874e3bf1d3d63a0959f0d341", "tuyen": "de388cb58eee567be70bcd1e8acc8b033df060bbe6865d917f8b84d6117e5c77"}
 HEADER_SCAN_ROWS = 20   # dòng tiêu đề tìm trong 20 dòng đầu (file gõ tay có dòng tựa ở trên)
 
 
@@ -135,8 +149,19 @@ FLAG_RATE_MIN_LINES = 100
 MONEY_TOLERANCE = 1   # đồng — RAW có doanh số lẻ (0,54 đ); lệch < 1 đ coi là bằng
 
 
+# CÔNG THỨC ĐỌC lưu sẵn của bảng tuyến trong sổ tháng 10 — ghép theo VỊ TRÍ cột (tên cột lặp), nên CHỈ áp khi vân tay bố cục khớp
+# `KNOWN_LAYOUTS["tuyen"]` (vân tay băm tên cột THEO THỨ TỰ, kể cả ô trống ở giữa ⇒ chèn / bớt một cột là vân tay khác).
+# Không lọc theo tên kênh: dòng "Kênh Vãng lai" của sổ thuộc một mã không có trong file chỉ tiêu ⇒ do luật "mã ngoài đội" của `load_tuyen` bỏ.
+# Công thức KHÔNG được trỏ vào sheet / cột KẾT QUẢ sếp tính trong sổ (đầu vào ⇄ đáp án); trang của sếp chỉ dùng để KIỂM, lõi không đọc trang.
+# Công thức KHÔNG mang ngày: ngày chốt là tham số người tải gửi, không đọc từ file (chốt 20/11).
+_TUYEN_OCTOBER = {"table": "tuyen", "sheet": "MCP", "header_row": 7,
+                  "columns": {"sm_code": 41, "channel": 43, "outlet_code": 44, "visit_day": 50}, "values": {},
+                  "rows": {"bo_dong_trong": ["sm_code"]}}
 def default_mapping(table: str) -> dict:
-    """Bảng ghép của bố cục RAW T10 / T11 (đã biết) — mọi trường về cột mặc định, không ghép giá trị, ô số phải là số thật."""
+    """Bảng ghép của bố cục RAW T10 / T11 (đã biết) — mọi trường về cột mặc định, không ghép giá trị, ô số phải là số thật.
+    Bảng `tuyen`: công thức đọc lưu sẵn của sổ tháng 10."""
+    if table == "tuyen":
+        return json.loads(json.dumps(_TUYEN_OCTOBER))   # bản chép — bên gọi sửa không đụng bản gốc
     return {"table": table, "sheet": KNOWN_SHEETS[table][0], "header_row": 1,
             "columns": {field["field"]: field["default_column"] for field in schema(table)}, "values": {}}
 
@@ -164,7 +189,13 @@ def normalize_mapping(mapping: dict) -> dict:
     for name, pairs in values.items():
         if name not in CANONICAL_VALUES or not isinstance(pairs, dict) or any(target not in CANONICAL_VALUES[name] for target in pairs.values()):
             errors.append(f"values.{name}: chỉ ghép được về {sorted(CANONICAL_VALUES.get(name, ()))}")
-    errors += [f"khoá lạ {name}" for name in mapping if name not in ("table", "sheet", "header_row", "columns", "values", "accepted_values")]
+    errors += [f"khoá lạ {name}" for name in mapping if name not in ("table", "sheet", "header_row", "columns", "values", "accepted_values", "rows")]
+    # rows (bảng tuyen): {"bo_dong_trong": [trường]} — dòng mà các trường này trống là dòng trắng, bỏ. Không có biểu thức, không lọc theo giá trị
+    # (dòng của người ngoài đội do luật dữ liệu của `load_tuyen` bỏ, không do công thức).
+    rows = mapping.get("rows")
+    if rows is not None and (table != "tuyen" or not isinstance(rows, dict) or set(rows) != {"bo_dong_trong"} or not isinstance(rows["bo_dong_trong"], list)
+                             or any(name not in columns for name in rows["bo_dong_trong"])):
+        errors.append("rows: chỉ bảng tuyen; chỉ nhận {bo_dong_trong: danh sách trường đã ghép cột}")
     accepted = mapping.get("accepted_values") if isinstance(mapping.get("accepted_values"), dict) else {}
     errors += [f"accepted_values.{name}: chỉ cho qua giá trị mới của {', '.join(ACCEPTABLE_NEW)} (kênh / cờ phải ghép)"
                for name, items in accepted.items() if name not in ACCEPTABLE_NEW or not isinstance(items, list)
@@ -175,7 +206,8 @@ def normalize_mapping(mapping: dict) -> dict:
     return {"table": table, "sheet": strip(mapping["sheet"]), "header_row": mapping["header_row"],
             "columns": {name: strip(columns[name]) for name in fields if columns.get(name)},
             "values": {name: dict(sorted(values[name].items())) for name in sorted(values)},
-            **({"accepted_values": {name: sorted(set(accepted[name])) for name in sorted(accepted)}} if accepted else {})}
+            **({"accepted_values": {name: sorted(set(accepted[name])) for name in sorted(accepted)}} if accepted else {}),
+            **({"rows": {"bo_dong_trong": sorted(set(rows["bo_dong_trong"]))}} if rows is not None else {})}
 
 
 def mapping_sha(mapping: dict) -> str:

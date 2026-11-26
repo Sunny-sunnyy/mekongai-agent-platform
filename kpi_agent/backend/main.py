@@ -8,7 +8,9 @@ kỳ) được kiểm trong `queries.py` cho MỌI bên gọi — agent, trang R
 Chạy (từ gốc repo, chỉ máy này): .venv/bin/uvicorn kpi_agent.backend.main:app --host 127.0.0.1 --port 8110
 """
 import copy
+import functools
 import hashlib
+import logging
 import re
 import hmac
 import json
@@ -86,7 +88,7 @@ def _files_sha256(workflow: dict) -> dict[str, str]:
     12/11: trước đó chỉ 3 file đầu ⇒ đổi file tuyến thì số đổi mà bản tính "đã soát" cũ vẫn được dùng lại, `data_version` đứng yên."""
     paths = list(_workflow_files(workflow))
     paths += [path for path in runner.input_files(workflow).values() if path not in paths]
-    # File không đọc được LÚC ĐANG CHẠY (bị xoá / dời sau khi bật) ⇒ ghi "không có file" như `runner.input_fingerprint`, không ném lỗi: người kiểm độc
+    # File không đọc được LÚC ĐANG CHẠY (bị xoá / dời sau khi bật) ⇒ ghi "không có file" như `runner.input_fingerprint`, không ném lỗi: độc
     # lập 12/11 đổi tên file tuyến khi backend đang bật ⇒ /api/runs/{id}/verify trả HTTP 500. Chuỗi này khác mọi sha ⇒ bên so thấy "dữ liệu đã đổi".
     return {path.name: _sha256_or_missing(path) for path in paths}
 
@@ -100,7 +102,8 @@ def _sha256_or_missing(path: Path) -> str:
 
 def _stopped_reason(result) -> str:
     """Lời cho BÊN NGOÀI khi một lượt chạy lại dừng: chỉ nêu khối dừng. KHÔNG chép lời dừng của bộ chạy — lời đó có thể là chuỗi lỗi của hệ điều
-    hành kèm đường dẫn tuyệt đối trên máy ("FileNotFoundError: [Errno 2] … '/tmp/…'", người kiểm độc lập 12/11); chi tiết nằm ở bước của lượt trên máy."""
+    hành kèm đường dẫn tuyệt đối trên máy ("FileNotFoundError: [Errno 2] … '/tmp/…'", 12/11); chi tiết nằm ở bước của lượt trên máy.
+    """
     stopped = [step["node"] for step in result.steps if step.get("status") == "stopped"]
     return "workflow không chạy xong" + (f" ở khối {', '.join(stopped)}" if stopped else "") + " (chi tiết lỗi chỉ xem trên máy chạy)"
 
@@ -145,49 +148,93 @@ def _shown_path(path) -> str:
         return path.name
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    app.state.system_only = _system_only_flag(os.getenv("KPI_SYSTEM_ONLY"))   # đọc MỘT chỗ, trước mọi việc nặng ⇒ giá trị lạ dừng ngay
-    # Mã phiên: MẶC ĐỊNH ĐÓNG — không có mã thì dừng ngay ở đây, trước mọi việc nặng (kpi_agent/session_key.py)
-    app.state.session_key = session_key.load_server_key(app.state.system_only)
-    names_on = agent_names.names_enabled()   # KPI_NAMES cũng đọc TRƯỚC khi nạp dữ liệu: giá trị khác on / off ⇒ dừng ngay
-    if not MASK.is_file():
-        # 12/11 (người kiểm độc lập): thiếu bảng mã che từng ra FileNotFoundError trần kèm đường dẫn tuyệt đối — nay lời rõ, chỉ tên file tương đối
-        raise RuntimeError(f"backend KHÔNG bật: thiếu {_shown_path(MASK)}")
-    # File workflow hỏng ⇒ WorkflowFileError ⇒ backend không bật (không có số nào)
-    workflow, workflow_text = runner.load_workflow(WORKFLOW)
+def _base_mask_map() -> dict[str, str]:
+    return json.loads(MASK.read_text(encoding="utf-8"))["map"]
+
+
+def _auto_mask_map(app) -> dict[str, str]:
+    upload_store = getattr(app.state, "upload_store", None)
+    if upload_store is None or not upload_store.exists():
+        return {}
+    with store.connect(upload_store) as conn:
+        return store.auto_employee_masks(conn)
+
+
+def _all_known_mask_map(app) -> dict[str, str]:
+    return {**_base_mask_map(), **_auto_mask_map(app)}
+
+
+def _mask_path_for_workflow(app, workflow: dict, extra_auto: dict[str, str] | None = None) -> str:
+    """File bảng mã che (gốc + tự cấp cho đúng đội trong file chỉ tiêu của workflow) truyền vào `queries.build_context` để không sửa `queries.py`."""
+    base_map = _base_mask_map()
+    auto_map = {**_auto_mask_map(app), **(extra_auto or {})}
+    if not auto_map:
+        return str(MASK)
+    from kpi_agent.core.load_data import load_targets
+    targets_path = runner.repo_path(runner.node_param(workflow, "read_targets", "path"))
+    target_codes = {str(code) for code in load_targets(targets_path)["employees"]}
+    used_auto = {masked: real for masked, real in auto_map.items() if real in target_codes}
+    if not used_auto:
+        return str(MASK)
+    merged = {**base_map, **used_auto}
+    payload = json.dumps({"map": merged}, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    mask_dir = app.state.upload_dir / "_ma_che"
+    mask_dir.mkdir(parents=True, exist_ok=True)
+    out = mask_dir / f"{hashlib.sha256(payload).hexdigest()[:16]}.json"
+    if not out.exists():
+        out.write_bytes(payload)
+    return str(out)
+
+
+def _attach_auto_employee_notes(ctx, base_map: dict[str, str]) -> None:
+    auto_codes = sorted(masked for masked in ctx.to_real if masked not in base_map)
+    if auto_codes:
+        _attach_note(
+            ctx,
+            "warning",
+            f"đội có {len(auto_codes)} nhân viên mới được tự cấp mã che ({', '.join(auto_codes)}) — kiểm lại họ tên trong file chỉ tiêu",
+        )
+
+
+def _start_period(app, workflow: dict, workflow_text: str, cutoff: date, uploads_only: bool = False) -> None:
+    """Chạy workflow + ghi bản tính + đặt MỌI trạng thái của "bản đang dùng" lên `app.state`. Tách khỏi `lifespan` (20/11/2026) để hai nơi dùng
+    ĐÚNG một đoạn: lúc bật thường (file trong workflow) và lúc một KỲ TRỐNG vừa nhận đủ ba file tải lên (`_start_from_pending`) — không có bản
+    dựng thứ hai. `uploads_only`: bản dựng hoàn toàn từ file tải lên ⇒ các khoản phụ không đọc file gắn sẵn của backend. Lỗi ⇒ RuntimeError."""
     app.state.workflow = workflow
-    app.state.extra_bonus = None          # thưởng thêm tính ở lần gọi đầu (/api/system/extra-bonus) — bật lại thì tính lại
-    app.state.tracking = None             # tab Theo dõi (bản 2) — cùng lý do: bật lại (đổi ngày chốt / workflow / file trang) thì tính lại
-    app.state.spice_customers = None      # từng khách 1 % gia vị cho trang (13/11) — điền cùng lúc với app.state.spice
-    app.state.spice = None                # 1 % gia vị (bậc 1, 11/11) — tính ở lần gọi đầu, bật lại thì tính lại
-    app.state.outlets = None              # điểm bán thuộc tuyến + Trà 365 (12/11) — tính ở lần gọi đầu, bật lại thì tính lại
-    app.state.membership = None           # khách hội viên phần doanh số (13/11) — đọc sổ + file đơn hàng ở lần gọi đầu, bật lại thì đọc lại
-    app.state.order_lines = None          # dòng đơn hàng kèm lý do loại (12/11) — đọc ở lần gọi đầu, bật lại thì đọc lại
-    app.state.run_calls = OrderedDict()   # nhật ký lần gọi công cụ theo (tổ chức, mã lượt) — CHỈ trong bộ nhớ (xem _record_call)
-    app.state.store = Path(os.getenv("KPI_STORE", str(DEFAULT_STORE)))
+    app.state.uploads_only = uploads_only
+    if not uploads_only:
+        app.state.uploaded_at = None
+        app.state.pending_uploaded_at = {}
+        app.state.route_summary = None
+        app.state.targets_override = None
+    app.state.upload_store = app.state.store.with_name(app.state.store.stem + "_uploads.sqlite")
+    # Thư mục file tải lên: KPI_UPLOAD_DIR (đọc lúc bật như KPI_STORE — hộp Capitol chỉ ghi được /srv/kpi_store); thiếu ⇒ như cũ
+    app.state.upload_dir = Path(os.getenv("KPI_UPLOAD_DIR") or str(UPLOAD_DIR))
+    for cache in ("extra_bonus", "tracking", "spice_customers", "spice", "outlets", "membership", "order_lines"):
+        setattr(app.state, cache, None)
     logic_sha = runner.workflow_sha256(workflow) if not runner.check_workflow(workflow) else None
+    base_map = _base_mask_map()
     try:
-        ctx = queries.build_context(CUTOFF, workflow, mask_path=str(MASK), approved_gates=_approved_gates(app.state.store, workflow, CUTOFF))
+        ctx = queries.build_context(cutoff, workflow, mask_path=_mask_path_for_workflow(app, workflow),
+                                    approved_gates=_approved_gates(app.state.store, workflow, cutoff))
     except queries.WorkflowStopped as stop:
         if stop.result.status == "stopped":
             # Lượt dừng vẫn ghi lại (bước nào dừng, lời đã che mã, dấu vân tay) — "rejected" (file sai, 0 khối chạy) thì không có gì để ghi
             with store.connect(app.state.store) as conn:
                 version = store.record_workflow_version(conn, workflow["workflow"], workflow_text, logic_sha)
-                store.record_workflow_run(conn, workflow_version_id=version, cutoff=CUTOFF.isoformat(), status="stopped",
+                store.record_workflow_run(conn, workflow_version_id=version, cutoff=cutoff.isoformat(), status="stopped",
                                           steps=stop.result.steps, errors=stop.result.errors, inputs=stop.result.fingerprint, bonus_run_id=None)
         # 03/11: dữ liệu lỗi nặng ⇒ DỪNG HẲN, không hiện số — backend không bật (lời đã che mã)
         raise RuntimeError(f"backend KHÔNG bật — {stop}") from None
-    # File chỉ tiêu của workflow thiếu người có mã che (20/11/2026): các bước sau tra số theo MỌI người có mã che ⇒ trước đây sập KeyError thô
-    # (kèm mã thật trong lời lỗi). Dừng bằng lời do code viết, chỉ nêu số người — cùng lời với cửa tải lên.
-    missing = upload.missing_team_members(set(ctx.bonuses), set(ctx.to_real.values()))
+    # File chỉ tiêu của workflow thiếu người có mã che gốc (20/11/2026): kiểm theo đội gốc để tải lại file 14 người sau khi cấp NV15 vẫn hợp lệ.
+    missing = upload.missing_team_members(set(ctx.bonuses), {str(code) for code in base_map.values()})
     if missing:
         raise RuntimeError(f"backend KHÔNG bật — {missing}")
     app.state.ctx = ctx
     # Bậc "tên vào trợ lý": cờ KPI_NAMES — off (mặc định) ⇒ {} ⇒ mọi đường như cũ; on ⇒ bảng tên cho cửa vào / ra của công cụ.
     # Bảng tên thiếu / lệch đội khi cờ on ⇒ không bật (đóng khi lỗi — không chạy nửa tên nửa mã)
     app.state.name_entries = {}
-    if names_on:
+    if agent_names.names_enabled():
         app.state.name_entries = _name_entries(app)
         if isinstance(app.state.name_entries, str):
             raise RuntimeError(f"backend KHÔNG bật — KPI_NAMES=on nhưng {app.state.name_entries}")
@@ -200,12 +247,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.extra_files_sha256 = _extra_files_sha256(workflow, ctx.period)
     app.state.data_version = _data_version(app.state.files_sha256, code_sha, ctx.cutoff, app.state.extra_files_sha256)
     app.state.versions = OrderedDict()
+    app.state.restoring = None                                   # dòng `uploaded_version` đang được nạp lại (chỉ khác None trong lúc bật — 2j)
+    app.state.restore_report = {"enabled": _restore_uploads_flag(os.getenv("KPI_RESTORE_UPLOADS")), "restored": 0, "changed": [], "skipped": []}
     # Bản dữ liệu của lần TẢI LÊN gần nhất (12/11): /api/meta chỉ nói về bản lúc bật ⇒ sau tải lên không trường nào của nó đổi ⇒ bên theo dõi
     # "vân tay" không biết có dữ liệu mới. Chưa tải lần nào ⇒ bằng bản lúc bật.
     app.state.latest_data_version = app.state.data_version
-    app.state.upload_store = app.state.store.with_name(app.state.store.stem + "_uploads.sqlite")
-    # Thư mục file tải lên: KPI_UPLOAD_DIR (đọc lúc bật như KPI_STORE — hộp Capitol chỉ ghi được /srv/kpi_store); thiếu ⇒ như cũ
-    app.state.upload_dir = Path(os.getenv("KPI_UPLOAD_DIR") or str(UPLOAD_DIR))
     with store.connect(app.state.store) as conn:
         app.state.run_id = store.record_run(
             conn, period=ctx.period, cutoff=ctx.cutoff.isoformat(), rule_file=rule_file,
@@ -221,17 +267,135 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             errors=[], inputs=ctx.workflow_result.fingerprint, bonus_run_id=app.state.run_id)
         app.state.workflow_version = store.workflow_run_summary(conn, app.state.workflow_run_id)["workflow_version"]
         _use_status(ctx, store.run_summary(conn, app.state.run_id))
+    _attach_auto_employee_notes(ctx, base_map)
     # Thưởng thêm tính SẴN lúc bật (bậc (b) bản 2,): tính ở lần gọi đầu mất ≈ 15 s (đọc lại RAW) > hạn 10 s mỗi công cụ của Capitol ⇒ AI nhận
     # lỗi hết giờ, người hỏi mất câu. Đường Tracking ⇒ lời từ chối ngay (không đọc file). Lỗi luật / dữ liệu thưởng thêm KHÔNG chặn bật (8 KPI vẫn chạy)
     _extra_bonus(app)
     # 1 % gia vị cũng tính SẴN lúc bật (13/11): công cụ 12 `get_spice_loyalty` gọi lần đầu mất ≈ 15 s (đọc lại RAW) > hạn chờ 10 s của trợ lý ⇒ câu gia
-    # vị ĐẦU TIÊN sau mỗi lần bật trả "công cụ dữ liệu không phản hồi" (người kiểm độc lập đo thật 13/11). Lỗi luật / dữ liệu gia vị ⇒ lời từ chối
+    # vị ĐẦU TIÊN sau mỗi lần bật trả "công cụ dữ liệu không phản hồi" (đo thật 13/11). Lỗi luật / dữ liệu gia vị ⇒ lời từ chối
     # được giữ, KHÔNG chặn bật. Cái giá: bật chậm thêm đúng một lượt đọc RAW (đo 13/11 trên máy đang bận: 37 s ⇒ 72 s) ⇒ CHỈ làm khi đặt
     # KPI_WARM_SPICE=on (script bật bộ của người dùng + hộp Capitol đặt); mặc định tắt để mọi test bật backend không chậm thêm ⇒ khi tắt, lần gọi đầu
     # vẫn tính tại chỗ như trước.
     if os.getenv("KPI_WARM_SPICE") == "on":
         _spice(app)
+    app.state.period_ready = True
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    app.state.system_only = _system_only_flag(os.getenv("KPI_SYSTEM_ONLY"))   # đọc MỘT chỗ, trước mọi việc nặng ⇒ giá trị lạ dừng ngay
+    # Mã phiên: MẶC ĐỊNH ĐÓNG — không có mã thì dừng ngay ở đây, trước mọi việc nặng (kpi_agent/session_key.py)
+    app.state.session_key = session_key.load_server_key(app.state.system_only)
+    names_on = agent_names.names_enabled()   # KPI_NAMES cũng đọc TRƯỚC khi nạp dữ liệu: giá trị khác on / off ⇒ dừng ngay
+    if not MASK.is_file():
+        # 12/11: thiếu bảng mã che từng ra FileNotFoundError trần kèm đường dẫn tuyệt đối — nay lời rõ, chỉ tên file tương đối
+        raise RuntimeError(f"backend KHÔNG bật: thiếu {_shown_path(MASK)}")
+    # File workflow hỏng ⇒ WorkflowFileError ⇒ backend không bật (không có số nào)
+    workflow, workflow_text = runner.load_workflow(WORKFLOW)
+    app.state.workflow = workflow
+    app.state.extra_bonus = None          # thưởng thêm tính ở lần gọi đầu (/api/system/extra-bonus) — bật lại thì tính lại
+    app.state.tracking = None             # tab Theo dõi (bản 2) — cùng lý do: bật lại (đổi ngày chốt / workflow / file trang) thì tính lại
+    app.state.spice_customers = None      # từng khách 1 % gia vị cho trang (13/11) — điền cùng lúc với app.state.spice
+    app.state.spice = None                # 1 % gia vị (bậc 1, 11/11) — tính ở lần gọi đầu, bật lại thì tính lại
+    app.state.outlets = None              # điểm bán thuộc tuyến + Trà 365 (12/11) — tính ở lần gọi đầu, bật lại thì tính lại
+    app.state.membership = None           # khách hội viên phần doanh số (13/11) — đọc sổ + file đơn hàng ở lần gọi đầu, bật lại thì đọc lại
+    app.state.order_lines = None          # dòng đơn hàng kèm lý do loại (12/11) — đọc ở lần gọi đầu, bật lại thì đọc lại
+    app.state.route_summary = None
+    app.state.targets_override = None
+    app.state.run_calls = OrderedDict()   # nhật ký lần gọi công cụ theo (tổ chức, mã lượt) — CHỈ trong bộ nhớ (xem _record_call)
+    app.state.store = Path(os.getenv("KPI_STORE", str(DEFAULT_STORE)))
+    app.state.workflow_template, app.state.workflow_text = workflow, workflow_text
+    app.state.period_ready = False
+    empty_period = os.getenv("KPI_EMPTY_PERIOD")
+    if empty_period:
+        _start_empty(app, empty_period)          # kỳ trống: chưa có file dữ liệu nào — chờ người dùng tải lên (xem khối "KỲ TRỐNG")
+        _start_from_pending(app, at_startup=True)
+    else:
+        _start_period(app, workflow, workflow_text, CUTOFF)
+    if app.state.period_ready:
+        _restore_uploaded_versions(app)
     yield
+
+
+RESTORE_SHA = re.compile(r"[0-9a-f]{64}")   # tên file trong thư mục tải lên = sha256 nội dung, viết thường
+
+
+def _restore_uploads_flag(value: str | None) -> bool:
+    """KPI_RESTORE_UPLOADS: không đặt hoặc "1" = nạp lại bản đã tải lúc bật (mặc định); "0" = không nạp (hộp có hạn chờ bật ngắn — đo 20/11: mỗi bản
+    nạp lại làm bật chậm thêm ≈ 15 giây). Giá trị khác ⇒ dừng lúc bật, như KPI_SYSTEM_ONLY: gõ nhầm mà lặng lẽ coi là bật / tắt thì không ai biết."""
+    if value is None or value == "1":
+        return True
+    if value == "0":
+        return False
+    raise RuntimeError("backend KHÔNG bật — KPI_RESTORE_UPLOADS chỉ nhận 1 / không đặt biến (nạp lại bản đã tải) hoặc 0 (không nạp)")
+
+
+def _restore_uploaded_versions(app) -> None:
+    """Lúc bật: dựng lại các bản dữ liệu đã tải lên ở những lần chạy trước (2j, 20/11/2026) — trước đó backend bật lại là `?data_version=` cũ ra 404
+    dù file và bản tính vẫn còn trên đĩa.
+
+    Mỗi dòng `uploaded_version` (tối đa MAX_VERSIONS dòng mới nhất, theo thứ tự tải) ⇒ đọc file `<mã băm>.xlsx` trong thư mục tải lên, băm lại, rồi
+    gọi ĐÚNG hàm của cửa tải lên (`_build_version`) — không có đường dựng thứ hai: mọi kiểm khuôn / luật kỳ / đối soát chạy lại, mã bản tính lại từ
+    nội dung (code, luật hay file phụ đã đổi sau lúc tải ⇒ ra mã MỚI, mã cũ không còn hỏi được — đúng, vì số có thể đã khác).
+    Dòng hỏng — KỂ CẢ lỗi lạ — ⇒ BỎ QUA dòng đó, ghi {file, code, reason} vào `restore_report`; không bao giờ chặn bật: bản lúc bật không phụ
+    thuộc bản tải lên, và bảng là chỉ-thêm nên một dòng hỏng nằm đó mãi (vd bản tải bằng loại file của bản code MỚI rồi lùi về code cũ). Chỉ lỗi
+    của chính kho / bảng (không mở / không đọc được) mới nổi lên. Mã: dong_sai_dang · file_mat · file_bi_doi · nen_khong_nap · bi_tu_choi ·
+    loi_la (lời cố định, dấu vết đầy đủ ghi ra log máy chủ). Cái giá: bật chậm thêm một lượt đọc + tính cho mỗi bản."""
+    report = app.state.restore_report
+    if not report["enabled"] or not app.state.upload_store.exists():
+        return                                                   # chưa từng tải lên ⇒ không tạo kho rỗng
+    with store.connect(app.state.upload_store) as conn:
+        rows = store.uploaded_versions(conn, MAX_VERSIONS)
+    restored = {}                                                # mã bản LÚC TẢI ⇒ state vừa dựng lại (bản chồng tìm nền của nó ở đây)
+    for row in rows:
+        sha = str(row["file_sha256"])
+        well_formed = RESTORE_SHA.fullmatch(sha) is not None
+        # `file`: 8 ký tự đầu mã băm; dòng sai dạng thì KHÔNG lặp chữ của dòng (có thể là "../…") — ghi số thứ tự dòng trong bảng
+        label = sha[:8] if well_formed else f"dòng {row['id']}"
+        def skip(code: str, reason: str) -> None:
+            report["skipped"].append({"file": label, "code": code, "reason": reason})
+        # Kiểm dạng TRƯỚC khi ghép đường dẫn / đọc file: mã băm phải đúng 64 ký tự hex (dòng trỏ "../ngoai" từng khiến code đọc file ngoài thư mục
+        # tải lên rồi mới so băm — 20/11), loại file phải là loại bản code NÀY biết, kỳ + ngày chốt đúng dạng.
+        try:
+            cutoff = date.fromisoformat(row["wanted_cutoff"]) if row["wanted_cutoff"] else None
+        except (TypeError, ValueError):
+            well_formed = False
+        if not well_formed or row["kind"] not in upload.KINDS or not period_status.valid_period(str(row["period"])):
+            skip("dong_sai_dang", "dòng ghi bản đã tải không đúng dạng bản code này đọc được (loại file, kỳ, ngày chốt hoặc mã băm) — tải lại file")
+            continue
+        # bản có chỉ tiêu từ trang: nguồn nạp lại là file chỉ tiêu đã tách <mã băm>.json (trang không được lưu); các loại khác: file .xlsx đã nhận
+        source = (app.state.upload_dir / PAGE_TARGETS_DIR / f"{sha}.json" if row["kind"] == upload.PAGE_TARGETS
+                  else app.state.upload_dir / f"{sha}.xlsx")
+        try:
+            body = source.read_bytes()
+        except OSError:
+            skip("file_mat", "file đã tải không còn trong thư mục tải lên — tải lại file")
+            continue
+        if hashlib.sha256(body).hexdigest() != sha:
+            skip("file_bi_doi", "file trong thư mục tải lên đã bị đổi sau khi nhận (mã băm không khớp) — tải lại file gốc")
+            continue
+        base = app.state if row["base_data_version"] is None else restored.get(row["base_data_version"])
+        if base is None:
+            skip("nen_khong_nap", "bản làm nền của file này không nạp lại được — tải lại bản nền trước")
+            continue
+        app.state.restoring = row
+        try:
+            summary = _build_version(app, base, row["kind"], row["period"], body, cutoff)
+        except upload.UploadRefused as refusal:
+            skip("bi_tu_choi", "kiểm lại lúc bật không qua: " + refusal.reason)
+            continue
+        except Exception:   # noqa: BLE001 — cố ý bắt MỌI lỗi của MỘT dòng: hệ thống không bật được nặng hơn mất một bản (+ 20/11)
+            logging.getLogger("kpi_agent.backend").exception("nạp lại bản đã tải: dòng %s của uploaded_version gặp lỗi lạ — bỏ qua dòng này", row["id"])
+            skip("loi_la", "lỗi chưa biết khi dựng lại bản này — cần người phát triển xem log máy chủ; tải lại file để dùng tiếp")
+            continue
+        finally:
+            app.state.restoring = None
+        version = summary["data_version"]
+        restored[row["data_version"]] = app.state if version == app.state.data_version else app.state.versions[version]
+        report["restored"] += 1
+        if version != row["data_version"]:
+            report["changed"].append({"file": row["file_sha256"][:8], "reason": "bản nạp lại mang mã MỚI — code, luật hoặc file phụ đã đổi sau "
+                                      "lúc tải; mã bản cũ không còn dùng được"})
 
 def _use_status(ctx: queries.KpiContext, summary: dict) -> None:
     # Nhãn của bản đang dùng vào MỌI kết quả công cụ (bản không tên — queries._envelope đọc ctx) + /api/meta (cả hai bản)
@@ -257,7 +421,6 @@ def _system_only_flag(value: str | None) -> bool:
         return True
     raise RuntimeError("backend KHÔNG bật — KPI_SYSTEM_ONLY chỉ nhận 1 (bật) hoặc 0 / không đặt biến (tắt)")
 
-
 @app.middleware("http")
 async def system_only_gate(request: Request, call_next):
     # scope["path"] = đúng chuỗi bộ định tuyến dùng để khớp đường ⇒ không có cách viết đường nào qua cổng này mà tới được đường bị đóng
@@ -265,10 +428,251 @@ async def system_only_gate(request: Request, call_next):
     if request.app.state.system_only and path not in SYSTEM_ONLY_PATHS and not path.startswith(SYSTEM_ONLY_PREFIXES):
         return JSONResponse({"detail": "Not Found"}, status_code=404)   # cùng thân với 404 của bộ định tuyến — không lộ đường nào có thật
     return await call_next(request)
+# ---------- KỲ TRỐNG (20/11/2026): backend bật khi CHƯA có file dữ liệu nào của kỳ; người dùng tải đơn hàng + chỉ tiêu + sổ theo dõi ⇒ bản đầu ----------
+# Vì sao: trước đó backend chỉ bật được khi đã gắn sẵn bộ file của kỳ trong workflow ⇒ tải đúng các file đó lên chỉ nhận "đã có sẵn" — không
+# thể nói kỳ được dựng "chỉ bằng tải lên" (phép thử cuối tháng 10 lượt 1 của). Bật với KPI_EMPTY_PERIOD=<kỳ>: workflow chỉ còn là KHUÔN
+# (khối, dây, file luật của kỳ); không đặt biến ⇒ mọi thứ như cũ.
+EMPTY_OK_PATHS = {"/api/system/upload", "/api/system/ky", "/api/meta", "/api/tools",
+                  # màn ghép cột: file lệch mẫu phải ghép được NGAY ở kỳ trống — không thì kẹt từ bước đầu (cách ghép lưu ở kho chính, không cần bản)
+                  "/api/system/bo-cuc", "/api/system/ghep-thu", "/api/system/ghep-xac-nhan"}   # meta + tools: thân tối thiểu, không số (xem hai hàm đó)
+EMPTY_OK_PREFIXES = ("/api/system/ky/", "/api/system/khuon/")
+FIRST_SET = ("raw", "chi_tieu", upload.ROUTE_BOOK)          # ba file bắt buộc của bản ĐẦU: thiếu tuyến thì lõi dừng (luật lọc theo tuyến)
+KIND_LABEL = {"raw": "file đơn hàng", "chi_tieu": "file chỉ tiêu", upload.ROUTE_BOOK: "sổ theo dõi (để lấy tuyến)"}
+EMPTY_PERIOD_CODE = "ky_chua_co_du_lieu"
+
+
+def _empty_period_message(app) -> str:
+    missing = _pending_state(app)["con_thieu"]
+    return (f"Kỳ {app.state.empty_period} chưa có dữ liệu — hãy tải " + ", ".join(KIND_LABEL[kind] for kind in missing)
+            + " ở trang Dữ liệu; đủ ba file thì hệ thống tự tính")
+
+
+@app.middleware("http")
+async def empty_period_gate(request: Request, call_next):
+    """Kỳ chưa có bản nào ⇒ mọi đường cần số trả 409 có lời + mã — không 500, không số. Chỉ cửa tải lên và hai đường "kỳ này có gì" đi tiếp."""
+    path = request.scope["path"]
+    if not getattr(request.app.state, "period_ready", True) and path.startswith("/api/") and path not in EMPTY_OK_PATHS \
+            and not path.startswith(EMPTY_OK_PREFIXES):
+        return _refused_json(_empty_period_message(request.app), 409, EMPTY_PERIOD_CODE)
+    return await call_next(request)
+
+
+def _mask_for_text(app) -> dict:
+    """Bảng CHE chữ (mã thật ⇒ mã che) cho lời lỗi của màn ghép: có bản ⇒ bảng của bản đang dùng; kỳ trống ⇒ bảng che gốc + tự cấp."""
+    to_real = app.state.ctx.to_real if app.state.ctx is not None else _all_known_mask_map(app)
+    return {real: masked for masked, real in to_real.items()}
+
+
+def _team_for_route_trial(app) -> set[str]:
+    """"Đội" để chạy thử công thức đọc bảng tuyến: có bản ⇒ đội của bản đang dùng; kỳ trống ⇒ mã của file chỉ tiêu đang nằm trong bộ chờ."""
+    if app.state.ctx is not None:
+        return set(app.state.ctx.to_real.values())
+    from kpi_agent.core.load_data import load_targets
+    targets = _pending_state(app)["have"].get("chi_tieu")
+    if targets is None:
+        raise upload.UploadRefused(f"Kỳ {app.state.empty_period} chưa có file chỉ tiêu — hãy tải file chỉ tiêu trước rồi mới ghép thử sổ theo dõi "
+                                   "(cần biết đội gồm những ai để đọc bảng tuyến)", 409, "chua_co_chi_tieu")
+    return {str(code) for code in load_targets(targets["path"])["employees"]}
+
+
+def _state_for_route_trial(app):
+    """Thứ phép đối chiếu đơn hàng ⇄ tuyến cần (`_orders_vs_routes`: workflow có đường file đơn hàng + kỳ, ngày chốt, luật). Có bản ⇒ chính
+    `app.state`. Kỳ trống ⇒ dựng từ file đơn hàng đang ở bộ chờ; chưa có ⇒ 409 — KHÔNG bỏ phép đối chiếu: không có nó thì công thức đọc tuyến
+    ghép nhầm cột vẫn được xác nhận rồi lưu dùng lại (lỗ đã bắt ở nhánh tải sổ).
+    """
+    if app.state.ctx is not None:
+        return app.state
+    from types import SimpleNamespace
+    from kpi_agent.core.rules import load_rules
+    raw = _pending_state(app)["have"].get("raw")
+    if raw is None:
+        raise upload.UploadRefused(f"Kỳ {app.state.empty_period} chưa có file đơn hàng — hãy tải file đơn hàng trước rồi mới ghép thử sổ theo dõi "
+                                   "(bảng tuyến đọc ra phải được đối chiếu với đơn hàng)", 409, "chua_co_don_hang_cua_ky")
+    workflow, period = copy.deepcopy(app.state.workflow_template), app.state.empty_period
+    node = next(node for node in workflow["nodes"] if node["type"] == "read_raw").setdefault("params", {})
+    node["path"] = str(raw["path"])
+    raw_mapping, _sha = _saved_mapping_for(app, "raw", raw["path"])
+    if raw_mapping is not None:
+        node["ghep"] = raw_mapping
+    rules = load_rules(runner.repo_path(_rules_file_for_period(workflow, period)))
+    cutoff = date.fromisoformat(raw["wanted_cutoff"]) if raw["wanted_cutoff"] else upload.last_day(period)
+    return SimpleNamespace(workflow=workflow, ctx=SimpleNamespace(cutoff=cutoff, period=period, rules=rules))
+
+
+def _start_empty(app, period: str) -> None:
+    if not period_status.valid_period(period):
+        raise RuntimeError("backend KHÔNG bật — KPI_EMPTY_PERIOD phải có dạng YYYY-MM (vd 2026-10)")
+    try:
+        _rules_file_for_period(app.state.workflow_template, period)
+    except upload.UploadRefused as refusal:
+        raise RuntimeError(f"backend KHÔNG bật — KPI_EMPTY_PERIOD={period}: {refusal.reason}") from None
+    app.state.empty_period, app.state.ctx, app.state.workflow = period, None, app.state.workflow_template
+    app.state.files_sha256, app.state.data_version, app.state.latest_data_version, app.state.name_entries = {}, None, None, {}
+    app.state.versions, app.state.restoring = OrderedDict(), None
+    app.state.uploaded_at, app.state.pending_uploaded_at = None, {}
+    app.state.restore_report = {"enabled": _restore_uploads_flag(os.getenv("KPI_RESTORE_UPLOADS")), "restored": 0, "changed": [], "skipped": []}
+    app.state.upload_store = app.state.store.with_name(app.state.store.stem + "_uploads.sqlite")
+    app.state.upload_dir = Path(os.getenv("KPI_UPLOAD_DIR") or str(UPLOAD_DIR))
+    app.state.pending_problem = None
+
+
+def _pending_state(app) -> dict:
+    """Bộ chờ của kỳ trống: mỗi loại file lấy lần tải MỚI NHẤT còn nguyên trong thư mục tải lên (mất / bị đổi ⇒ coi như chưa có)."""
+    rows = {}
+    if app.state.upload_store.exists():
+        with store.connect(app.state.upload_store) as conn:
+            rows = store.pending_uploads(conn, app.state.empty_period)
+    have = {}
+    for kind, row in rows.items():
+        path = app.state.upload_dir / f"{row['file_sha256']}.xlsx"
+        if RESTORE_SHA.fullmatch(str(row["file_sha256"])) and path.is_file() and _sha256(path) == row["file_sha256"]:
+            have[kind] = {**row, "path": path}
+    return {"have": have, "da_co": [kind for kind in FIRST_SET if kind in have], "con_thieu": [kind for kind in FIRST_SET if kind not in have]}
+
+
+def _empty_status(app, period: str | None = None) -> dict:
+    state = _pending_state(app)
+    period, have = app.state.empty_period, state["have"]
+
+    def item(key: str, kind: str, what: str, how: str) -> dict:
+        row = have.get(kind)
+        if row is None:
+            return {**period_status._item(key, "thieu", f"chưa có {what} của kỳ {period}"), "next_step": how}
+        return period_status._item(key, "co", f"{what} đã tải lên, đang chờ đủ bộ để tính", checked=True, sha256_8=row["file_sha256"][:8],
+                                   from_upload=True, uploaded_at=row["created_at"], **({"cutoff": row["wanted_cutoff"]} if kind == "raw" else {}))
+    # CÙNG hình `items` với kỳ đã có bản (`period_status.period_status`) — bảng "tháng này đã có gì" của trang đọc danh sách này
+    items = [item("raw", "raw", "file đơn hàng", "tải file đơn hàng của kỳ này lên (loại raw)"),
+             item("chi_tieu", "chi_tieu", "file chỉ tiêu", "tải file chỉ tiêu của kỳ này lên (loại chi_tieu)"),
+             item("tuyen", upload.ROUTE_BOOK, "sổ theo dõi (để lấy tuyến)", "tải sổ theo dõi của kỳ này lên (loại so_tracking)"),
+             period_status._main_rules_item(app.state, None, period, _shown_path, _rules_file_for_period, _sha256_or_missing),
+             period_status._extra_rules_item(app.state, period, _extra_files_sha256)]
+    body = {"period": period, "base_period": period, "data_source": "raw", "ready": False, "uploads_survive_restart": app.state.restore_report["enabled"],
+            "missing": [entry["key"] for entry in items if entry["state"] != "co"], "items": items, "latest_data_version": None,
+            "trang_thai": "cho_du_file", "da_co": state["da_co"], "con_thieu": state["con_thieu"],
+            "loi": f"đã nhận {', '.join(KIND_LABEL[kind] for kind in state['da_co']) or 'chưa file nào'}; còn thiếu "
+                   f"{', '.join(KIND_LABEL[kind] for kind in state['con_thieu'])} để tính"}
+    if app.state.pending_problem:
+        body["ly_do_chua_tinh"] = app.state.pending_problem
+    return body
+
+
+def _receive_for_empty_period(app, kind: str, period: str, body: bytes, wanted_cutoff: date | None) -> dict:
+    """Cửa tải lên khi kỳ CHƯA có bản: kiểm file như mọi lần tải (gói, khuôn, kỳ, mã che) ⇒ cất vào bộ chờ ⇒ đủ ba file thì dựng bản đầu."""
+    if period != app.state.empty_period:
+        raise upload.UploadRefused(f"backend đang mở kỳ {app.state.empty_period} và kỳ đó chưa có dữ liệu — chưa nhận file của kỳ khác", 409, "khac_ky_dang_mo")
+    if kind not in FIRST_SET:
+        raise upload.UploadRefused(_empty_period_message(app), 409, EMPTY_PERIOD_CODE)
+    upload.check_package(body)
+    sha, folder = hashlib.sha256(body).hexdigest(), app.state.upload_dir
+    try:
+        temp = upload.write_temp(body, folder)
+    except OSError:
+        raise upload.UploadRefused("thư mục lưu file tải lên không ghi được (kiểm KPI_UPLOAD_DIR) — chưa nhận file", 503) from None
+    new_employees: dict[str, str] = {}
+    base_map = _base_mask_map()
+    try:
+        if kind != upload.ROUTE_BOOK:     # sổ được đọc + đối chiếu với đơn hàng lúc đủ ba file (cần đội của file chỉ tiêu và file đơn hàng)
+            rules_path = runner.repo_path(_rules_file_for_period(app.state.workflow_template, period))
+            assumptions = (yaml.safe_load(rules_path.read_text(encoding="utf-8")) or {}).get("assumptions") or {}
+            base_known = {str(real) for real in base_map.values()}
+            known = base_known | {str(real) for real in _auto_mask_map(app).values()}
+            # file đơn hàng lệch mẫu: dùng cách ghép người đã xác nhận cho đúng bố cục này (cùng hàm với đường tải thường); chưa ghép ⇒ chỉ đường ghép
+            mapping, mapping_sha = _saved_mapping_for(app, kind, temp)
+            try:
+                upload.read_and_check(
+                    kind, temp, period, known, upload.last_day(period), wanted_cutoff, mapping, assumptions,
+                    base_known_codes=base_known, new_employees_out=new_employees if kind == "chi_tieu" else None,
+                )
+            except upload.UploadRefused as refusal:
+                if mapping_sha == "new_layout" and refusal.reason.startswith("file raw thiếu"):
+                    raise upload.UploadRefused(refusal.reason + " — file bố cục khác mẫu: ghép cột trước (POST /api/system/bo-cuc ⇒ ghep-thu ⇒ "
+                                               "ghep-xac-nhan) rồi tải lại", refusal.status, "can_ghep_cot") from None
+                raise
+        upload.check_room(sha, folder)
+        upload.finalize(temp, folder, sha)
+    finally:
+        temp.unlink(missing_ok=True)
+    with store.connect(app.state.upload_store) as conn:
+        assigned = store.record_auto_employee_masks(conn, base_map, new_employees) if new_employees else []
+        store.record_pending_upload(conn, kind=kind, period=period, wanted_cutoff=wanted_cutoff.isoformat() if wanted_cutoff else None, file_sha256=sha)
+    started = _start_from_pending(app)
+    reply = started if started is not None else {**_empty_status(app), "da_nhan": kind}
+    if assigned:
+        reply["nhan_vien_moi"] = [{"ma_che": entry["masked_code"], "ho_ten": entry["full_name"]} for entry in assigned]
+    return reply
+
+
+def _start_from_pending(app, at_startup: bool = False) -> dict | None:
+    """Đủ ba file trong bộ chờ ⇒ dựng bản ĐẦU của kỳ bằng đúng đoạn code lúc bật (`_start_period`) trên khuôn workflow đã thay ba đường file.
+    Chưa đủ ⇒ None. Bộ file không tính được ⇒ kỳ vẫn trống; lúc tải thì từ chối có lời, lúc bật thì giữ lời ở `pending_problem` (vẫn bật)."""
+    from kpi_agent.backend import route_upload
+    from kpi_agent.core.load_data import load_targets
+    state = _pending_state(app)
+    if state["con_thieu"]:
+        return None
+    have = state["have"]
+    try:
+        workflow = copy.deepcopy(app.state.workflow_template)
+        period = app.state.empty_period
+        params = lambda block: next(node for node in workflow["nodes"] if node["type"] == block).setdefault("params", {})
+        params("load_rules")["path"] = _rules_file_for_period(workflow, period)
+        params("read_targets")["path"] = str(have["chi_tieu"]["path"])
+        team = sorted(str(code) for code in load_targets(have["chi_tieu"]["path"])["employees"])
+        book = have[upload.ROUTE_BOOK]["path"]
+        with store.connect(app.state.store) as conn:
+            mapping, _source = route_upload.formula_for(book, store.mappings_of(conn, "tuyen"))
+        if mapping is None:
+            raise upload.UploadRefused(route_upload.need_formula_reply()["refused"], 409, route_upload.NEED_FORMULA)
+        outcome = route_upload.try_formula(book, mapping, set(team))
+        if not outcome["ok"]:
+            raise upload.UploadRefused(f"sổ theo dõi không đọc được bảng tuyến theo công thức: {route_upload.problems_text(outcome['loi'])}", 422,
+                                       "so_lech_khuon_tuyen")
+        params("read_raw").update(path=str(have["raw"]["path"]), mcp_path=str(book), mcp_ghep=mapping, mcp_doi=team)
+        raw_mapping, _raw_mapping_sha = _saved_mapping_for(app, "raw", have["raw"]["path"])
+        if raw_mapping is not None:      # file đơn hàng đã nhận bằng một cách ghép cột ⇒ bản đầu đọc file bằng đúng cách ghép đó
+            params("read_raw")["ghep"] = raw_mapping
+        _refuse_team_mismatch(workflow)     # bất biến của bản lấy tuyến từ sổ: đội của khối đọc tuyến = mã của file chỉ tiêu của chính bản
+        cutoff = date.fromisoformat(have["raw"]["wanted_cutoff"]) if have["raw"]["wanted_cutoff"] else upload.last_day(period)
+        app.state.uploaded_at = have["raw"]["created_at"]
+        app.state.pending_uploaded_at = {
+            "raw": have["raw"]["created_at"],
+            "chi_tieu": have["chi_tieu"]["created_at"],
+            "tuyen": have[upload.ROUTE_BOOK]["created_at"],
+        }
+        try:
+            _start_period(app, workflow, yaml.safe_dump(workflow, allow_unicode=True), cutoff, uploads_only=True)
+        except RuntimeError as stop:
+            raise upload.UploadRefused("bộ ba file chưa tính được — " + str(stop).replace("backend KHÔNG bật — ", ""), 422, "bo_file_khong_tinh_duoc") from None
+        # tuyến đọc được nhưng không khớp đơn hàng (nhầm cột, đổi kênh) ⇒ không giữ bản — cùng ngưỡng dừng với lần tải sổ lên một bản đã có
+        summary = {**outcome["tom_tat"], **_coverage_keys(_orders_vs_routes(app.state, outcome["mcp"], set(team)))}
+        stops, warnings = route_upload.route_stops(summary)
+        if stops:
+            raise upload.UploadRefused(f"bảng tuyến đọc từ sổ không khớp file đơn hàng — không dựng bản dữ liệu: {route_upload.problems_text(stops)}",
+                                       422, stops[0]["ma"])
+        # như lần tải sổ lên một bản đã có: lưu ý về tuyến đi theo bản + ô tóm tắt để bản chồng lên sau đối chiếu lại được
+        summary["canh_bao"] = warnings
+        _attach_route_notes(app.state.ctx, summary)
+        app.state.route_summary = summary
+        _spice(app)      # tính sẵn 1 % gia vị (≈ thêm một lượt đọc file đơn hàng lúc file thứ ba tới) — lỗi của khoản này được giữ thành lời, không chặn bản
+    except upload.UploadRefused as refusal:
+        app.state.ctx, app.state.period_ready, app.state.workflow = None, False, app.state.workflow_template
+        app.state.files_sha256, app.state.data_version, app.state.latest_data_version = {}, None, None
+        app.state.uploaded_at, app.state.pending_uploaded_at = None, {}
+        app.state.route_summary = None
+        app.state.pending_problem = refusal.reason
+        if at_startup:
+            return None
+        raise
+    app.state.pending_problem = None
+    return {**_version_summary(app.state.data_version, app.state, reused=False), "ban_dau_cua_ky": True}
+
+
 # Host lạ ⇒ 400: chặn trang web lạ trong trình duyệt gọi vào cổng máy này qua DNS-rebinding (C rà bảo mật 03/11, R2)
 # 10/11: chạy trong hộp của bộ Capitol (cùng mạng compose, không mở cổng ra máy) ⇒ thêm tên hộp qua KPI_ALLOWED_HOSTS (cách nhau dấu phẩy)
 EXTRA_HOSTS = [host.strip() for host in os.getenv("KPI_ALLOWED_HOSTS", "").split(",") if host.strip()]
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", *EXTRA_HOSTS])
+
+
 # Rào mã phiên — đăng ký SAU CÙNG ⇒ chạy NGOÀI CÙNG: trước rào Host, trước cổng KPI_SYSTEM_ONLY, trước bộ định tuyến và mọi hàm xử lý.
 # Thiếu / sai mã ⇒ 401 cùng một thân cho MỌI đường và MỌI phương thức (kể cả đường không tồn tại, thân hỏng) — không đọc dữ liệu, không ghi SQLite.
 @app.middleware("http")
@@ -276,8 +680,37 @@ async def session_gate(request: Request, call_next):
     return session_key.unauthorized(request.headers, request.app.state.session_key) or await call_next(request)
 
 
+def _versioned(handler):
+    """Đường GET của trang / công cụ chỉ đọc `request.app.state` ⇒ đi qua ĐÚNG bản được hỏi bằng ?data_version= (thiếu / = bản lúc bật ⇒ như cũ; bản lạ
+    ⇒ 404). Trước 2a-2 nấc 1 các đường này nhận tham số mà không đọc ⇒ hỏi bản tải lên vẫn nhận số bản lúc bật với mã 200 ( bắt ở
+    /api/team-bonus 20/11).
+    """
+    @functools.wraps(handler)
+    def wrapper(request: Request, *args, **kwargs):
+        request = _for_version(request)
+        return request if isinstance(request, JSONResponse) else handler(request, *args, **kwargs)
+    return wrapper
+
+
+BOOT_VERSION_ONLY = "màn này chỉ có cho bản dữ liệu lúc bật — chưa đọc theo bản tải lên"
+
+
+def _boot_version_only(handler):
+    """Màn giữ kết quả tính sẵn theo bản LÚC BẬT (điểm bán, danh sách đơn, tab theo dõi, tên, danh sách bản tính) chưa đọc theo bản tải lên ⇒ ?data_version=
+    của bản khác bị TỪ CHỐI có lời (thân 200 như các lời từ chối của trang), không lặng lẽ trả số bản lúc bật."""
+    @functools.wraps(handler)
+    def wrapper(request: Request, *args, **kwargs):
+        if request.query_params.get("data_version") not in (None, "", request.app.state.data_version):
+            return queries._refused(BOOT_VERSION_ONLY)
+        return handler(request, *args, **kwargs)
+    return wrapper
+
 @app.get("/api/meta")
 def meta(request: Request):
+    if not request.app.state.period_ready:
+        # Kỳ trống: 200 với thân TỐI THIỂU, không ngày chốt, không số — bên dựng hộp dựa vào đường này để biết backend đã bật (vòng chờ, vân tay)
+        return {"period": request.app.state.empty_period, "trang_thai": "cho_du_file", "data_version": None, "latest_data_version": None,
+                "employee_ids": [], "kpis": list(queries.KPI_ORDER)}
     # 2.6: ?data_version= ⇒ meta của ĐÚNG bản đó (kỳ, ngày chốt, luật, cờ…) — thiếu ⇒ bản lúc bật như cũ; bản lạ ⇒ 404
     request = _for_version(request)
     if isinstance(request, JSONResponse):
@@ -321,11 +754,13 @@ def _export_state(result, reviewed: bool) -> dict:
 
 
 @app.get("/api/team-bonus")
+@_versioned
 def team_bonus(request: Request, period: str | None = None) -> dict:
     return team_ranking.add_ranking(queries.get_team_bonus_table(request.app.state.ctx, period=period))
 
 
 @app.get("/api/team-board")
+@_versioned
 def team_board(request: Request, period: str | None = None) -> dict:
     """Bảng cho trang — KHÔNG phải công cụ của agent; nhãn tạm tính do code điền."""
     body = queries.team_board(request.app.state.ctx, period=period)
@@ -333,44 +768,53 @@ def team_board(request: Request, period: str | None = None) -> dict:
 
 
 @app.get("/api/opportunities")
+@_versioned
 def opportunities(request: Request, period: str | None = None) -> dict:
     """Tính năng 2 bản đầu "Có cơ hội lên bậc" ( (a) theo nhịp) — cho trang; KHÔNG phải công cụ của agent."""
     return opportunity_rules.opportunities(request.app.state.ctx, period=period)
 
+
 # `:path` — nhận cả chuỗi có "/" (vd "NV01/../NV02", "%2F" đã giải mã) để KIỂM rồi từ chối bằng lời, thay vì 404 của bộ định tuyến
 @app.get("/api/employees/{employee_id:path}")
+@_versioned
 def employee(request: Request, employee_id: str, period: str | None = None) -> dict:
     return queries.get_employee_result(request.app.state.ctx, employee_id=employee_id, period=period)
 
 
 @app.get("/api/gap")
+@_versioned
 def gap(request: Request, employee_id: str | None = None, period: str | None = None) -> dict:
     ctx = request.app.state.ctx
     return gap_status.add_gap_status(ctx, queries.get_mid_month_gap(ctx, employee_id=employee_id, period=period))
 
 
 @app.get("/api/explain/{employee_id:path}/{kpi}")
+@_versioned
 def explain(request: Request, employee_id: str, kpi: str, period: str | None = None) -> dict:
     return queries.explain_kpi(request.app.state.ctx, employee_id=employee_id, kpi=kpi, period=period)
 
+
 # Nhóm A bậc mức tra cứu (09/11): 3 công cụ đọc mới — tham số đi qua query (không qua đường dẫn) ⇒ "../" không làm bộ định tuyến tách nhầm; queries.py kiểm + từ chối
 @app.get("/api/team-kpi")
+@_versioned
 def team_kpi(request: Request, kpi: str | None = None, period: str | None = None) -> dict:
     return queries.get_team_kpi_summary(request.app.state.ctx, kpi=kpi, period=period)
 
 
 @app.get("/api/compare")
+@_versioned
 def compare(request: Request, employee_a: str | None = None, employee_b: str | None = None, kpi: str | None = None,
             period: str | None = None) -> dict:
     return queries.compare_employees(request.app.state.ctx, employee_a=employee_a, employee_b=employee_b, kpi=kpi, period=period)
 
 
 @app.get("/api/data-issues")
+@_versioned
 def data_issues(request: Request, employee_id: str | None = None, period: str | None = None) -> dict:
     return queries.get_data_issues(request.app.state.ctx, employee_id=employee_id, period=period)
 
-
 @app.get("/api/what-if/{employee_id:path}/{kpi}")
+@_versioned
 def what_if_scenario(request: Request, employee_id: str, kpi: str, extra: str | None = None, period: str | None = None,
                      target_pct: str | None = None) -> dict:
     # Công cụ 4: kịch bản giả định một KPI — mọi tham số (kể cả `extra` / `target_pct` dạng chữ từ truy vấn) kiểm ở what_if.py.
@@ -378,9 +822,11 @@ def what_if_scenario(request: Request, employee_id: str, kpi: str, extra: str | 
     return what_if.simulate_kpi_change(request.app.state.ctx, employee_id=employee_id, kpi=kpi, extra=extra, period=period, target_pct=target_pct)
 
 # bậc 2a: bản tính đã lưu + một hành động ghi "Đã soát" (docs/ mục 2) ----------
+
 def _one_line(text: str) -> str:
     # Tên người soát đi vào nhãn ⇒ vào lời dặn mô hình (B minor 3): bỏ ký tự điều khiển, gom xuống dòng / khoảng trắng thành một dấu cách
     return " ".join("".join(" " if unicodedata.category(ch).startswith("C") else ch for ch in text).split())
+
 
 def _refused_json(reason: str, status: int, code: str | None = None) -> JSONResponse:
     # `code` (18/11): mã ổn định của loại từ chối cho bên gọi rẽ nhánh (màn ghép cột Capitol từng phải dò chữ trong `refused`); không có mã ⇒ không có khoá
@@ -388,6 +834,7 @@ def _refused_json(reason: str, status: int, code: str | None = None) -> JSONResp
 
 
 @app.get("/api/runs")
+@_boot_version_only
 def runs(request: Request, period: str | None = None) -> dict:
     ctx = request.app.state.ctx
     if period is not None and period != ctx.period:
@@ -487,7 +934,8 @@ def verify(request: Request, run_id: int = RUN_ID):
         saved = copy.deepcopy(workflow)
         next(node for node in saved["nodes"] if node["type"] == "load_rules")["params"]["path"] = str(rule_file)
         try:
-            again = queries.build_context(date.fromisoformat(summary["data_snapshot"]["cutoff"]), saved, mask_path=str(MASK))
+            again = queries.build_context(date.fromisoformat(summary["data_snapshot"]["cutoff"]), saved,
+                                          mask_path=_mask_path_for_workflow(request.app, saved))
         except queries.WorkflowStopped as stop:
             return {"run_id": run_id, "inputs_match": inputs_match, "refused": f"không tính lại được — {_stopped_reason(stop.result)}"}
     fields = ("pct", "reached_tier", "amount")
@@ -535,10 +983,13 @@ def workflow_run_detail(request: Request, run_id: int = RUN_ID):
     to_mask = {real: masked for masked, real in request.app.state.ctx.to_real.items()}
     return {**summary, "nodes": version["nodes"], "edges": version["edges"], "is_current": is_current,
             "port_summaries": workflow_view.port_summaries(request.app.state.ctx.workflow_result, to_mask) if is_current else None}
+
+
 # bước 2b: trang kéo–thả — kiểm / lưu / chạy THỬ (workflow_edit.py — bản 2 mục 3) ----------
 # POST chỉ nhận application/json (như /review): không bật CORS ⇒ trang lạ trong trình duyệt không gửi được JSON tới 127.0.0.1. Rào Host đã có.
 # Chạy thử KHÔNG đụng app.state.ctx ⇒ số trang chính + trợ lý không đổi, "Đã soát" không mất.
 TRIAL_LOCK = threading.Lock()   # một lượt chạy thử một lúc (mỗi lượt đọc lại sổ Tracking 7 MB)
+
 
 async def _json_body(request: Request) -> dict | JSONResponse:
     if request.headers.get("content-type", "").split(";")[0].strip().lower() != "application/json":
@@ -758,7 +1209,7 @@ def _real_identity_tokens(app) -> list[str]:
     """
     from kpi_agent.core.load_data import load_targets
     try:
-        codes = {str(code) for code in json.loads(MASK.read_text(encoding="utf-8"))["map"].values()}
+        codes = {str(code) for code in _all_known_mask_map(app).values()}
         _rules_file, targets_file, _data_file = _workflow_files(app.state.workflow)
         team = load_targets(targets_file)["employees"]
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
@@ -793,7 +1244,6 @@ def _real_identity_hits(app, body: bytes, kind: str) -> int:
     text = " ".join(unicodedata.normalize("NFC", text).lower().split())
     return sum(text.count(token) for token in _real_identity_tokens(app))
 
-
 # API cho bộ Capitol (KPI agent chạy trên Capitol, công cụ gắn thẳng gọi HTTP) ----------
 # Công cụ: ĐÚNG đường khối agent (`direct_tools`, T2 chứng minh = đường HTTP agent mình đang dùng) — Capitol không gọi thẳng 10 GET cũ vì đường
 # agent còn lớp kiểm tham số (`check_tool_args`), gọt kết quả get_opportunities, ghép get_data_provenance. Kỳ do HỆ THỐNG điền (kỳ đang nạp):
@@ -821,17 +1271,20 @@ def _provenance_for_model(request: Request) -> dict:
 
 @app.get("/api/tools")
 def tool_list(request: Request):
-    """Mô tả các công cụ (một nguồn: `agent/tool_specs.py`) BỎ ô `period` — để bên Capitol dựng công cụ gắn thẳng, không chép tay mô tả."""
-    request = _for_version(request)
-    if isinstance(request, JSONResponse):
-        return request
+    """Mô tả các công cụ (một nguồn: `agent/tool_specs.py`) BỎ ô `period` — để bên Capitol dựng công cụ gắn thẳng, không chép tay mô tả.
+    Kỳ trống: danh sách công cụ không phụ thuộc dữ liệu ⇒ vẫn trả (kỳ = kỳ đang mở; mô tả theo mã che — bảng tên chỉ có khi kỳ đã có bản)."""
+    empty = not request.app.state.period_ready
+    if not empty:
+        request = _for_version(request)
+        if isinstance(request, JSONResponse):
+            return request
     tools = []
     for schema in tool_specs.tool_schemas(list(queries.KPI_ORDER), names=bool(request.app.state.name_entries)):
         function = copy.deepcopy(schema["function"])
         function["parameters"]["properties"].pop("period", None)
         function["parameters"]["required"] = [name for name in function["parameters"].get("required", []) if name != "period"]
         tools.append(function)
-    return {"period": request.app.state.ctx.period, "tools": tools}
+    return {"period": request.app.state.empty_period if empty else request.app.state.ctx.period, "tools": tools}
 
 
 @app.post("/api/tool/{name}")
@@ -934,7 +1387,6 @@ def _tool_result(request: Request, name: str, args: dict) -> dict:
         result = team_ranking.add_ranking(result)
     # Bậc (a) 11/11: công cụ cả đội + câu chuẩn code viết (`team_sentences`) để mô hình chép nguyên — gắn ở cửa ra, không ở queries.py (dấu vân tay bản tính)
     return with_team_sentences(name, result)
-
 def _calc_source(request: Request, tool: str, args: dict, period: str | None) -> dict:
     """Công cụ tính đọc một số: chạy lại công cụ đọc qua ĐÚNG đường agent (luật tham số, tên ⇒ mã che) trên bản dữ liệu của lượt; `period` khác kỳ
     của lượt (chỉ calc_period_change) ⇒ bản dữ liệu MỚI NHẤT của kỳ đó trong bộ nhớ — hệ thống chọn bản, mô hình không điền data_version.
@@ -977,7 +1429,6 @@ def calc_call(request: Request, name: str, args: str = "{}"):
     if not isinstance(parsed, dict):
         return {"refused": "args phải là bảng JSON {…}"}
     return _tool_for_model(request, name, parsed)
-
 
 def _team_sources(request: Request) -> list[dict]:
     """Nguồn số cho Rào chắn khi KHÔNG có danh sách lần gọi công cụ (Capitol: Rào chắn chỉ nhận chữ — 27 xác nhận 10/11): kết quả các công cụ
@@ -1028,9 +1479,7 @@ def system_bonus_table(request: Request):
         body = {**body, "names": request.app.state.name_entries}
     return body
 
-
 UNHASHED_SOURCE_ROWS = {"Bản tính số", "Tính lúc", "Trạng thái"}   # nhãn ở export_report.report_data — giữ một chỗ
-
 def _bonus_table_body(request: Request) -> dict | JSONResponse:
     with store.connect(request.app.state.store) as conn:
         try:
@@ -1151,6 +1600,9 @@ async def system_duyet(request: Request):
 
 # Thưởng thêm 01–06 + Meat 7.1–7.3 (thêm 11/11) cho Capitol — đường RIÊNG, KHÔNG thuộc bảng thưởng 8 KPI / mã băm bảng ----------
 _extra_lock = threading.Lock()
+# Bản dựng HOÀN TOÀN từ file tải lên (kỳ trống): khoản phụ không đọc file gắn sẵn của backend (đó là file của một tháng cụ thể) — nói rõ thiếu gì.
+# Gia vị + hội viên: bản có sổ tải lên đọc nền từ CHÍNH sổ đó (`_own_book`) ⇒ tính được; thưởng thêm: cần trang chỉ tiêu tải lên (`targets_override`)
+NO_UPLOADED_SOURCE = "{what} chưa tính được — kỳ này dựng từ file tải lên, còn thiếu {missing}"
 
 
 @app.get("/api/system/extra-bonus")
@@ -1168,9 +1620,8 @@ def system_extra_bonus(request: Request):
         return _refused_json(f"thưởng thêm không tính được — {extra}", 409)
     # `gate_progress` (khoản điều kiện "07" cho kiểu xem của trang, 13/11) KHÔNG ra đường hệ thống: hình đường này bên Capitol đã duyệt — không đổi lặng lẽ
     return {key: value for key, value in extra.items() if key != "gate_progress"}
-
-
 @app.get("/api/extra-bonus")
+@_versioned
 def extra_bonus(request: Request, employee_id: str | None = None, period: str | None = None) -> dict:
     """Công cụ 11 `get_extra_bonus` cho trợ lý chat (bậc (b) 11/11) — mã che, KHÔNG khoá (như /api/team-bonus); bản đủ cho Capitol vẫn là
     /api/system/extra-bonus (có khoá + nguồn luật). Lời từ chối trả 200 trong thân như các công cụ khác."""
@@ -1181,6 +1632,7 @@ def extra_bonus(request: Request, employee_id: str | None = None, period: str | 
 # Đường duy nhất trả TÊN THẬT: không đi qua agent / công cụ / kiem_so (kết quả công cụ vẫn 0 tên thật — test cũ giữ); không ghi tên vào log
 # (lời lỗi chỉ nói thiếu gì, không nêu tên / mã thật); `Cache-Control: no-store` để trình duyệt không giữ bản tên.
 @app.get("/api/names")
+@_boot_version_only
 def employee_names(request: Request):
     """{"names": {mã che NVxx: {"name": họ tên, "sm_code": mã SM thật}}} — mã che ⇒ mã thật từ bảng che của bản tính (`ctx.to_real`), tên từ file chỉ
     tiêu của workflow (như `_real_identity_tokens`).
@@ -1212,6 +1664,7 @@ _tracking_lock = threading.Lock()
 
 
 @app.get("/api/tracking")
+@_boot_version_only
 def tracking(request: Request) -> dict:
     """Bảng đội + hạng + Thưởng thêm + ô lệch trang sếp (mã che) cho bản tính lúc bật. Tính một lần rồi giữ (so trang đọc lại RAW ≈ 10 s).
     Giới hạn: bản dữ liệu tải lên (`/api/system/upload`) chưa có tab này — tab hiện bản lúc bật."""
@@ -1237,11 +1690,8 @@ def tracking(request: Request) -> dict:
                                                  page_view=tracking_view.page_view(ctx, extra))
             app.state.tracking = cached
     return cached
-
-
 # "1 % gia vị" (bậc 1 — backend/spice_loyalty.py, luật config/gia_vi_1pct_<kỳ>.yaml) — chỉ đọc, ngoài bảng thưởng 8 KPI ----------
 _spice_lock = threading.Lock()
-SPICE_BASE_ONLY = "1 % gia vị chỉ có cho bản dữ liệu lúc bật — bản tải lên chưa có"
 @app.get("/api/spice-loyalty")
 def spice(request: Request) -> dict:
     """Thưởng 1 % gia vị gom theo NV phụ trách (mã che) + tổng đội — tiền trả cho KHÁCH, không cộng lương NV. 0 mã / tên khách.
@@ -1249,9 +1699,24 @@ def spice(request: Request) -> dict:
     # Đường trang (/api/spice-loyalty, /api/spice-tool, /api/spice-customers — cả ba gọi hàm này) không qua `_for_version` ⇒ ?data_version= của bản
     # khác từng bị bỏ qua và trả số / khách của bản lúc bật ⇒ từ chối như đường hệ thống. Lời gọi đã qua `_for_version` (công cụ) mang
     # data_version của chính bản đó ⇒ không vướng dòng này; bản tải lên tự từ chối ở ô `spice` của nó.
-    if request.query_params.get("data_version") not in (None, "", request.app.state.data_version):
-        return queries._refused(SPICE_BASE_ONLY)
+    # 2a-2 nấc 1 (20/11): bản tải lên TỰ tính 1 % gia vị từ file của chính nó ⇒ gỡ rào "chỉ bản lúc bật"; điều kiện giữ cho rào cũ vẫn đúng: MỌI đường
+    # gia vị đi qua đúng bản được hỏi (`_own_version`), ô giữ kết quả nằm trên state của TỪNG bản.
+    request = _own_version(request)
+    if isinstance(request, dict):
+        return request
     return _spice(request.app)
+
+
+UNKNOWN_VERSION = "không có bản dữ liệu này — tải file lại"
+
+
+def _own_version(request: Request):
+    """Request của ĐÚNG bản được hỏi cho các đường của trang / công cụ (trả lời từ chối trong thân, mã 200): ?data_version= thiếu / = bản lúc bật ⇒ request
+    gốc; bản tải lên ⇒ request của bản đó; lạ ⇒ lời từ chối (dict). Request đã là của một bản (cửa ra công cụ) ⇒ giữ nguyên."""
+    if isinstance(request, _VersionRequest):
+        return request
+    versioned = _for_version(request)
+    return queries._refused(UNKNOWN_VERSION) if isinstance(versioned, JSONResponse) else versioned
 
 
 def _spice(app) -> dict:
@@ -1259,7 +1724,8 @@ def _spice(app) -> dict:
     with _spice_lock:
         cached = getattr(app.state, "spice", None)
         if cached is None:
-            cached = _compute_spice(app)
+            cached = (queries._refused(NO_UPLOADED_SOURCE.format(what="1 % gia vị", missing="nền gia vị (chưa có đường tải)"))
+                      if getattr(app.state, "uploads_only", False) and _own_book(app.state.workflow) is None else _compute_spice(app))
             app.state.spice = cached
     return cached
 
@@ -1269,6 +1735,9 @@ def spice_for_chat(request: Request, employee_id: str | None = None, period: str
     """Công cụ 12 `get_spice_loyalty` cho trợ lý chat — hình RIÊNG cho mô hình (không có khoá `employee_id` ở dòng nào: tiền này trả cho
     KHÁCH — xem `backend/spice_tool.py`); đường của trang `/api/spice-loyalty` giữ nguyên hình. Lời từ chối trả 200 trong thân như các công cụ khác.
     """
+    request = _own_version(request)
+    if isinstance(request, dict):
+        return request
     return spice_tool.get_spice_loyalty(request.app.state.ctx, spice(request), employee_id=employee_id, period=period)
 
 
@@ -1276,6 +1745,9 @@ def spice_for_chat(request: Request, employee_id: str | None = None, period: str
 def spice_customers(request: Request, employee_id: str | None = None) -> dict:
     """Từng khách của chương trình 1 % gia vị (cả đội hoặc một NV): nền, doanh số, % nền, thưởng / còn cần bao nhiêu để tới ngưỡng. CÓ tên + mã khách ⇒
     đường chỉ cho trang (không vào công cụ AI, không vào danh sách đường của cổng xem; KPI_SYSTEM_ONLY ⇒ 404). Dùng lại đúng các dòng `/api/spice-loyalty` đã tính."""
+    request = _own_version(request)
+    if isinstance(request, dict):
+        return request
     ctx = request.app.state.ctx
     if employee_id is not None:
         _real, refusal = queries._check_employee(ctx, employee_id)
@@ -1330,6 +1802,7 @@ def _outlets_answer(request: Request, employee_id: str | None, view, notes: list
 
 
 @app.get("/api/outlets")
+@_boot_version_only
 def outlet_list(request: Request, employee_id: str | None = None) -> dict:
     """Điểm bán thuộc tuyến của cả đội (hoặc một NV): doanh số tháng, đạt / chưa đạt MOQ, Trà 365, Homey, kênh On, nước mắm cao cấp. Chỉ đường RAW."""
     return _outlets_answer(request, employee_id, outlets.outlets_view, [
@@ -1340,12 +1813,14 @@ def outlet_list(request: Request, employee_id: str | None = None) -> dict:
 
 
 @app.get("/api/tea-365")
+@_boot_version_only
 def tea_365(request: Request, employee_id: str | None = None) -> dict:
     """Điểm bán thuộc tuyến mua từ 1 thùng Trà 365 cộng dồn trong tháng. CHỈ ĐẾM — tiền theo công văn 419 chưa dựng."""
     return _outlets_answer(request, employee_id, outlets.tea_view, [
         "Chỉ đếm — chưa tính tiền Trà 365 theo công văn 419.",
         "Số thùng = cộng mọi dòng đơn Trà 365 của điểm bán trong tháng, kể cả dòng chưa đủ số lượng mua tối thiểu.",
         "Tổng thùng chỉ cộng các điểm bán mua từ 1 thùng."])
+
 
 def _raw_read_args(workflow: dict, ctx) -> dict:
     """Bậc 2 bước 2.5 (17/11): luật kỳ (trạng thái nào cần ngày xuất HĐ) + bảng ghép cột của bản đang chạy — MỌI đường đọc RAW ngoài lõi (Thưởng thêm,
@@ -1357,9 +1832,22 @@ def _raw_read_args(workflow: dict, ctx) -> dict:
     return {"invoice_required_status": raw_options(ctx.rules)["invoice_required_status"],
             "mapping": runner.node_param(workflow, "read_raw", "ghep"), "period_rules": period_rules(ctx.rules["assumptions"])}
 
+
+def _routes_of(workflow: dict) -> dict:
+    """Bảng tuyến của một bản dữ liệu — đúng hàm khối read_raw dùng (`blocks.routes_of`): file JSON cố định, hoặc sổ theo dõi đã tải + công thức đọc (2a-1).
+    Mọi màn cần tuyến đi qua đây; đọc riêng `load_mcp_json(mcp_path)` hỏng với bản lấy tuyến từ sổ. Sổ không đọc được ⇒ ValueError (lời chỉ có mã lỗi)."""
+    from kpi_agent.workflow.blocks import BlockStop, routes_of
+    # ô lấy qua `runner.node_param` như mọi chỗ khác đọc đường file của khối (một lối đọc ô — file tuyến thiếu ⇒ cùng một lời "thiếu file")
+    params = {key: runner.node_param(workflow, "read_raw", key) for key in ("mcp_path", "mcp_ghep", "mcp_doi")}
+    try:
+        return routes_of(params)
+    except BlockStop as stop:
+        raise ValueError(str(stop)) from None
+
+
 def _compute_outlets(app) -> dict:
     from kpi_agent.core.compute_extra_bonus import load_extra_rules
-    from kpi_agent.core.load_raw import load_mcp_json, read_raw_lines
+    from kpi_agent.core.load_raw import read_raw_lines
     workflow, ctx = app.state.workflow, app.state.ctx
     if runner.data_block_type(workflow) != "read_raw":
         return queries._refused("danh sách điểm bán chỉ có ở workflow đường RAW DATA (cần dòng đơn từng cửa hàng)")
@@ -1372,7 +1860,7 @@ def _compute_outlets(app) -> dict:
         fish_sauce = load_extra_rules(rules_path)["items"]["T03"]["dms_obj"]
         raw_path = runner.repo_path(runner.node_param(workflow, "read_raw", "path"))
         mcp_path = runner.repo_path(runner.node_param(workflow, "read_raw", "mcp_path"))
-        mcp = load_mcp_json(mcp_path)
+        mcp = _routes_of(workflow)
         read_args = _raw_read_args(workflow, ctx)
         lines, _late = read_raw_lines(raw_path, ctx.cutoff, ctx.period, extra_columns=outlets.EXTRA_COLUMNS, **read_args)
         # Dòng hoá đơn trễ: tiền "như trang" trên thẻ cộng vào (dòng 13 bài 15b); KPI 1 cộng dòng có ngày xuất (mốc 7 N2) ⇒ đọc riêng, chỉ khi có dòng trễ
@@ -1410,12 +1898,23 @@ def _compute_outlets(app) -> dict:
 # Trả TÊN + MÃ khách ⇒ đường chỉ cho trang: không vào công cụ AI, không vào danh sách đường của cổng xem; KPI_SYSTEM_ONLY ⇒ 404.
 # CHƯA có hạng / nhiệm vụ / tiền (thiếu dữ liệu + công văn 408). Đọc sổ + file đơn hàng ở lần gọi đầu rồi giữ tới khi bật lại.
 _membership_lock = threading.Lock()
-MEMBERSHIP_BASE_ONLY = "hội viên chưa tính theo bản tải lên — chỉ có cho bản dữ liệu lúc bật"
+
+
+def _has_own_column_mapping(workflow: dict) -> bool:
+    """File đơn hàng của bản có sheet / dòng tiêu đề / cột KHÁC mẫu không. Bảng ghép chỉ thêm ngành được cho qua trên bố cục mẫu ⇒ không tính là khác."""
+    from kpi_agent.core import khuon
+    mapping = runner.node_param(workflow, "read_raw", "ghep")
+    if mapping is None:
+        return False
+    own, default = khuon.normalize_mapping({**mapping, "table": "don_hang"}), khuon.normalize_mapping({**khuon.default_mapping("don_hang"), "table": "don_hang"})
+    return any(own.get(key) != default.get(key) for key in ("sheet", "header_row", "columns"))
 
 
 def _compute_membership(app) -> dict:
     from kpi_agent.core.load_raw import raw_employee_names
     workflow, ctx = app.state.workflow, app.state.ctx
+    if getattr(app.state, "uploads_only", False) and _own_book(workflow) is None:
+        return queries._refused(NO_UPLOADED_SOURCE.format(what="danh sách hội viên", missing="nền hội viên (chưa có đường tải)"))
     if runner.data_block_type(workflow) != "read_raw":
         return queries._refused("danh sách hội viên chỉ có ở workflow đường RAW DATA (cần dòng đơn từng cửa hàng)")
     source_path = REPO_ROOT / f"kpi_agent/config/hoi_vien_{ctx.period.replace('-', '_')}.yaml"
@@ -1424,7 +1923,13 @@ def _compute_membership(app) -> dict:
     raw_path = book_path = None
     try:
         spec = membership.load_source(source_path)
-        raw_path, book_path = _workflow_files(workflow)[2], REPO_ROOT / spec["workbook"]
+        if spec["period"] != ctx.period:
+            # file nguồn ghi cứng sổ nền của MỘT kỳ ⇒ bản của kỳ khác không được lặng lẽ dùng nền đó (như 1 % gia vị)
+            return queries._refused(f"file nguồn hội viên ghi kỳ {queries._short(spec['period'])}, không phải kỳ {ctx.period} của bản dữ liệu")
+        if _has_own_column_mapping(workflow):
+            # phần hội viên đọc file đơn hàng theo TÊN CỘT của mẫu, chưa qua bảng ghép cột ⇒ bản tải lên có cách ghép riêng: từ chối, không đọc nhầm cột
+            return queries._refused("danh sách hội viên chưa đọc được file đơn hàng có cách ghép cột riêng — chỉ có cho file đúng mẫu")
+        raw_path, book_path = _workflow_files(workflow)[2], REPO_ROOT / _on_own_book(spec, "workbook", workflow)["workbook"]
         members = membership.read_members(book_path, spec)
         codes = {full: code for code, full in raw_employee_names(str(raw_path)).items()}
         from kpi_agent.core.load_raw import period_rules
@@ -1449,8 +1954,9 @@ def _compute_membership(app) -> dict:
 def membership_list(request: Request, employee_id: str | None = None) -> dict:
     """Khách hội viên của cả đội (hoặc một NV): nền, doanh số sau chiết khấu, % nền, còn lại, nhóm theo doanh số. Chỉ đường RAW. Chưa có hạng / tiền."""
     # m6: đường này không qua `_for_version` ⇒ ?data_version= của bản khác từng trả số hội viên của bản LÚC BẬT ⇒ từ chối như gia vị
-    if request.query_params.get("data_version") not in (None, "", request.app.state.data_version):
-        return queries._refused(MEMBERSHIP_BASE_ONLY)
+    request = _own_version(request)     # 2a-2 nấc 1: bản tải lên có danh sách hội viên của CHÍNH nó (ô giữ `membership` nằm trên state của từng bản)
+    if isinstance(request, dict):
+        return request
     ctx = request.app.state.ctx
     if employee_id is not None:
         _real, refusal = queries._check_employee(ctx, employee_id)
@@ -1484,7 +1990,7 @@ def _order_lines_data(app) -> dict:
 
 
 def _load_order_lines(app) -> dict:
-    from kpi_agent.core.load_raw import load_mcp_json, read_raw_lines
+    from kpi_agent.core.load_raw import read_raw_lines
     workflow, ctx = app.state.workflow, app.state.ctx
     if runner.data_block_type(workflow) != "read_raw":
         return queries._refused("danh sách đơn chỉ có ở workflow đường RAW DATA (cần dòng đơn từng cửa hàng)")
@@ -1495,7 +2001,7 @@ def _load_order_lines(app) -> dict:
         read_args = _raw_read_args(workflow, ctx)
         lines = order_lines.read_all_lines(raw_path, ctx.cutoff, ctx.period, **read_args)
         kept_by_core = len(read_raw_lines(raw_path, ctx.cutoff, ctx.period, **read_args)[0])
-        mcp = load_mcp_json(mcp_path)
+        mcp = _routes_of(workflow)
     except OSError:
         missing = [_shown_path(path) for path in (raw_path, mcp_path) if path is not None and not Path(path).is_file()]
         return queries._refused("danh sách đơn không đọc được — " + (f"thiếu file {', '.join(missing)}" if missing else "không đọc được file dữ liệu"))
@@ -1511,6 +2017,7 @@ def _load_order_lines(app) -> dict:
 
 
 @app.get("/api/order-lines")
+@_boot_version_only
 def employee_order_lines(request: Request, employee_id: str | None = None, kpi: str | None = None) -> dict:
     """Đơn (hoặc cửa hàng) của một nhân viên cho một chỉ tiêu, kèm được tính / không và lý do. Chỉ đường RAW; chỉ các chỉ tiêu đã làm (bậc 1: 4 chỉ tiêu)."""
     ctx = request.app.state.ctx
@@ -1540,9 +2047,9 @@ def employee_order_lines(request: Request, employee_id: str | None = None, kpi: 
             "summary": {**result["summary"], "counted_value": result["counted_value"], "core_actual": core_actual, "matches_core": True},
             "rows": result["rows"], "notes": [order_lines.NOTE, order_lines.SAME_DAY_NOTE]}
 
-
 # Tab "Đánh giá" (backend/evaluations.py) — chỉ đọc file đã dựng sẵn, không đo, không gọi AI ----------
 EVALUATIONS_FILE = REPO_ROOT / "kpi_agent/data/danh_gia.json"   # do scripts/dung_so_danh_gia.py ghi (Git bỏ qua)
+
 
 @app.get("/api/evaluations")
 def evaluations() -> dict:
@@ -1571,13 +2078,14 @@ def system_team_board(request: Request):
 
 @app.get("/api/system/spice-loyalty")
 def system_spice_loyalty(request: Request):
-    """1 % gia vị (như /api/spice-loyalty) — có khoá hệ thống. Số này chỉ tính cho bản dữ liệu LÚC BẬT (bản tải lên chưa có) ⇒ xin bản khác thì
-    từ chối 409, không trả nhầm số của bản lúc bật."""
+    """1 % gia vị (như /api/spice-loyalty) — có khoá hệ thống. ?data_version= ⇒ số của ĐÚNG bản đó (bản tải lên tự tính từ file của nó); bản lạ ⇒ 404;
+    bản không tính được ⇒ 409."""
     problem = _system_key_problem(request)
     if problem:
         return problem
-    if request.query_params.get("data_version") not in (None, "", request.app.state.data_version):
-        return _refused_json(SPICE_BASE_ONLY, 409)
+    request = _for_version(request)     # bản lạ ⇒ 404 như mọi đường hệ thống; bản tải lên ⇒ số của CHÍNH bản đó (2a-2 nấc 1)
+    if isinstance(request, JSONResponse):
+        return request
     result = spice(request)
     # Đường hệ thống: không tính được ⇒ 409 (như /api/system/extra-bonus) để bên gọi bằng máy không nhận 200 mà không có số. Đường của trang
     # (/api/spice-loyalty) GIỮ 200 + "refused": trang chỉ hiện lời từ chối khi mã trả là 200 (`dashboard/src/api.ts` readJson ném lỗi chung nếu khác 200)
@@ -1595,6 +2103,20 @@ def _spice_page_totals() -> dict | None:
         return None
 
 
+def _own_book(workflow: dict) -> Path | None:
+    """Sổ theo dõi người dùng ĐÃ TẢI LÊN cho bản này (bản lấy tuyến từ sổ — 2a-1); bản dùng file tuyến cố định ⇒ None."""
+    if runner.data_block_type(workflow) != "read_raw" or runner.node_param(workflow, "read_raw", "mcp_ghep") is None:
+        return None
+    return runner.repo_path(runner.node_param(workflow, "read_raw", "mcp_path"))
+
+
+def _on_own_book(spec: dict, key: str, workflow: dict) -> dict:
+    """2a-2 nấc 2: bản có sổ tải lên ⇒ nền 1 % gia vị / danh sách hội viên đọc từ CHÍNH sổ đó (cùng sheet, dòng tiêu đề, cột ghi trong file luật của kỳ),
+    không đọc sổ ghi cứng trong file luật — tháng sau người dùng tải sổ tháng sau là đủ. Bản không có sổ tải lên ⇒ giữ đường ghi trong file luật."""
+    book = _own_book(workflow)
+    return spec if book is None else {**spec, key: str(book)}
+
+
 def _compute_spice(app) -> dict:
     from kpi_agent.core.load_raw import raw_employee_names, read_raw_lines
     workflow, ctx = app.state.workflow, app.state.ctx
@@ -1606,34 +2128,48 @@ def _compute_spice(app) -> dict:
     rules = raw_path = None
     try:
         rules = spice_loyalty.load_rules(rules_path)
+        if rules["period"] != ctx.period:
+            # file luật ghi cứng sổ nền của MỘT kỳ ⇒ bản của kỳ khác không được lặng lẽ dùng nền đó
+            return queries._refused(f"file luật 1 % gia vị ghi kỳ {queries._short(rules['period'])}, không phải kỳ {ctx.period} của bản dữ liệu")
         raw_path = _workflow_files(workflow)[2]
         read_args = _raw_read_args(workflow, ctx)
         lines, _late = read_raw_lines(raw_path, ctx.cutoff, rules["period"], extra_columns=(rules["sales_column"],), **read_args)
         codes = {full: code for code, full in raw_employee_names(str(raw_path), read_args["mapping"]).items()}
-        rows = spice_loyalty.compute(lines, rules, spice_loyalty.read_baseline(REPO_ROOT, rules["baseline"]), codes)
+        baseline = _on_own_book(rules["baseline"], "file", workflow)
+        rows = spice_loyalty.compute(lines, rules, spice_loyalty.read_baseline(REPO_ROOT, baseline), codes)
         summary = spice_loyalty.by_employee(rows, {real: masked for masked, real in ctx.to_real.items()})
         # Danh sách từng khách cho TRANG (13/11) — cùng các dòng vừa tính; tên + ngày viếng thăm đọc thêm từ sổ, không đọc được thì danh sách vẫn có, thiếu tên
         to_masked = {real: masked for masked, real in ctx.to_real.items()}
         try:
-            info, info_note = spice_loyalty.read_customer_info(REPO_ROOT, rules["baseline"]), []
+            info, info_note = spice_loyalty.read_customer_info(REPO_ROOT, baseline), []
         except ValueError as error:
             info, info_note = {}, [f"Chưa có tên khách và ngày viếng thăm — {error}."]
         app.state.spice_customers = {"rows": spice_loyalty.customer_rows(rows, rules, info, to_masked), "notes": info_note + [
             "Số ở đây cộng đủ đồng; trang theo dõi của đội hiện nền và doanh số của từng khách đã làm tròn tới 10.000 đ.",
             "Có thưởng khi doanh số gia vị đạt từ 110 % nền; \"cần thêm\" = doanh số còn thiếu để tới ngưỡng đó."]}
     except OSError:
-        # 12/11 (người kiểm độc lập): thiếu sổ nền từng trả nguyên chuỗi lỗi hệ thống — đường dẫn TUYỆT ĐỐI trên máy + "[Errno 2]" — ra lời trả.
+        # 12/11: thiếu sổ nền từng trả nguyên chuỗi lỗi hệ thống — đường dẫn TUYỆT ĐỐI trên máy + "[Errno 2]" — ra lời trả.
         # Nay chỉ nêu tên file tương đối của các file khoản này đọc; không chép chuỗi lỗi của hệ điều hành.
-        files = [raw_path] + ([REPO_ROOT / rules["baseline"]["file"]] if isinstance(rules, dict) and "baseline" in rules else [])
+        files = [raw_path] + ([REPO_ROOT / _on_own_book(rules["baseline"], "file", workflow)["file"]] if isinstance(rules, dict) and "baseline" in rules else [])
         missing = [_shown_path(path) for path in files if path is not None and not Path(path).is_file()]
         return queries._refused("1 % gia vị không tính được — " + (f"thiếu file {', '.join(missing)}" if missing else "không đọc được file dữ liệu"))
     except (ValueError, KeyError) as error:
         # Lời lỗi của module không chứa tên / mã thật, không chứa đường dẫn (chỉ số dòng, tên cột, tên sheet, số đếm)
+        column = rules.get("sales_column") if isinstance(rules, dict) else None
+        if column and str(error).startswith("RAW thiếu cột") and column in str(error):
+            # file đơn hàng được nhận (cột này không thuộc cột bắt buộc của 8 KPI) nhưng khoản gia vị cần nó — lời thường, chỉ việc phải làm
+            return queries._refused(f"Chưa tính được 1 % gia vị: file đơn hàng thiếu cột doanh số sau chiết khấu (tên cột mẫu: {column}) — "
+                                    "đổi tên cột trong file cho đúng rồi tải lại")
         return queries._refused(f"1 % gia vị không tính được — {error}")
     return {"period": ctx.period, "cutoff": ctx.cutoff.isoformat(), "rule_text": rules.get("rule_text"), **summary,
-            "page_totals": {**spice_loyalty.page_totals(rows, rules), "page": _spice_page_totals()},   # 4 ô tổng như trang theo dõi của đội (chỉ thêm khoá)
+            # 4 ô tổng như trang theo dõi của đội (chỉ thêm khoá). Ô "page" = số TRANG CỦA SẾP hiện cạnh (đáp án để so bằng mắt, không vào phép
+            # tính): chỉ gắn cho bản lúc bật — trang là số chốt của đúng bản đó; bản tải lên ⇒ None
+            "page_totals": {**spice_loyalty.page_totals(rows, rules), "page": None if isinstance(app.state, _VersionState) or getattr(app.state, "uploads_only", False) else _spice_page_totals()},
+            # bản chưa hết kỳ (ngày chốt trước ngày cuối kỳ): doanh số mới tới ngày chốt mà nền là của cả tháng ⇒ nói rõ là tạm tính. Kỳ đã hết ⇒ không có khoá
+            **({"provisional_note": f"tạm tính tới ngày chốt {ctx.cutoff:%d/%m/%Y} — chưa phải thưởng cuối kỳ"} if ctx.cutoff < upload.last_day(ctx.period) else {}),
             "paid_to": "khách (điểm bán) — không cộng vào lương 8 KPI / Thưởng thêm của NV",
-            "source": {"rules_file": rules_path.name, "rules_sha256": _sha256(rules_path), "baseline_sheet": rules["baseline"]["sheet"]}}
+            "source": {"rules_file": rules_path.name, "rules_sha256": _sha256(rules_path), "baseline_sheet": rules["baseline"]["sheet"],
+                       "baseline_from": "so_tai_len" if _own_book(workflow) is not None else "file_co_dinh"}}
 
 
 def _extra_bonus(app) -> dict | str:
@@ -1641,20 +2177,35 @@ def _extra_bonus(app) -> dict | str:
     Một chỗ cho đường hệ thống, công cụ 11 và nguồn số của Rào chắn ⇒ ba đường cùng một bộ số."""
     with _extra_lock:
         cached = getattr(app.state, "extra_bonus", None)
+        if cached is None and getattr(app.state, "uploads_only", False) and getattr(app.state, "targets_override", None) is None:
+            cached = "Chưa có chỉ tiêu Kokomi / Meat — hãy tải trang theo dõi (.html) của kỳ này"   # lời thường: chỉ việc phải làm
+            app.state.extra_bonus = cached
         if cached is None:
             try:
                 cached = _compute_extra_bonus(app)
-            except ValueError as error:
+            except Exception as error:   # noqa: BLE001 — mọi lỗi thành LỜI (không 500), nhưng chỉ lời do code viết mới ra cửa (`_extra_bonus_reason`)
                 # Luật / dữ liệu sai ⇒ không có số (lỗi nặng ⇒ dừng); lời lỗi của lõi không chứa mã NV thật / tên.
                 # GIỮ cả lời lỗi (bản 2): không giữ thì mỗi lần gọi (cả nguồn số của Rào chắn) lại đọc RAW ≈ 15 s rồi hết giờ; sửa file ⇒ bật lại / tải lại
-                cached = str(error)
+                cached = _extra_bonus_reason(error)
             app.state.extra_bonus = cached
     return cached
 
 
+EXTRA_BONUS_UNREADABLE = "không đọc được dữ liệu để tính thưởng thêm (mã lỗi: thuong_them_loi_doc)"
+
+
+def _extra_bonus_reason(error: Exception) -> str:
+    """Lời lỗi của đường thưởng thêm đi ra cửa (409 hệ thống, lời từ chối của công cụ, phản hồi tải lên): chỉ giữ lời do CODE của dự án viết (ValueError
+    của lõi / của bộ đọc tuyến). Lỗi của Python / hệ điều hành (giải mã chữ, JSON hỏng, thiếu file, thiếu khoá…) mang chữ thô, đường dẫn tuyệt đối hay
+    nội dung file ⇒ lời chung + mã cố định. Ca thật 20/11: file tuyến là .xlsx bị đọc như JSON ⇒ "'utf-8' codec can't decode byte…" từng ra cửa."""
+    if isinstance(error, ValueError) and not isinstance(error, (UnicodeError, json.JSONDecodeError)):
+        return str(error)
+    return EXTRA_BONUS_UNREADABLE
+
+
 def _compute_extra_bonus(app) -> dict:
     from kpi_agent.core.compute_extra_bonus import compute_extra_bonus, load_extra_rules, load_item_targets
-    from kpi_agent.core.load_raw import load_mcp_json, read_raw_lines
+    from kpi_agent.core.load_raw import read_raw_lines
     workflow, ctx = app.state.workflow, app.state.ctx
     if runner.data_block_type(workflow) != "read_raw":
         raise ValueError("chỉ có ở workflow đường RAW DATA (workflow đang chạy đọc sổ Tracking — không có dòng đơn từng mã hàng)")
@@ -1663,11 +2214,13 @@ def _compute_extra_bonus(app) -> dict:
         raise ValueError(f"chưa có file luật thưởng thêm cho kỳ {ctx.period}")
     rules = load_extra_rules(rules_path)
     raw_path = runner.repo_path(runner.node_param(workflow, "read_raw", "path"))
-    mcp = load_mcp_json(runner.repo_path(runner.node_param(workflow, "read_raw", "mcp_path")))
+    mcp = _routes_of(workflow)
     # keep_late (mốc 7 N2): dòng hoá đơn trễ có ngày xuất mang cờ LATE — lõi chỉ cộng ở T06 + cổng 07 (`include_late_invoice` trong file luật)
     lines, _late = read_raw_lines(raw_path, ctx.cutoff, rules["period"], extra_columns=("TOTAL CASES", "TOTAL PIECES"), keep_late=True,
                                   **_raw_read_args(workflow, ctx))
-    item_targets = load_item_targets(rules, resolve=runner.repo_path)   # chỉ tiêu riêng từng NV: T06 Kokomi + Meat 7.1–7.3 (cổng TPCB)
+    # chỉ tiêu riêng từng NV: T06 Kokomi + Meat 7.1–7.3 (cổng TPCB). Bản có trang theo dõi tải lên (2a-2 nấc 3) đọc file đã tách của CHÍNH bản đó
+    own_targets = getattr(app.state, "targets_override", None) or {}
+    item_targets = load_item_targets(rules, resolve=lambda name: Path(own_targets[name]) if name in own_targets else runner.repo_path(name))
     to_masked = {real: masked for masked, real in ctx.to_real.items()}
     result = compute_extra_bonus(lines, rules, sorted(to_masked), mcp, item_targets)
     items = list(rules["items"])
@@ -1711,7 +2264,7 @@ MAX_VERSIONS = 10
 UPLOAD_DIR = REPO_ROOT / "kpi_agent/data/uploads"     # mặc định khi không đặt KPI_UPLOAD_DIR (lifespan đọc)
 
 
-def _extra_files_sha256(workflow: dict, period: str) -> dict[str, str]:
+def _extra_files_sha256(workflow: dict, period: str, own_targets: dict | None = None) -> dict[str, str]:
     """{đường file tính từ gốc repo: sha256} của các file quyết định số NGOÀI bảng 8 KPI: luật + chỉ tiêu riêng của Thưởng thêm, luật + sổ nền của
     1 % gia vị, nguồn + sổ của tab Hội viên (`hoi_vien_<kỳ>.yaml` + sổ Tracking nó trỏ — số doanh số hội viên trên trang). Chỉ đường RAW có các
     khoản này; đường khác ⇒ {}.
@@ -1725,16 +2278,23 @@ def _extra_files_sha256(workflow: dict, period: str) -> dict[str, str]:
     suffix = period.replace("-", "_")
     extra_rules, spice_rules, members_source = (f"kpi_agent/config/extra_bonus_{suffix}.yaml", f"kpi_agent/config/gia_vi_1pct_{suffix}.yaml",
                                                 f"kpi_agent/config/hoi_vien_{suffix}.yaml")
-    files = [extra_rules, spice_rules, members_source]
+    files, from_book = [extra_rules, spice_rules, members_source], set()
     for rules_file, pick in ((extra_rules, lambda rules: [item.get("targets_file") for item in rules.get("items", {}).values()]),
                              (spice_rules, lambda rules: [rules.get("baseline", {}).get("file")]),
                              (members_source, lambda rules: [rules.get("workbook")])):
         try:
             rules = yaml.safe_load(runner.repo_path(rules_file).read_text(encoding="utf-8"))
-            files += [name for name in pick(rules) if isinstance(name, str) and name not in files]
+            found = [name for name in pick(rules) if isinstance(name, str)]
+            files += [name for name in found if name not in files]
+            if rules_file != extra_rules:
+                from_book.update(found)      # sổ nền 1 % gia vị + sổ hội viên: bản có sổ tải lên đọc từ chính sổ đó (nấc 2)
         except (OSError, yaml.YAMLError, AttributeError):
             continue   # file luật thiếu / không đọc được ⇒ sha của chính nó đã là "không có file" hoặc đổi; không biết file con thì thôi
-    return {name: _sha256_or_missing(runner.repo_path(name)) for name in files}
+    # `own_targets` (2a-2 nấc 3): bản có trang tải lên ⇒ băm file chỉ tiêu đã tách của bản dưới ĐÚNG tên file cố định nó thay ⇒ đổi trang thì mã bản đổi
+    own_targets, book = own_targets or {}, _own_book(workflow)
+    path_of = lambda name: Path(own_targets[name]) if name in own_targets else book if book is not None and name in from_book else runner.repo_path(name)
+    return {name: _sha256_or_missing(path_of(name)) for name in files}
+
 
 def _data_version(files_sha256: dict, code_sha: str, cutoff: date, extra_files_sha256: dict | None = None, mapping_sha: str | None = None) -> str:
     """sha256(sha NỘI DUNG mọi file đầu vào — luật, chỉ tiêu, dữ liệu theo thứ tự vai rồi file khác như danh sách tuyến (`_files_sha256`) —, dấu vân tay code, ngày chốt) — không dùng tên file (file tải lên lưu theo sha) ⇒
@@ -1776,6 +2336,12 @@ class _VersionRequest:
 def _for_version(request: Request):
     """?data_version= ⇒ request của bản đó; thiếu / = bản lúc bật ⇒ request gốc; lạ ⇒ 404 (không liệt kê bản nào đang có)."""
     wanted = request.query_params.get("data_version")
+    if wanted in (None, "") and getattr(request.app.state, "uploads_only", False):
+        # Kỳ dựng HOÀN TOÀN từ file tải lên: không gửi mã bản ⇒ bản MỚI NHẤT của kỳ. Bản đầu (đơn hàng + chỉ tiêu + sổ) chưa có thưởng thêm; tải
+        # trang chỉ tiêu ra bản mới — trang / khung chat hỏi không kèm mã bản mà vẫn rơi về bản đầu thì không bao giờ thấy khoản đó.
+        latest = request.app.state.versions.get(request.app.state.latest_data_version)
+        if latest is not None:
+            return _VersionRequest(request, latest)
     if wanted in (None, "", request.app.state.data_version):
         return request
     state = request.app.state.versions.get(wanted)
@@ -1785,8 +2351,6 @@ def _for_version(request: Request):
 
 
 UPLOAD_QUERY = {"loai", "ky", "ngay_chot", "data_version"}   # bỏ ten_file (C rà bảo mật U8: query vào log truy cập)
-
-
 @app.post("/api/system/upload")
 async def system_upload(request: Request):
     """Thân = byte file .xlsx (application/octet-stream); query loai = raw | tracking | chi_tieu · ky (vd 2026-10) · ngay_chot (YYYY-MM-DD, hệ thống điền; BẮT BUỘC với tracking và raw — xem dưới) · data_version (bản làm nền — thiếu ⇒ bản lúc bật). Kiểm (upload.py) ⇒ lưu theo sha ⇒ tính bằng lõi cố định
@@ -1801,13 +2365,13 @@ async def system_upload(request: Request):
     if set(params) - UPLOAD_QUERY or params.get("loai") not in upload.KINDS or not params.get("ky") \
             or (params.get("loai") in ("tracking", "raw") and not params.get("ngay_chot")):
         return await _drained(request, _refused_json(
-            "query: loai = raw | tracking | chi_tieu, ky (vd 2026-10), ngay_chot YYYY-MM-DD (bắt buộc với raw và tracking — hệ thống điền ngày chốt,"
-            " không đoán), data_version (không bắt buộc)", 422))
+            "query: loai = raw | tracking | chi_tieu | so_tracking | trang_chi_tieu, ky (vd 2026-10), ngay_chot YYYY-MM-DD (bắt buộc với raw và tracking — hệ thống điền "
+            "ngày chốt, không đoán), data_version (không bắt buộc)", 422))
     if request.headers.get("content-type", "").split(";")[0].strip().lower() != "application/octet-stream":
         return await _drained(request, _refused_json("chỉ nhận thân application/octet-stream (byte file .xlsx)", 415))
     # Một lượt tải một lúc (C rà bảo mật U9 — máy 15 GB từng OOM): đọc thân + kiểm + tính đều trong khoá; lượt thứ hai ⇒ 409 ngay, không xếp hàng
     if not _upload_busy.acquire(blocking=False):
-        return await _drained(request, _refused_json("đang xử lý một file khác — thử lại sau", 409))
+        return await _drained(request, _refused_json("đang xử lý một file khác — thử lại sau", 409, "dang_ban"))
     try:
         return await _upload_locked(request, params)
     finally:
@@ -1854,6 +2418,11 @@ async def _upload_locked(request: Request, params):
         wanted_cutoff = date.fromisoformat(params["ngay_chot"]) if params.get("ngay_chot") else None
     except ValueError:
         return _refused_json("ngay_chot phải dạng YYYY-MM-DD", 422)
+    if not request.app.state.period_ready:           # kỳ trống: file vào bộ chờ; đủ ba file ⇒ bản đầu của kỳ
+        try:
+            return await run_in_threadpool(_receive_for_empty_period, request.app, params["loai"], params["ky"], body, wanted_cutoff)
+        except upload.UploadRefused as refusal:
+            return _refused_json(refusal.reason, refusal.status, refusal.code)
     base = _for_version(request)
     if isinstance(base, JSONResponse):
         return base
@@ -1865,10 +2434,9 @@ async def _upload_locked(request: Request, params):
 
 # ---------- Kỳ này đã có / thiếu gì (trang Dữ liệu của bộ Capitol) — CHỈ ĐỌC trạng thái đang giữ + tên file, không mở file dữ liệu, không tính ----------
 def _period_status(request: Request, period: str) -> dict:
-    boot = getattr(request.app.state, "_base", request.app.state)
-    return period_status.period_status(boot, period, rules_file_for_period=_rules_file_for_period, extra_files_sha256=_extra_files_sha256,
+    # Hai đường /api/system/ky… không nhận ?data_version= ⇒ request.app.state luôn là state GỐC (bản lúc bật + `versions`) — một nguồn cho cả hai
+    return period_status.period_status(request.app.state, period, rules_file_for_period=_rules_file_for_period, extra_files_sha256=_extra_files_sha256,
                                        sha256_or_missing=_sha256_or_missing, shown_path=_shown_path)
-
 
 @app.get("/api/system/ky")
 def system_periods(request: Request):
@@ -1876,20 +2444,39 @@ def system_periods(request: Request):
     problem = _system_key_problem(request)
     if problem:
         return problem
+    if not request.app.state.period_ready:
+        return {"periods": [{"period": request.app.state.empty_period, "ready": False}], "restored_uploads": request.app.state.restore_report,
+                "cho_du_file": _empty_status(request.app)}
     periods = period_status.known_periods(request.app.state, PERIOD_RULES_DIR)
-    return {"periods": [{"period": period, "ready": _period_status(request, period)["ready"]} for period in periods]}
+    return {"periods": [{"period": period, "ready": _period_status(request, period)["ready"]} for period in periods],
+            # 2j: lần bật này có nạp lại bản tải lên không (`enabled`), nạp được bao nhiêu, bản nào đổi mã, bản nào bị bỏ qua và vì sao (file ghi
+            # 8 ký tự đầu mã băm)
+            "restored_uploads": request.app.state.restore_report}
 
 
 # `{period:path}`: nhận cả chuỗi có "/" để TỰ trả 422 cho mọi giá trị sai dạng (vd "../x") — không để bộ định tuyến trả 404 khó hiểu.
 @app.get("/api/system/ky/{period:path}")
 def system_period_status(request: Request, period: str):
-    """Kỳ `period` (YYYY-MM) đã có / thiếu gì: file đơn hàng, chỉ tiêu, tuyến, luật chính, luật phụ. Không số tiền, không mã / tên nhân viên."""
+    """Kỳ `period` (YYYY-MM) đã có / thiếu gì: file đơn hàng, chỉ tiêu, tuyến, luật chính, luật phụ. Không mã / tên nhân viên, không số theo người;
+    số tiền duy nhất là BA TỔNG của một bản (`_money_summary`, 20/11 — cho trang Dữ liệu của nền tảng)."""
     problem = _system_key_problem(request)
     if problem:
         return problem
     if not period_status.valid_period(period):
         return _refused_json("kỳ phải có dạng YYYY-MM (vd 2026-10)", 422)
-    return _period_status(request, period)
+    if not request.app.state.period_ready:
+        if period != request.app.state.empty_period:
+            return _refused_json(f"backend đang mở kỳ {request.app.state.empty_period} — chưa có gì về kỳ {period}", 404)
+        return _empty_status(request.app)
+    # trang Dữ liệu của nền tảng không tới được /api/meta ⇒ mã bản mới nhất nằm luôn ở đây
+    body = {**_period_status(request, period), "latest_data_version": request.app.state.latest_data_version}
+    # ?data_version= (thiếu ⇒ bản mặc định như mọi đường): BA TỔNG của bản đó cho trang Dữ liệu — trang không cầm khoá của ba đường tiền và không nên
+    # nhận bảng theo người. Chỉ khi bản thuộc đúng kỳ được hỏi.
+    versioned = _for_version(request)
+    if isinstance(versioned, JSONResponse):
+        return versioned
+    state = versioned.app.state
+    return {**body, **(_money_summary(state) if state.ctx.period == period else {})}
 
 
 # Bậc 2 nạp dữ liệu chung — bước 2.1: lược đồ trường chuẩn + đọc bố cục — CHỈ ĐỌC, không tính ----------
@@ -1924,7 +2511,7 @@ async def read_upload_layout(request: Request):
     if request.headers.get("content-type", "").split(";")[0].strip().lower() != "application/octet-stream":
         return await _drained(request, _refused_json("chỉ nhận thân application/octet-stream (byte file .xlsx)", 415))
     if not _upload_busy.acquire(blocking=False):
-        return await _drained(request, _refused_json("đang xử lý một file khác — thử lại sau", 409))
+        return await _drained(request, _refused_json("đang xử lý một file khác — thử lại sau", 409, "dang_ban"))
     try:
         body = await _read_body(request)
         if isinstance(body, JSONResponse):
@@ -1964,6 +2551,10 @@ def _read_layout_of(app, table: str, body: bytes, sheet_number: int | None = Non
         temp.unlink(missing_ok=True)
 
 
+class _RouteBook(Exception):
+    """Dấu rẽ nhánh nội bộ của `_build_from_file` cho loại `so_tracking` (không phải lỗi)."""
+
+
 MAPPING_CHECK_TTL_SECONDS = 1800   # câu kiểm của một lượt ghép thử sống 30 phút, trả lời được MỘT lần
 
 
@@ -1985,7 +2576,7 @@ async def try_mapping(request: Request):
             or not isinstance(body.get("khong_co_cot_sau_ck", False), bool):
         return _refused_json("thân phải là JSON {sha_file, bang, ghep, ky, ngay_chot, khong_co_cot_sau_ck (true / false, tuỳ chọn)}", 422)
     if not _upload_busy.acquire(blocking=False):
-        return _refused_json("đang xử lý một file khác — thử lại sau", 409)
+        return _refused_json("đang xử lý một file khác — thử lại sau", 409, "dang_ban")
     try:
         return await run_in_threadpool(_try_mapping, request.app, body)
     except upload.UploadRefused as refusal:
@@ -2009,6 +2600,8 @@ def _try_mapping(app, body: dict) -> dict:
         raise upload.UploadRefused("chưa có file này — gửi file qua /api/system/bo-cuc trước", 404)
     if body.get("bang") not in khuon.SCHEMAS:
         raise upload.UploadRefused(f"bang = {' | '.join(khuon.SCHEMAS)}")
+    if body["bang"] == "tuyen":
+        return _try_route_formula(app, body, sha, path)
     try:
         mapping = khuon.normalize_mapping({**(body.get("ghep") or {}), "table": body["bang"]})
         cutoff = date.fromisoformat(str(body.get("ngay_chot")))
@@ -2020,7 +2613,7 @@ def _try_mapping(app, body: dict) -> dict:
     fingerprint = khuon.layout_fingerprint(mapping["sheet"], mapping["header_row"], _header_of(path, mapping))
     summary = _column_summary(path, mapping)
     from kpi_agent.core.load_raw import read_raw_lines
-    to_mask = {real: masked for masked, real in app.state.ctx.to_real.items()}
+    to_mask = _mask_for_text(app)
     # Bước 2.4: giá trị chưa biết ⇒ trả MÃ CHE (moi_1…) + số dòng, không trả chữ (U1); ngành mới người cho qua ở ghep-xac-nhan
     new_values = []
     try:
@@ -2079,6 +2672,53 @@ def _try_mapping(app, body: dict) -> dict:
             "gia_tri_moi": [{"truong": item["field"], "ma": item["code"], "so_dong": item["lines"]} for item in new_values],
             "cau_kiem": {"ma": code, "cau": "Mở file gốc, nhìn dòng tiêu đề: cột doanh số TRƯỚC chiết khấu là cột thứ mấy (cột A = 1)?"
                          + (" Có ngành mới chưa biết — xem trong file rồi gửi kèm cho_qua = danh sách mã moi_… nếu đúng là ngành thật." if new_values else "")}}
+
+
+def _try_route_formula(app, body: dict, sha: str, path: Path):
+    """Giai đoạn 2a-1 — thử CÔNG THỨC ĐỌC bảng tuyến trên sổ đã gửi qua /bo-cuc: không tính KPI, không lưu. Không gửi `ghep` ⇒ dùng công thức lưu sẵn /
+    đã xác nhận khớp vân tay bố cục; không có ⇒ 409 mã `can_cong_thuc_doc` kèm khuôn. Đọc được ⇒ câu kiểm (số nhân viên, điểm bán, theo kênh, dòng của mã
+    ngoài đội bị bỏ, dòng mẫu); lệch khuôn ⇒ `loi` có mã. Đội = các mã của file chỉ tiêu bản đang dùng."""
+    import secrets
+    import time
+    from kpi_agent.backend import route_upload
+    from kpi_agent.core import khuon
+    source = "gui_kem"
+    if body.get("ghep") is None:
+        with store.connect(app.state.store) as conn:
+            mapping, source = route_upload.formula_for(path, store.mappings_of(conn, "tuyen"))
+        if mapping is None:
+            return JSONResponse(route_upload.need_formula_reply(), status_code=409)
+    else:
+        try:
+            mapping = khuon.normalize_mapping({**body["ghep"], "table": "tuyen"}) if isinstance(body["ghep"], dict) else None
+        except ValueError as error:
+            raise upload.UploadRefused(str(error) if str(error).startswith("bảng ghép sai khuôn") else "ghep sai khuôn") from None
+        if mapping is None:
+            raise upload.UploadRefused("ghep phải là bảng JSON theo khuôn công thức đọc")
+    team = _team_for_route_trial(app)                # ngoài khối try: lời "tải file chỉ tiêu trước" của kỳ trống phải tới người dùng nguyên văn
+    orders_state = _state_for_route_trial(app)       # như trên: "tải file đơn hàng trước"
+    try:
+        outcome = route_upload.try_formula(path, mapping, team)
+    except Exception:   # noqa: BLE001 — gói hỏng / XML lạ ⇒ 422, không 500 (như /bo-cuc)
+        raise upload.UploadRefused("file không đọc được bảng tính") from None
+    if not outcome["ok"]:
+        return {"ok": False, "bang": "tuyen", "nguon_cong_thuc": source, "loi": outcome["loi"], "cau_kiem": None}
+    # cùng phép đối chiếu với đơn hàng + cùng ngưỡng dừng như lúc tải lên — công thức sai không được xác nhận rồi lưu dùng lại
+    summary = {**outcome["tom_tat"], **_coverage_keys(_orders_vs_routes(orders_state, outcome["mcp"], team))}
+    stops, warnings = route_upload.route_stops(summary)
+    if stops:
+        return {"ok": False, "bang": "tuyen", "nguon_cong_thuc": source, "loi": stops, "tom_tat": summary, "cau_kiem": None}
+    summary["canh_bao"] = warnings
+    outcome = {**outcome, "tom_tat": summary}
+    code = secrets.token_hex(16)
+    checks = app.state.__dict__.setdefault("mapping_checks", {})
+    for key in [key for key, item in checks.items() if item["expires"] < time.time()]:
+        checks.pop(key)
+    checks[code] = {"sha_file": sha, "table": "tuyen", "fingerprint": outcome["van_tay_bo_cuc"], "mapping": mapping, "answer": outcome["cot_ma_diem_ban"],
+                    "expires": time.time() + MAPPING_CHECK_TTL_SECONDS, "new_codes": [], "needs_note": False}
+    return {"ok": True, "bang": "tuyen", "nguon_cong_thuc": source, "van_tay_bo_cuc": outcome["van_tay_bo_cuc"], "cong_thuc": mapping,
+            "tom_tat": outcome["tom_tat"],
+            "cau_kiem": {"ma": code, "cau": "Mở sổ gốc, sheet danh sách tuyến, nhìn dòng tiêu đề: cột MÃ ĐIỂM BÁN là cột thứ mấy (cột A = 1)?"}}
 
 
 def _new_values_of(path: Path, period: str, mapping: dict) -> list[dict]:
@@ -2198,7 +2838,8 @@ async def confirm_mapping(request: Request):
         return _refused_json("câu kiểm không có hoặc đã hết hạn — ghép thử lại", 409)
     answer = body.get("tra_loi")   # số thứ tự cột (số nguyên JSON)
     if isinstance(answer, bool) or not isinstance(answer, int) or answer != check["answer"]:
-        return _refused_json("trả lời câu kiểm chưa đúng — cách ghép KHÔNG được lưu; xem lại cột doanh số trước chiết khấu rồi ghép thử lại", 409)
+        column = "mã điểm bán" if check["table"] == "tuyen" else "doanh số trước chiết khấu"
+        return _refused_json(f"trả lời câu kiểm chưa đúng — cách ghép KHÔNG được lưu; xem lại cột {column} rồi ghép thử lại", 409)
     if sorted(body.get("cho_qua") or []) != check["new_codes"]:
         # bước 2.4: có ngành mới ⇒ người phải cho qua ĐỦ từng mã (xem file gốc) — thiếu / thừa ⇒ không lưu (mỗi câu kiểm một lần)
         return _refused_json(f"cần cho_qua đúng các mã giá trị mới {check['new_codes']} — cách ghép KHÔNG được lưu; ghép thử lại", 409)
@@ -2256,6 +2897,8 @@ def _refuse_fixed_files_of_other_period(workflow: dict, period: str, base_period
 
 
 def _build_version(app, base_state, kind: str, period: str, body: bytes, wanted_cutoff: date | None = None) -> dict:
+    if kind == upload.PAGE_TARGETS:
+        return _build_page_version(app, base_state, period, body, wanted_cutoff)
     upload.check_package(body)
     workflow = copy.deepcopy(base_state.workflow)
     block = upload.KINDS[kind]
@@ -2263,8 +2906,13 @@ def _build_version(app, base_state, kind: str, period: str, body: bytes, wanted_
         raise upload.UploadRefused(f"backend đang chạy đường {runner.data_block_type(workflow)} — không nhận file loại {kind}")
     # 2.6: luật của KỲ file tải lên (thay một file luật gắn cứng); kỳ của workflow ⇒ workflow không đổi ⇒ bản dữ liệu như cũ
     base_period = yaml.safe_load(runner.repo_path(runner.node_param(workflow, "load_rules", "path")).read_text(encoding="utf-8"))["period"]
+    if kind == upload.ROUTE_BOOK and period != base_ctx_period(base_state):
+        # 2a-1 (chốt 20/11, cách nhỏ nhất): sổ chỉ thay bảng tuyến của một bản ĐÃ có file đơn hàng của kỳ đó; chưa có ⇒ từ chối, không lưu chờ
+        raise upload.UploadRefused(f"chưa có file đơn hàng của kỳ {queries._short(period)} — tải file đơn hàng của kỳ đó trước, rồi mới tải sổ theo dõi",
+                                   409, "chua_co_don_hang_cua_ky")
     next(node for node in workflow["nodes"] if node["type"] == "load_rules").setdefault("params", {})["path"] = _rules_file_for_period(workflow, period)
-    _refuse_fixed_files_of_other_period(workflow, period, base_period, kind)
+    if kind != upload.ROUTE_BOOK:
+        _refuse_fixed_files_of_other_period(workflow, period, base_period, kind)
     sha = hashlib.sha256(body).hexdigest()
     folder = app.state.upload_dir
     try:
@@ -2273,15 +2921,198 @@ def _build_version(app, base_state, kind: str, period: str, body: bytes, wanted_
         # Không ghi được ⇒ báo rõ, KHÔNG ghi lặng sang chỗ khác. Không in đường dẫn / lỗi hệ điều hành ra ngoài
         raise upload.UploadRefused("thư mục lưu file tải lên không ghi được (kiểm KPI_UPLOAD_DIR) — chưa nhận file", 503) from None
     try:
+        if kind == upload.ROUTE_BOOK:
+            route = _route_inputs(app, base_state, temp)
+            summary = _build_from_file(app, base_state, workflow, kind, block, period, temp, sha, wanted_cutoff, route)
+            # câu kiểm của bảng tuyến đi kèm MỖI lần tải sổ (kể cả khi dùng công thức đã lưu) — người tải nhìn số nhân viên / điểm bán / mã ngoài đội
+            return {**summary, "tuyen_tu_so": {"nguon_cong_thuc": route["source"], "tom_tat": route["summary"]},
+                    "gioi_han": "danh sách tuyến lấy từ sổ theo dõi vừa tải; chỉ tiêu Kokomi vẫn là file cố định của backend; trang User không thấy bản này"}
         return _build_from_file(app, base_state, workflow, kind, block, period, temp, sha, wanted_cutoff)
     except BaseException:
         # File bị từ chối / lỗi: bỏ sheet của nó khỏi lớp đọc-một-lần (khoá nhớ = sha256 nội dung = `sha`) — không ai dùng nữa mà vẫn chiếm chỗ,
-        # hai lần từ chối liền nhau có thể đẩy sheet của bản đang dùng ra (người kiểm + chủ file 19/11).
+        # hai lần từ chối liền nhau có thể đẩy sheet của bản đang dùng ra (+ chủ file 19/11).
         from kpi_agent.core import raw_sheet
         raw_sheet.forget(sha)
         raise
     finally:
         temp.unlink(missing_ok=True)       # bị từ chối / lỗi ⇒ không còn file nào; qua kiểm ⇒ đã đổi tên (finalize) nên không còn ở đây
+
+
+def base_ctx_period(state) -> str:
+    return state.ctx.period
+
+
+PAGE_TARGETS_DIR = "chi_tieu_rieng"     # thư mục con của thư mục tải lên: file chỉ tiêu đã tách từ trang (trang không lưu); nạp lại lúc bật đọc ở đây
+TARGETS_FROM_PAGE_NOTE = "chỉ tiêu riêng của Thưởng thêm (Mì Kokomi 90, Meat) lấy từ trang theo dõi tải lên"
+
+
+def _fixed_target_files(period: str) -> dict[str, str]:
+    """{"kokomi": tên file, "meat": tên file} — hai file chỉ tiêu riêng mà file luật thưởng thêm của kỳ ghi cứng; bản có trang tải lên thay đúng hai file
+    này. File luật thiếu / cần khối chỉ tiêu mà trang không có ⇒ từ chối (không đoán khoản nào ứng với khối nào)."""
+    from kpi_agent.backend import page_targets
+    rules_path = REPO_ROOT / f"kpi_agent/config/extra_bonus_{period.replace('-', '_')}.yaml"
+    try:
+        items = (yaml.safe_load(rules_path.read_text(encoding="utf-8")) or {}).get("items") or {}
+    except (OSError, yaml.YAMLError):
+        raise upload.UploadRefused(f"chưa có file luật thưởng thêm cho kỳ {queries._short(period)} — chưa dùng được chỉ tiêu từ trang", 409,
+                                   "chua_co_luat_thuong_them") from None
+    keys_of = {}
+    for item in items.values():
+        if isinstance(item, dict) and item.get("targets_file"):
+            keys_of.setdefault(item["targets_file"], set()).update({item.get("targets_key"), (item.get("gate") or {}).get("targets_key", item.get("targets_key"))})
+    meat_keys = {key for group, key in page_targets.PAGE_ITEMS.values() if group == page_targets.MEAT}
+    flat, blocks = [name for name, keys in keys_of.items() if keys == {None}], [name for name, keys in keys_of.items() if keys and keys <= meat_keys]
+    if len(flat) != 1 or len(blocks) != 1 or len(keys_of) != 2:
+        raise upload.UploadRefused("file luật thưởng thêm của kỳ cần chỉ tiêu riêng khác với 5 khoản trang có — chưa dùng được chỉ tiêu từ trang", 409,
+                                   "luat_khac_khoan_cua_trang")
+    return {page_targets.KOKOMI: flat[0], page_targets.MEAT: blocks[0]}
+
+def _build_page_version(app, base_state, period: str, body: bytes, wanted_cutoff: date | None) -> dict:
+    """Loại tải lên `trang_chi_tieu` (2a-2 nấc 3): trang theo dõi .html ⇒ chỉ tiêu riêng Kokomi / Meat của bản. Trang KHÔNG được lưu — chỉ lưu hai file
+    đã tách (tên = sha256 nội dung) trong `<thư mục tải lên>/chi_tieu_rieng/`; bản mới = bản đang dùng + hai file đó thay hai file cố định."""
+    from kpi_agent.backend import page_targets
+    from kpi_agent.core.load_raw import raw_employee_names
+    workflow = copy.deepcopy(base_state.workflow)
+    if runner.data_block_type(workflow) != "read_raw":
+        raise upload.UploadRefused("chỉ tiêu từ trang chỉ dùng ở đường file đơn hàng — backend đang chạy đường khác")
+    if period != base_ctx_period(base_state):
+        raise upload.UploadRefused(f"chưa có file đơn hàng của kỳ {queries._short(period)} — tải file đơn hàng của kỳ đó trước, rồi mới tải trang theo dõi",
+                                   409, "chua_co_don_hang_cua_ky")
+    fixed = _fixed_target_files(period)
+    team = set(base_state.ctx.to_real.values())
+    try:
+        if getattr(app.state, "restoring", None) is not None:
+            # nạp lại lúc bật: `body` là file chỉ tiêu ĐÃ TÁCH của lượt tải (trang không được lưu) — kiểm lại hình + đội rồi dùng
+            extracted = page_targets.from_saved_form(body, team)
+        else:
+            names = raw_employee_names(str(runner.repo_path(runner.node_param(workflow, "read_raw", "path"))), runner.node_param(workflow, "read_raw", "ghep"))
+            extracted = page_targets.extract(body, period, names, team)
+    except page_targets.PageProblem as problem:
+        raise upload.UploadRefused(page_targets.refusal_text(problem), 413 if problem.code == "trang_qua_lon" else 422, problem.code) from None
+    except (OSError, ValueError):
+        raise upload.UploadRefused("không đọc được tên nhân viên từ file đơn hàng của bản — chưa ghép được trang với đội") from None
+    folder = app.state.upload_dir / PAGE_TARGETS_DIR
+    own_targets, created = {}, []
+    saved = page_targets.saved_form(extracted)
+    saved_sha = hashlib.sha256(saved).hexdigest()       # mã băm ghi ở dòng nạp lại: file <mã>.json này đủ để dựng lại bản lúc bật
+    try:
+        folder.mkdir(parents=True, exist_ok=True)
+        for name, content in [(fixed[group], content) for group, content in page_targets.target_files(extracted).items()] + [(None, saved)]:
+            path = folder / f"{hashlib.sha256(content).hexdigest()}.json"
+            if not path.exists():
+                path.write_bytes(content)
+                created.append(path)
+            if name is not None:
+                own_targets[name] = str(path)
+    except OSError:
+        raise upload.UploadRefused("thư mục lưu file tải lên không ghi được (kiểm KPI_UPLOAD_DIR) — chưa nhận file", 503) from None
+    try:
+        summary = _build_from_file(app, base_state, workflow, upload.PAGE_TARGETS, "read_raw", period, None, saved_sha, wanted_cutoff,
+                                   own_targets=own_targets)
+    except BaseException:
+        for path in created:               # bị từ chối / lỗi ⇒ không để lại file chỉ tiêu nào của lượt này
+            path.unlink(missing_ok=True)
+        raise
+    blocks = [extracted[page_targets.KOKOMI], *extracted[page_targets.MEAT].values()]
+    # `trang_sha256` chỉ có ở lượt tải thật (lúc nạp lại không còn trang để băm)
+    return {**summary, "tu_trang": {"so_khoan": len(blocks), "so_nguoi": len(blocks[0]),
+                                    "trang_sha256": None if getattr(app.state, "restoring", None) is not None else hashlib.sha256(body).hexdigest()},
+            "gioi_han": "chỉ tiêu riêng Kokomi / Meat lấy từ trang vừa tải (trang không được lưu); trang User không thấy bản này"}
+
+
+def _route_inputs(app, base_state, path: Path) -> dict:
+    """Sổ theo dõi tải lên làm ĐẦU VÀO (2a-1): công thức đọc bảng tuyến khớp vân tay bố cục + chạy thử trên chính file ⇒ {mapping, mapping_sha, team,
+    summary, source}. Không có công thức ⇒ 409 `can_cong_thuc_doc` (gửi công thức qua /bo-cuc ⇒ /ghep-thu ⇒ /ghep-xac-nhan); lệch khuôn ⇒ 422 nêu mã lỗi."""
+    from kpi_agent.backend import route_upload
+    from kpi_agent.core import khuon
+    try:
+        with store.connect(app.state.store) as conn:
+            mapping, source = route_upload.formula_for(path, store.mappings_of(conn, "tuyen"))
+        if mapping is None:
+            raise upload.UploadRefused(route_upload.need_formula_reply()["refused"], 409, route_upload.NEED_FORMULA)
+        team = sorted(set(base_state.ctx.to_real.values()))   # đội = mã của file chỉ tiêu của CHÍNH bản đang dùng (lõi tự rút, không nhận từ người gọi)
+        outcome = route_upload.try_formula(path, mapping, set(team))
+    except upload.UploadRefused:
+        raise
+    except Exception:   # noqa: BLE001 — gói hỏng / XML lạ ⇒ 422, không 500
+        raise upload.UploadRefused("file không đọc được bảng tính") from None
+    if not outcome["ok"]:
+        raise upload.UploadRefused(f"sổ theo dõi không đọc được bảng tuyến theo công thức: {route_upload.problems_text(outcome['loi'])}", 422,
+                                   "so_lech_khuon_tuyen")
+    summary = {**outcome["tom_tat"], **_coverage_keys(_orders_vs_routes(base_state, outcome["mcp"], set(team)))}
+    # Vòng 2 (M1): tuyến đọc được nhưng SAI (nhầm cột mã, đổi chéo kênh) từng ra bản mới với tiền sai ⇒ đối chiếu với đơn hàng thành DỪNG
+    stops, warnings = route_upload.route_stops(summary)
+    if stops:
+        raise upload.UploadRefused(f"bảng tuyến đọc từ sổ không khớp file đơn hàng của bản đang dùng — không dựng bản dữ liệu: "
+                                   f"{route_upload.problems_text(stops)}", 422, stops[0]["ma"])
+    summary["canh_bao"] = warnings
+    return {"mapping": mapping, "mapping_sha": "tuyen:" + khuon.mapping_sha(mapping), "team": team, "summary": summary, "source": source}
+
+
+def _orders_vs_routes(base_state, mcp: dict, team: set[str]) -> dict | None:
+    """Điểm bán CÓ ĐƠN ở file đơn hàng của bản đang dùng so với bảng tuyến vừa đọc, theo kênh (`route_upload.order_coverage`). Không đọc được ⇒ None."""
+    from kpi_agent.backend import route_upload
+    from kpi_agent.core.load_raw import period_rules, read_raw_lines
+    workflow, ctx = base_state.workflow, base_state.ctx
+    try:
+        lines, _late = read_raw_lines(runner.repo_path(runner.node_param(workflow, "read_raw", "path")), ctx.cutoff, ctx.period,
+                                      invoice_required_status=(), mapping=runner.node_param(workflow, "read_raw", "ghep"),
+                                      period_rules=period_rules(ctx.rules["assumptions"]))
+    except Exception:   # noqa: BLE001 — số đối chiếu phụ; file đơn hàng của bản đã qua kiểm lúc dựng bản
+        return None
+    return {"by_channel": route_upload.order_coverage(lines, mcp, team), "by_person": route_upload.order_coverage_by_person(lines, mcp, team)}
+
+
+def _attach_route_notes(ctx, summary: dict) -> None:
+    """Cảnh báo / thứ bị bỏ ở bước nhận sổ đi theo BẢN: trước đây chỉ nằm ở phản hồi tải lên ⇒ người hỏi số của bản không thấy.
+    Lưu ý cấp đội (không gắn người) ⇒ vào cả cờ cho trang, cờ kèm mọi kết quả công cụ và danh sách `get_data_issues`.
+    """
+    from kpi_agent.backend import route_upload
+    for note in route_upload.version_notes(summary):
+        _attach_note(ctx, note["level"], note["message"])
+
+
+def _attach_note(ctx, level: str, message: str) -> None:
+    """Một lưu ý cấp đội đi theo bản: cờ cho trang, cờ kèm mọi kết quả công cụ, danh sách `get_data_issues`."""
+    ctx.data_issues.append({"level": level, "message": message, "employee_ids": []})
+    ctx.data_flags.append(message)
+    ctx.data_flags_for_model.append(message)
+
+
+def _recheck_inherited_routes(base_state, workflow: dict, ctx) -> dict | None:
+    """Bản dựng TRÊN một bản lấy tuyến từ sổ (tải file đơn hàng / chỉ tiêu mới lên bản đó) vẫn dùng bảng tuyến ấy, nhưng phép đối chiếu đơn hàng ⇄ tuyến
+    lúc nhận sổ là với file đơn hàng CŨ ⇒ chạy LẠI với file của bản mới, cùng ngưỡng dừng (không thì đơn hàng mới lệch tuyến vẫn ra tiền, không dừng).
+    Trả câu kiểm của bản mới (lưu ý đi theo bản); bản không lấy tuyến từ sổ ⇒ None. Lệch ⇒ 422 mang mã của ngưỡng bị chạm."""
+    from types import SimpleNamespace
+    from kpi_agent.backend import route_upload
+    if next((n.get("params", {}) for n in workflow["nodes"] if n["type"] == "read_raw"), {}).get("mcp_ghep") is None:
+        return None
+    team, routes = set(ctx.to_real.values()), _routes_of(workflow)
+    summary = {**(getattr(base_state, "route_summary", None) or {}), "team_codes_without_routes": len(team - set(routes)),
+               **_coverage_keys(_orders_vs_routes(SimpleNamespace(workflow=workflow, ctx=ctx), routes, team))}
+    stops, warnings = route_upload.route_stops(summary)
+    if stops:
+        raise upload.UploadRefused("bảng tuyến của bản này (đọc từ sổ theo dõi đã tải) không khớp file vừa tải — không dựng bản dữ liệu; tải lại sổ theo dõi "
+                                   f"của kỳ sau khi đổi file đơn hàng: {route_upload.problems_text(stops)}", 422, stops[0]["ma"])
+    summary["canh_bao"] = warnings
+    return summary
+
+
+def _coverage_keys(coverage: dict | None) -> dict:
+    """Hai ô của câu kiểm từ phép đối chiếu đơn hàng ⇄ tuyến: theo kênh (`orders_vs_routes`) + theo người gộp hai kênh; không đối chiếu được ⇒ None."""
+    return {"orders_vs_routes": coverage["by_channel"] if coverage else None, "orders_vs_routes_by_person": coverage["by_person"] if coverage else None}
+
+
+def _refuse_team_mismatch(workflow: dict) -> None:
+    """Bất biến lúc dựng bản lấy tuyến từ sổ: `mcp_doi` của khối đọc tuyến == tập mã của file chỉ tiêu của chính bản đó; lệch ⇒ dừng có mã."""
+    from kpi_agent.backend import route_upload
+    from kpi_agent.core.load_data import load_targets
+    params = next((node.get("params", {}) for node in workflow["nodes"] if node["type"] == "read_raw"), {})
+    if params.get("mcp_ghep") is None:
+        return
+    targets = load_targets(runner.repo_path(runner.node_param(workflow, "read_targets", "path")))["employees"]
+    if route_upload.team_mismatch(params.get("mcp_doi"), targets):
+        raise upload.UploadRefused("danh sách đội của bảng tuyến lệch với file chỉ tiêu của bản — không dựng bản dữ liệu", 409, "doi_lech_file_chi_tieu")
 
 
 def _saved_mapping_for(app, kind: str, path: Path) -> tuple[dict | None, str | None]:
@@ -2330,36 +3161,69 @@ def _accepted_values_for_known_layout(app, path: Path, default: dict) -> tuple[d
     mapping = khuon.normalize_mapping({**default, "accepted_values": {"sub_div": present}})
     return mapping, khuon.mapping_sha(mapping)
 
-
-def _build_from_file(app, base_state, workflow, kind, block, period, temp, sha, wanted_cutoff) -> dict:
+def _build_from_file(app, base_state, workflow, kind, block, period, temp, sha, wanted_cutoff, route: dict | None = None,
+                     own_targets: dict | None = None) -> dict:
+    # chỉ tiêu riêng của bản (2a-2 nấc 3): của trang vừa tải, hoặc kế thừa khi dựng TRÊN một bản đã có trang (tải chỉ tiêu / đơn hàng lên bản đó)
+    from_page = own_targets is not None
+    own_targets = own_targets if from_page else getattr(base_state, "targets_override", None)
     base_ctx = base_state.ctx
     mapping, mapping_sha = _saved_mapping_for(app, kind, temp)
     new_layout = mapping_sha == "new_layout"
     mapping_sha = None if new_layout else mapping_sha
+    file_param = "path"   # ô của khối nhận đường file vừa tải
+    base_map = _base_mask_map()
+    base_known = {str(real) for real in base_map.values()}
+    auto_map = _auto_mask_map(app)
+    known_codes = base_known | {str(real) for real in auto_map.values()}
+    new_employees: dict[str, str] = {}
     try:
+        if route is not None or from_page:
+            raise _RouteBook()   # sổ / trang làm đầu vào: đã đọc + kiểm ở `_route_inputs` / `_build_page_version`; không qua bộ kiểm theo loại của file dữ liệu
         # luật kỳ của file (đã chọn theo kỳ ở `_build_version`) — bộ đọc RAW cần trạng thái được tính + hạn hoá đơn của kỳ (bậc 3a)
         rules_path = runner.repo_path(runner.node_param(workflow, "load_rules", "path"))
         assumptions = (yaml.safe_load(rules_path.read_text(encoding="utf-8")) or {}).get("assumptions") or {}
-        cutoff = upload.read_and_check(kind, temp, period, set(base_ctx.to_real.values()), base_ctx.cutoff, wanted_cutoff, mapping, assumptions)
+        cutoff = upload.read_and_check(
+            kind, temp, period, known_codes, base_ctx.cutoff, wanted_cutoff, mapping, assumptions,
+            base_known_codes=base_known, new_employees_out=new_employees if kind == "chi_tieu" else None,
+        )
     except upload.UploadRefused as refusal:
         if new_layout and refusal.reason.startswith("file raw thiếu"):
             raise upload.UploadRefused(refusal.reason + " — file bố cục khác mẫu: ghép cột trước (POST /api/system/bo-cuc ⇒ ghep-thu ⇒ ghep-xac-nhan)"
                                        " rồi tải lại", refusal.status, "can_ghep_cot") from None
         raise
+    except _RouteBook:
+        if wanted_cutoff is not None and f"{wanted_cutoff:%Y-%m}" != period:
+            raise upload.UploadRefused(f"ngày chốt {wanted_cutoff:%d/%m/%Y} ngoài kỳ {period}") from None
+        cutoff = wanted_cutoff or base_ctx.cutoff
+        # trang: không có file nào của workflow đổi (file_param None) — chỉ hai file chỉ tiêu riêng của bản đổi
+        mapping_sha, file_param = (route["mapping_sha"], "mcp_path") if route is not None else (None, None)
     node = next(node for node in workflow["nodes"] if node["type"] == block).setdefault("params", {})
-    node["path"] = str(temp)
+    if file_param is not None:
+        node[file_param] = str(temp)
+    if route is not None:
+        node["mcp_ghep"], node["mcp_doi"] = route["mapping"], route["team"]
     if mapping is not None:
         node["ghep"] = mapping
+    if kind == "chi_tieu":
+        # bản đang lấy tuyến từ sổ: "đội" của công thức đọc đi theo file chỉ tiêu ⇒ tải chỉ tiêu mới thì ghi lại danh sách mã của file mới
+        routes_node = next((n.get("params", {}) for n in workflow["nodes"] if n["type"] == "read_raw"), {})
+        if routes_node.get("mcp_ghep") is not None:
+            from kpi_agent.core.load_data import load_targets
+            routes_node["mcp_doi"] = sorted(str(code).strip() for code in load_targets(temp)["employees"])
+    _refuse_team_mismatch(workflow)
     # Phần "code" của bản dữ liệu = workflow GỐC (bản chép chỉ khác đường file — nội dung file đã nằm trong files_sha256)
     # File phụ (chỉ tiêu Thưởng thêm, sổ nền gia vị) là file cố định của workflow, không tải lên được ⇒ đọc lại sha lúc này, cùng công thức lúc bật
-    version = _data_version(_files_sha256(workflow), _code_fingerprint(base_state.workflow)[0], cutoff, _extra_files_sha256(workflow, period), mapping_sha)
+    version = _data_version(_files_sha256(workflow), _code_fingerprint(base_state.workflow)[0], cutoff,
+                            _extra_files_sha256(workflow, period, own_targets), mapping_sha)
+    planned_auto = store.plan_auto_employee_masks(base_map, auto_map, new_employees) if new_employees else []
+    extra_auto = {entry["masked_code"]: entry["real_code"] for entry in planned_auto}
     with _upload_lock:
         if version == app.state.data_version or version in app.state.versions:
             state = app.state if version == app.state.data_version else app.state.versions[version]
             app.state.latest_data_version = version   # tải lại file đã có cũng là lần tải gần nhất
             return _version_summary(version, state, reused=True)
         try:
-            ctx = queries.build_context(cutoff, workflow, mask_path=str(MASK))
+            ctx = queries.build_context(cutoff, workflow, mask_path=_mask_path_for_workflow(app, workflow, extra_auto=extra_auto))
         except queries.WorkflowStopped as stop:
             # Không trả lời của bộ chạy: có thể nhắc chữ trong file (C rà bảo mật U1) — chỉ báo dừng, chi tiết xem bằng workflow cố định.
             # TRỪ lời của cổng đối soát RAW (bậc 1, 17/11): lời do code viết, chỉ có lý do cố định + số dòng + số tiền ⇒ chuyển nguyên để người tải biết vì sao
@@ -2374,22 +3238,26 @@ def _build_from_file(app, base_state, workflow, kind, block, period, temp, sha, 
                 if upload.reason_code(ValueError(text)) == upload.RULE_VALUE_WITHOUT_LINES:
                     raise upload.UploadRefused(text, code=upload.RULE_VALUE_WITHOUT_LINES) from None
             raise upload.UploadRefused("dữ liệu không tính được — bộ chạy dừng (lỗi dữ liệu nặng); kiểm lại file theo mẫu") from None
+        route_summary = route["summary"] if route is not None else _recheck_inherited_routes(base_state, workflow, ctx)
+        if route_summary:
+            _attach_route_notes(ctx, route_summary)
         # QUA mọi kiểm + tính được ⇒ mới đổi tên thành <sha>.xlsx; workflow của bản trỏ file đã đổi tên (khối sau như thưởng thêm đọc lại file này)
         # Trần số file kiểm NGAY TRƯỚC khi lưu: file bị từ chối không bao giờ tới đây; bản trùng (dùng lại) đã trả ở trên ⇒ không bị chặn oan
-        upload.check_room(sha, app.state.upload_dir)
-        node["path"] = str(upload.finalize(temp, app.state.upload_dir, sha))
+        if file_param is not None:
+            upload.check_room(sha, app.state.upload_dir)
+            node[file_param] = str(upload.finalize(temp, app.state.upload_dir, sha))
+        if own_targets:
+            _attach_note(ctx, "info", TARGETS_FROM_PAGE_NOTE)
         rule_file = _workflow_files(workflow)[0]
         files_sha256 = _files_sha256(workflow)
         code_sha, code_files = _code_fingerprint(workflow)
-        # 1 % gia vị CHƯA tính cho bản tải lên ⇒ đặt sẵn lời từ chối: thiếu ô này thì `_VersionState.__getattr__` rơi về `app.state.spice` của bản
-        # LÚC BẬT ⇒ công cụ get_spice_loyalty với ?data_version= trả số bản cũ như số bản mới (nhóm kỹ thuật tìm, A xác nhận 16/11). Giống 409 của
-        # /api/system/spice-loyalty. Tính gia vị cho bản tải lên = việc riêng (để sau).
+        # Ô giữ của các khoản tính theo bản (`spice`, `spice_customers`, `membership`, `extra_bonus`) phải CÓ trên state của bản (None = tính ở lần gọi
+        # đầu): thiếu ô thì `_VersionState.__getattr__` rơi về ô của bản LÚC BẬT ⇒ trả số bản cũ như số bản mới (lỗi 16/11).
         state = _VersionState(app.state, ctx=ctx, workflow=workflow, files_sha256=files_sha256, store=app.state.upload_store,
-                              extra_bonus=None, spice=queries._refused(SPICE_BASE_ONLY), spice_customers=None,
-                              extra_files_sha256=_extra_files_sha256(workflow, period),   # 2.6: /api/meta?data_version= nêu file phụ của ĐÚNG bản
-                              workflow_version=app.state.workflow_version, workflow_run_id=None, data_version=version, name_entries={},
-                              # giờ máy lúc bản được nhận lần đầu — chỉ để trang Dữ liệu hiện (/api/system/ky); không vào phép tính, không vào mã bản
-                              uploaded_at=datetime.now().isoformat(timespec="seconds"))
+                              extra_bonus=None, spice=None, spice_customers=None, membership=None, route_summary=route_summary,
+                              targets_override=own_targets,
+                              extra_files_sha256=_extra_files_sha256(workflow, period, own_targets),   # 2.6: /api/meta?data_version= nêu file phụ của ĐÚNG bản
+                              workflow_version=app.state.workflow_version, workflow_run_id=None, data_version=version, name_entries={})
         if app.state.name_entries:
             # KPI_NAMES=on: bảng tên của CHÍNH bản này (file chỉ tiêu tải lên có thể khác đội lúc bật); thiếu / lệch ⇒ bản này chỉ mã che
             # (không dùng nhầm bảng tên lúc bật cho đội khác) — giới hạn ghi ở kế hoạch
@@ -2401,24 +3269,65 @@ def _build_from_file(app, base_state, workflow, kind, block, period, temp, sha, 
                 # bậc 2: cách ghép là một phần DỮ LIỆU của bản tính (ghép khác ⇒ ảnh chụp dữ liệu khác ⇒ bản tính khác)
                 data_files={**_data_files(files_sha256, rule_file), **({"ghep_cot": mapping_sha} if mapping_sha else {})},
                 refreshed_at=ctx.snapshot_at.isoformat() if ctx.snapshot_at else None,
-                code_sha=code_sha, code_files=code_files, lines=queries.bonus_lines(ctx))
+                code_sha=code_sha, code_files=code_files, lines=queries.bonus_lines(ctx),
+                # nạp lại lúc bật: dùng lại ĐÚNG lượt tính cũ của bản này nếu còn trùng (giữ dấu "Đã soát" / lời duyệt, kho không phình mỗi lần bật)
+                reuse_any=app.state.restoring is not None)
             _use_status(ctx, store.run_summary(conn, state.run_id))
+            _attach_auto_employee_notes(ctx, base_map)
+            assigned = store.record_auto_employee_masks(conn, base_map, new_employees) if new_employees else []
+            # 2j: một dòng cho mỗi bản MỚI nhận — đủ để lần bật sau dựng lại đúng bản này (`_restore_uploaded_versions`). Đang nạp lại lúc bật ⇒
+            # không ghi thêm dòng, giữ giờ tải đã ghi. Giờ tải chỉ để trang Dữ liệu hiện (/api/system/ky); không vào phép tính, không vào mã bản.
+            restoring = app.state.restoring
+            state.uploaded_at = restoring["created_at"] if restoring else store.record_uploaded_version(
+                conn, data_version=version, kind=kind, period=period, wanted_cutoff=wanted_cutoff.isoformat() if wanted_cutoff else None,
+                base_data_version=None if base_state is app.state else base_state.data_version, file_sha256=sha, mapping_sha=mapping_sha)
         app.state.versions[version] = state
         app.state.latest_data_version = version
         _extra_bonus(_VersionApp(state))   # như lúc bật: bản dữ liệu mới có thưởng thêm sẵn — lần gọi công cụ đầu không hết giờ
+        # kỳ dựng từ file tải lên (trang Dữ liệu đọc ba tổng ngay sau lần tải): tính sẵn như bản đầu của kỳ — người tải chờ thêm một lượt đọc file đơn hàng
+        if os.getenv("KPI_WARM_SPICE") == "on" or getattr(app.state, "uploads_only", False):
+            _spice(_VersionApp(state))     # 2a-2 nấc 1: 1 % gia vị của chính bản tính sẵn — cùng công tắc với lúc bật (lifespan); tắt ⇒ tính ở lần gọi đầu
         while len(app.state.versions) > MAX_VERSIONS:
             app.state.versions.popitem(last=False)     # bản cũ nhất ra khỏi bộ nhớ (bản tính vẫn trong file lưu riêng)
-        return _version_summary(version, state, reused=False)
-
-
+        reply = _version_summary(version, state, reused=False)
+        if assigned:
+            reply["nhan_vien_moi"] = [{"ma_che": entry["masked_code"], "ho_ten": entry["full_name"]} for entry in assigned]
+        return reply
 _upload_lock = threading.Lock()
+
+def _money_summary(state) -> dict:
+    """Ba tổng tiền của MỘT bản dữ liệu + trạng thái từng khoản, cho `GET /api/system/ky/<kỳ>`: lấy từ kết quả ĐANG GIỮ của bản (cùng ô giữ mà ba đường
+    tiền đọc) — không dòng theo người. 1 % gia vị chưa được tính (ô giữ còn trống) ⇒ "chua_tinh": không tính ở đây (một lượt đọc lại file đơn hàng)."""
+    extra, spice = _extra_bonus(_VersionApp(state)), getattr(state, "spice", None)
+    spice_state = "chua_tinh" if spice is None else "khong_tinh_duoc" if "refused" in spice else "co"
+    return {"data_version": state.data_version,
+            "tam_kpi": {"tong": sum(line["amount"] for line in queries.bonus_lines(state.ctx))},
+            "thuong_them": {"tong": None if isinstance(extra, str) else extra["team_total"],
+                            "trang_thai": "khong_tinh_duoc" if isinstance(extra, str) else "co", "ly_do": extra if isinstance(extra, str) else None},
+            "gia_vi": {"tong": spice["team_reward"] if spice_state == "co" else None, "trang_thai": spice_state, "ly_do": (spice or {}).get("refused")}}
 
 
 def _version_summary(version: str, state, reused: bool) -> dict:
     ctx = state.ctx
-    return {"data_version": version, "run_id": state.run_id, "period": ctx.period, "cutoff": ctx.cutoff.isoformat(),
+    # Thưởng thêm của CHÍNH bản này có tính được không (20/11: bản lấy tuyến từ sổ từng mất thưởng thêm mà phản hồi tải lên vẫn 200, không nhắc gì).
+    # Không dừng lần tải: kỳ chưa có file luật thưởng thêm là ca hợp lệ. Ô THÊM — các ô cũ giữ nguyên.
+    extra = _extra_bonus(_VersionApp(state))
+    # 1 % gia vị: tính sẵn chỉ khi bật KPI_WARM_SPICE (một lượt đọc lại file đơn hàng) — chưa tính thì nói "chua_tinh" (tính ở lần gọi đầu), không đoán
+    warm = os.getenv("KPI_WARM_SPICE") == "on" or getattr(state, "uploads_only", False)
+    spice_result = _spice(_VersionApp(state)) if warm else getattr(state, "spice", None)
+    spice_state = "chua_tinh" if spice_result is None else "khong_tinh_duoc" if "refused" in spice_result else "co"
+    return {"thuong_them": "khong_tinh_duoc" if isinstance(extra, str) else "co", "thuong_them_ly_do": extra if isinstance(extra, str) else None,
+            "gia_vi": spice_state, "gia_vi_ly_do": (spice_result or {}).get("refused"),
+            "chi_tieu_rieng": "tu_trang" if getattr(state, "targets_override", None) else "file_co_dinh",
+            # bản lấy tuyến từ sổ: câu kiểm tuyến (số người, điểm bán, tỉ lệ đối chiếu với file đơn hàng CỦA BẢN NÀY, cảnh báo) đi kèm MỌI lần tải ra
+            # bản đó — trước đây chỉ lần tải sổ có, tải đơn hàng / chỉ tiêu lên bản có sổ thì người tải không thấy tỉ lệ mới.
+            # Lần tải sổ ghi đè ô này kèm nguồn công thức (`_build_version`).
+            **({"tuyen_tu_so": {"nguon_cong_thuc": None, "tom_tat": state.route_summary}} if getattr(state, "route_summary", None) else {}),
+            "data_version": version, "run_id": state.run_id, "period": ctx.period, "cutoff": ctx.cutoff.isoformat(),
             "files_sha256": state.files_sha256, "data_flags": ctx.data_flags_for_model,
             "team_total": sum(line["amount"] for line in queries.bonus_lines(ctx)), "da_co_san": reused,
             # bậc 1 nạp chung (17/11): cổng đối soát của bản (dòng vào / tính / loại theo lý do + tiền) — chỉ số, không chữ trong file; sổ Tracking ⇒ None
             "doi_soat": ctx.raw_reconciliation,
-            "gioi_han": "chỉ tiêu Kokomi + danh sách tuyến (MCP) vẫn là file cố định của backend; trang User không thấy bản này"}
+            "gioi_han": ("tuyến lấy từ sổ theo dõi đã tải; thưởng thêm cần chỉ tiêu Kokomi / Meat từ trang theo dõi (tải trang để có)"
+                         if _own_book(state.workflow) is not None and getattr(state, "uploads_only", False) else
+                         "chỉ tiêu Kokomi + danh sách tuyến (MCP) vẫn là file cố định của backend; trang User không thấy bản này")}

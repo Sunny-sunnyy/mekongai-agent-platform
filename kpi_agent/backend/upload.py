@@ -22,7 +22,11 @@ MAX_FILE_BYTES = 20 * 1024 * 1024           # 10/11 (RAW tháng 10 thật 1,7 MB
 MAX_UNZIPPED_BYTES = 200 * 1024 * 1024      # như repo RAG
 MAX_PARTS = 2000
 MAX_RATIO = 100                             # tổng giải nén ÷ cỡ file
-KINDS = {"raw": "read_raw", "tracking": "read_tracking", "chi_tieu": "read_targets"}   # loại file ⇒ khối đọc trong workflow
+# loại file ⇒ khối đọc trong workflow. `so_tracking` (2a-1, 20/11): sổ theo dõi làm ĐẦU VÀO của đường raw — chỉ thay nguồn bảng tuyến của khối read_raw
+# (ô mcp_path / mcp_ghep / mcp_doi), không thay file đơn hàng; khác loại `tracking` (sổ làm nguồn TÍNH của đường cũ).
+KINDS = {"raw": "read_raw", "tracking": "read_tracking", "chi_tieu": "read_targets", "so_tracking": "read_raw", "trang_chi_tieu": "read_raw"}
+ROUTE_BOOK = "so_tracking"
+PAGE_TARGETS = "trang_chi_tieu"             # trang theo dõi .html ⇒ chỉ tiêu riêng Kokomi / Meat (2a-2 nấc 3) — thân là chữ, không phải gói .xlsx
 MAX_UPLOAD_FILES = 50                       # trần số file trong uploads/ (C rà bảo mật U9) — đầy ⇒ 409, dọn tay
 # Sheet / cột BẮT BUỘC — lời lỗi chỉ nêu tên trong các danh sách này (C rà bảo mật U1: không lặp chữ người tải đặt: cột thừa, tên sheet lạ, giá trị ô)
 REQUIRED_SHEETS = {"raw": ("Export",), "chi_tieu": ("Export",), "tracking": ("Rawdata", "MCP")}
@@ -34,6 +38,7 @@ TARGET_COLUMNS = ("SM code", "SM name", "SM pos", "Region", "Month", "Distributo
 _ROWS = r"[\d, …]+"
 _MONEY_COLUMN = r"'(?:Sales Before Discount|Sales After Discount|Discount value)'"
 RULE_VALUE_WITHOUT_LINES = "luat_neu_khong_co_dong"
+XLSB_NEEDS_XLSX = "xlsb_can_luu_xlsx"     # file .xlsb: người tải tự lưu lại thành .xlsx (hệ thống không đọc Excel nhị phân)
 TEAM_MEMBER_MISSING = "doi_thieu_nguoi"   # file chỉ tiêu thiếu người của đội (người có mã che) — xem `missing_team_members`
 SAFE_LOADER_MESSAGES = (
     (re.compile(rf"RAW có \d+ dòng ô {_MONEY_COLUMN} trống hoặc không phải số \(dòng Excel {_ROWS}\) — "
@@ -53,7 +58,7 @@ SAFE_LOADER_MESSAGES = (
 # + tên cột cố định (Capitol gặp ca này ở màn ghép cột 18/11). Loader chưa đưa số dòng cho lỗi này ⇒ lời chưa có "dòng Excel".
 BAD_DATE_MESSAGE = re.compile(r"RAW có (\d+) dòng ngày đơn ngoài kỳ (\d{4}-\d{2}) hoặc không phải ngày \(vd .*\)", re.DOTALL)
 # Lời cổng đối soát: CHỈ hai lời "lệch tổng" (chỉ có chữ số tiền) được trả nguyên, khớp cả câu. Lời cùng tiền tố khác của loader ("bị loại … % doanh số …")
-# có thể mang mã NV + doanh số riêng ⇒ không trả nguyên ở đường này (người kiểm 18/11: bản đầu nhận theo tiền tố ⇒ sau này lời đó đi qua là lộ + sai mã).
+# có thể mang mã NV + doanh số riêng ⇒ không trả nguyên ở đường này (18/11: bản đầu nhận theo tiền tố ⇒ sau này lời đó đi qua là lộ + sai mã).
 _AMOUNT = r"-?[\d.]+"
 RECONCILE_TOTAL_MESSAGES = (
     re.compile(rf"cổng đối soát RAW chặn: tổng doanh số SAU chiết khấu các dòng đọc được {_AMOUNT} đ ≠ dòng 'Total' của file {_AMOUNT} đ — "
@@ -90,6 +95,11 @@ def check_package(body: bytes) -> None:
             if unzipped > MAX_UNZIPPED_BYTES or unzipped > MAX_RATIO * max(len(body), 1):
                 raise UploadRefused(f"giải nén vượt trần ({MAX_UNZIPPED_BYTES // (1024 * 1024)} MB hoặc gấp {MAX_RATIO} lần cỡ file) — không đọc", 413)
             names = {part.filename for part in parts}
+            if "xl/workbook.bin" in names:
+                # Excel nhị phân (.xlsb) — sổ gốc đội hay gửi. Nhận biết bằng nội dung gói (đổi đuôi tên không qua được); nói CÁCH SỬA, không nói
+                # tên phần trong gói (trước 20/11: "gói thiếu xl/workbook.xml" — người tải không biết phải làm gì)
+                raise UploadRefused("File này là .xlsb (Excel nhị phân) — hãy mở bằng Excel, chọn Lưu thành (Save As) dạng .xlsx rồi tải lại",
+                                    code=XLSB_NEEDS_XLSX)
             if "xl/workbook.xml" not in names or "[Content_Types].xml" not in names:
                 raise UploadRefused("gói thiếu xl/workbook.xml — không phải bảng tính .xlsx")
             types = archive.read("[Content_Types].xml").decode("utf-8", errors="replace")
@@ -131,11 +141,14 @@ def last_day(period: str) -> date:
 
 
 def read_and_check(kind: str, path: Path, period: str, known_codes: set[str], base_cutoff: date, wanted_cutoff: date | None = None,
-                   mapping: dict | None = None, assumptions: dict | None = None) -> date:
+                   mapping: dict | None = None, assumptions: dict | None = None, base_known_codes: set[str] | None = None,
+                   new_employees_out: dict[str, str] | None = None) -> date:
     """Đọc bằng ĐÚNG loader của lõi (cột, kỳ, ô sai kiểu ⇒ ValueError ⇒ 422) + mọi mã NV phải có mã che. Trả ngày chốt của bản:
     `wanted_cutoff` (hệ thống điền — "ngày chốt là tham số") nếu có; không có: RAW = ngày đơn mới nhất được tính (không lấy giờ máy);
     Tracking = ngày chụp sổ (không có ⇒ ngày chốt bản gốc); chỉ tiêu = ngày chốt bản gốc.
     `assumptions` (bậc 3a, bắt buộc với RAW): khối assumptions của luật kỳ — bộ đọc RAW lấy trạng thái được tính + hạn hoá đơn từ đó.
+    K1 (26/11): với `chi_tieu`, nếu truyền `new_employees_out` thì kiểm rào `file_sai_doi` + `missing_team_members` theo `base_known_codes`
+    và thu các mã mới `{mã_thật: họ_tên}` vào `new_employees_out` thay vì từ chối; `raw` / `tracking` không bao giờ tự cấp mã.
     """
     if wanted_cutoff is not None and f"{wanted_cutoff:%Y-%m}" != period:
         raise UploadRefused(f"ngày chốt {wanted_cutoff:%d/%m/%Y} ngoài kỳ {period}")
@@ -147,6 +160,7 @@ def read_and_check(kind: str, path: Path, period: str, known_codes: set[str], ba
             rules = period_rules(assumptions)
         except ValueError as error:
             raise UploadRefused(f"luật kỳ {period} không dùng được: {error}", 409) from None
+    employees = {}
     try:
         if kind == "raw":
             # Ngày chốt / mã NV lấy từ MỌI dòng trạng thái được tính (kể cả Shipped chưa xuất hoá đơn — bậc 1 17/11): đọc như trước thì ngày chốt tự lùi
@@ -170,11 +184,20 @@ def read_and_check(kind: str, path: Path, period: str, known_codes: set[str], ba
             if wrong:
                 raise UploadRefused(f"file chỉ tiêu: {wrong} nhân viên có cột Month không phải kỳ {period} (khuôn MM-YYYY, vd {period[5:]}-{period[:4]})")
             codes = {str(code) for code in employees}
+            base = base_known_codes if base_known_codes is not None else known_codes
+            unknown_in_targets = codes - known_codes
+            if new_employees_out is not None and unknown_in_targets and (len(codes & base) == 0 or len(unknown_in_targets) > max(5, len(base) // 2)):
+                raise UploadRefused(
+                    f"file chỉ tiêu không khớp đội hiện tại ({len(unknown_in_targets)} mã lạ, trùng {len(codes & base)}/{len(base)} người của đội)"
+                    " — kiểm lại đúng file chỉ tiêu của đội",
+                    422,
+                    "file_sai_doi",
+                )
             cutoff = base_cutoff
             # Chiều NGƯỢC của kiểm mã che ở cuối hàm (20/11/2026): backend coi "đội" là MỌI người có mã che, còn số chỉ được tính cho người có
             # trong file chỉ tiêu ⇒ file bớt một người từng qua mọi kiểm rồi sập HTTP 500 lúc lập bảng (KeyError). Tới khi "đội của một bản = người
             # trong file chỉ tiêu của bản đó" được làm ở lõi: dừng có lời + mã, chỉ nêu SỐ người (không lặp mã / tên — U1).
-            missing = missing_team_members(codes, known_codes)
+            missing = missing_team_members(codes, base)
             if missing:
                 raise UploadRefused(missing, code=TEAM_MEMBER_MISSING)
     except UploadRefused:
@@ -183,7 +206,11 @@ def read_and_check(kind: str, path: Path, period: str, known_codes: set[str], ba
         raise UploadRefused(safe_reason(kind, error), code=reason_code(error)) from None
     unknown = codes - known_codes
     if unknown:
-        raise UploadRefused(f"{len(unknown)} mã NV mới chưa có mã che — thêm vào bảng mã che trước (không tự đặt mã)")
+        if kind == "chi_tieu" and new_employees_out is not None:
+            for code in sorted(unknown):
+                new_employees_out[code] = str(employees[code].get("name") or "").strip()
+        else:
+            raise UploadRefused(f"{len(unknown)} mã NV mới chưa có mã che — thêm vào bảng mã che trước (không tự đặt mã)")
     return wanted_cutoff or cutoff
 
 

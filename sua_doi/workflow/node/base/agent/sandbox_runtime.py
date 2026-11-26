@@ -83,7 +83,7 @@ def _e2b_khoi_bat(sub_type) -> bool:
 # [ghi chú] hai khối này đi dịch vụ làm file
 # (services/pydantic_ai_skills/e2b_chat_service.py), không đi lớp chạy ở file này; dịch vụ hỏi e2b_cho_khoi_lam_file() bên dưới. Chưa có dòng riêng trong file nơi chạy ⇒ theo
 # `mac_dinh` (đang là may) ⇒ gắn gói này KHÔNG đổi nơi chạy của khối nào cho tới khi thêm dòng "<loại khối> = e2b".
-CHAY_THU_KHOI_NOI_CHAY = ("flexible_code_interpreter_node", "xlsx_chat_node", "data_analysis_agent_node", "docx_chat_node", "d3_data_visualization_node", "pptx_chat_node")   # [đợt 2, 20/11] + Word + biểu đồ
+CHAY_THU_KHOI_NOI_CHAY = ("flexible_code_interpreter_node", "skill_code_interpreter_node", "agent_node", "xlsx_chat_node", "data_analysis_agent_node", "docx_chat_node", "d3_data_visualization_node", "pptx_chat_node")   # [ghi chú] + skill_code_interpreter_node + agent_node
 CHAY_THU_KHOI_LAM_FILE_E2B = ("xlsx_chat_node", "data_analysis_agent_node", "docx_chat_node", "d3_data_visualization_node", "pptx_chat_node")   # [đợt 2] khối đồ thị quan hệ KHÔNG vào đây: bộ mình vẽ bằng code từ JSON của AI (cờ CHAY_THU_DO_THI_KHOI), không chạy code AI viết ⇒ không có gì để đưa lên máy ảo   # tập con của danh sách trên: các khối làm file ĐÃ có nhánh E2B   # loại khối ĐÃ chạy được ở CẢ hai nơi; bậc 1–3 thêm vào đây khi đã đo. giao_dien đọc hằng này bằng ast.
 CHAY_THU_NOI = ("e2b", "may")
 
@@ -694,17 +694,19 @@ class SandboxLifecycleMixin:
         return self._sandbox_mode == SandboxMode.ALWAYS and _ci_hop_phien_bat() and not self._e2b_dung()
 
     def _e2b_dung(self) -> bool:
-        """[ghi chú] Khối ALWAYS + loại khối trong CHAY_THU_E2B_KHOI + có khoá ⇒ sandbox E2B (đã ép mạng / thời gian / file)."""
-        if self._sandbox_mode != SandboxMode.ALWAYS:
+        """[ghi chú] Khối ALWAYS hoặc khối IF_FILES có dòng trong file nơi chạy (agent_node…) ⇒ sandbox E2B (đã ép mạng / thời gian / file)."""
+        if self._sandbox_mode not in (SandboxMode.ALWAYS, SandboxMode.IF_FILES):
             return False
         if not hasattr(self, "_ct_e2b_dung"):   # [va_noi_chay] quyết MỘT lần cho mỗi lần chạy khối (file đổi giữa chừng không làm khối nửa nơi này nửa nơi kia)
-            cau_dao = _e2b_khoi_bat(getattr(self, "node_sub_type", None))   # cầu dao tổng: biến CHAY_THU_E2B_KHOI + có khoá E2B
-            noi = _noi_chay_khoi(getattr(type(self), "node_id", None))      # loại khối đọc trên LỚP (node_id của ĐỐI TƯỢNG là mã nút — bài học 18/11)
+            loai = getattr(type(self), "node_id", None)
+            cau_dao_cu = _e2b_khoi_bat(getattr(self, "node_sub_type", None))   # cầu dao cũ (chưa có file / khối ngoài danh sách)
+            cau_dao_chung = bool(os.environ.get("CHAY_THU_E2B_KHOI", "").strip()) and bool(_e2b_khoa())
+            noi = _noi_chay_khoi(loai)      # loại khối đọc trên LỚP (node_id của ĐỐI TƯỢNG là mã nút — bài học 18/11)
             self._ct_noi_file = noi                                          # [va_noi_chay_b2] None | "e2b" | "may" — "may" ⇒ _setup_sandbox ghi dòng bằng chứng cho sổ
             if noi is None:
-                self._ct_e2b_dung = cau_dao                                  # chưa có file / khối ngoài danh sách ⇒ như cũ
+                self._ct_e2b_dung = (self._sandbox_mode == SandboxMode.ALWAYS) and cau_dao_cu
             elif noi == "e2b":
-                if not cau_dao:
+                if not cau_dao_chung:
                     raise RuntimeError("Khối này được đặt chạy trên máy ảo E2B (file nơi chạy khối) nhưng cầu dao E2B đang tắt (biến CHAY_THU_E2B_KHOI hoặc khoá E2B) — "
                                        "hệ thống KHÔNG tự chuyển về hộp trên máy. Báo người quản trị.")
                 self._ct_e2b_dung = True
@@ -827,6 +829,9 @@ class SandboxLifecycleMixin:
             self._ci_ran_truoc_khi_mo(input_files)
             for nf in input_files:
                 _e2b_kiem_noi_dung(os.path.basename(nf.name), await asyncio.to_thread(nf.download_file_content))
+            _ma_tinh = getattr(self, "_ct_ma_file_e2b", None)
+            if _ma_tinh:
+                _e2b_kiem_noi_dung(_ma_tinh[0], _ma_tinh[1])
             manager_kwargs["timeout"] = min(int(manager_kwargs.get("timeout") or _e2b_ttl()), _e2b_ttl())
             self._sandbox = _E2bChayThu(**manager_kwargs)
             self._sandbox._ct_session = getattr(self, "_session_id", None)   # sổ máy E2B theo phiên (chay_s5.tien_luot)
@@ -892,6 +897,13 @@ class SandboxLifecycleMixin:
                 upload_plan.append(
                     (sandbox_path, content, getattr(nf, "mime_type", None))
                 )
+            _ma_tinh = getattr(self, "_ct_ma_file_e2b", None)
+            if self._e2b_dung() and _ma_tinh and _ma_tinh[0] not in input_file_names:
+                _safe_tinh = _ma_tinh[0]
+                input_file_names.add(_safe_tinh)
+                _sandbox_path = f"/home/user/{_safe_tinh}"
+                self._sandbox_file_manifest.append((_sandbox_path, None))
+                upload_plan.append((_sandbox_path, _ma_tinh[1], None))
 
             if upload_plan:
                 await self.emit_progress(

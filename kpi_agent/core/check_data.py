@@ -2,7 +2,7 @@
 
 Mỗi cảnh báo là dict {"level": "error" | "warning" | "info", "message": ..., "employees": [mã NV liên quan]}. "error" = thiếu thứ bắt buộc
 (vd NV không có đủ 8 chỉ tiêu) — bên gọi quyết có dừng không.
-"employees" (09/11, cho công cụ A6 lọc cờ theo người): mã THẬT như trong file (bên gọi tự che); [] = cờ cả đội. Câu chữ không đổi."""
+"employees" (09/11, cho công cụ lọc cờ theo người): mã THẬT như trong file (bên gọi tự che); [] = cờ cả đội. Câu chữ không đổi."""
 import math
 from datetime import date
 
@@ -60,6 +60,10 @@ def check_data(targets: dict, tracking: dict, cutoff: date) -> list[dict]:
     for item in tracking.get("rule_values_without_lines", []):
         issues.append(_issue("info", f"luật kỳ: {item['what']} «{item['value']}» nhưng file không có dòng nào — cho qua theo ghi chú trong file luật: "
                                      f"{item['note']}"))
+    # Mục cho qua THỪA trong file luật (luật không nêu giá trị đó cho KPI đó, hoặc file có dòng): không đổi số, nhưng trước đây bị bỏ qua lặng lẽ
+    for item in tracking.get("unused_rule_allowances", []):
+        issues.append(_issue("info", f"file luật kỳ: mục cho qua `cho_qua_khong_co_don` {item['kpi']} «{item['value']}» không dùng tới — luật không nêu "
+                                     "giá trị đó cho KPI đó, hoặc file có dòng mang giá trị đó; nên gỡ mục này khỏi file luật"))
     issues.extend(_check_targets_against_mcp(targets, tracking["mcp"]))
     return issues
 
@@ -93,7 +97,7 @@ def _check_targets_against_mcp(targets: dict, mcp: dict) -> list[dict]:
         issues.append(_issue("info", f"chỉ tiêu tính lại từ MCP khớp {checked - len(mismatched)}/{checked}"))
     else:
         # Dòng tổng đi kèm MỌI kết quả công cụ (cờ cả đội) ⇒ phải NÊU NGƯỜI LỆCH, không chỉ số đếm: bản đầu ghi "khớp 12/14" — hỏi về chính người
-        # lệch thì mô hình đọc dòng đó và trả lời "khớp" (người kiểm độc lập 12/11, câu thật). Không mang số đếm (số đứng sau mã NV dễ bị rào chủ-số chặn).
+        # lệch thì mô hình đọc dòng đó và trả lời "khớp" (12/11, câu thật). Không mang số đếm (số đứng sau mã NV dễ bị rào chủ-số chặn).
         # Mã thật ở đây được che khi thành cờ; chi tiết từng người nằm ở dòng "lệch …" gắn `employees` ngay dưới.
         who = list(dict.fromkeys(line.split(" ", 1)[0] for line in mismatched))
         verdict = (f"lệch ở {', '.join(who)} — xem vấn đề dữ liệu của các nhân viên này; các nhân viên khác khớp" if who else "mọi nhân viên khớp")

@@ -22,7 +22,7 @@ from kpi_agent.core import raw_sheet
 from kpi_agent.core.compute_bonus import floor_pct
 from kpi_agent.core.load_raw import SHEET
 
-TOTAL_ROW_CODES = ("(blank)", "grand total")   # người kiểm 13/11: dòng Excel cuối bảng là dòng tổng, từng bị đếm thành "1 khách không ghép được"
+TOTAL_ROW_CODES = ("(blank)", "grand total")   # 13/11: dòng Excel cuối bảng là dòng tổng, từng bị đếm thành "1 khách không ghép được"
 NEAR_PCT = 60   # trang của đội: "Gần đạt (≥ 60 %)", "Đang bán (< 60 %)"
 # Nhóm theo DOANH SỐ (thứ tự hiện). "du_doanh_so" gộp hai nhóm của trang ("Đã đạt CT" + "Đủ DS chưa đạt") vì chưa xét được nhiệm vụ.
 GROUPS = {"du_doanh_so": "Đủ doanh số ≥ nền (chưa xét nhiệm vụ)", "gan_dat": "Gần đạt (60 % đến dưới 100 % nền)", "dang_ban": "Đang bán (dưới 60 % nền)",

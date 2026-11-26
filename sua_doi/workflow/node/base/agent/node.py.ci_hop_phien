@@ -786,13 +786,16 @@ class AgentBaseNode(
         # [VÁ 10 chay_thu 06/11] sandbox R12 (a): khối bật "chạy code" thì KHÔNG có toolset nào (bộ có sẵn / MCP cắm cổng Tools / máy chủ MCP gắn
         # vào khối), không có công cụ từ khối công cụ nối dây, không có hộp E2B — đây là chỗ thấy cả nhánh tools= lẫn toolsets= (T30).
         _rp = self._validated_params.get("tool_run_python")
-        if _rp is True or (isinstance(_rp, str) and _rp.strip().lower() in ("true", "1", "yes", "on")):
+        _rp_bat = _rp is True or (isinstance(_rp, str) and _rp.strip().lower() in ("true", "1", "yes", "on"))
+        _e2b_fn = getattr(self, "_e2b_dung", None)
+        _e2b_bat = bool(_e2b_fn is not None and _e2b_fn())
+        if _rp_bat or (_e2b_bat and self._sandbox_tools):
             _du = []
             if toolsets or attached_mcp_servers:
                 _du.append(f"{len(toolsets) + len(attached_mcp_servers)} bộ công cụ (MCP / cổng Tools)")
             if self._validated_params.get("tools"):
                 _du.append("công cụ từ khối công cụ nối dây")
-            if self._sandbox_tools:
+            if self._sandbox_tools and not _e2b_bat:
                 _du.append("hộp E2B")
             if _du:
                 raise ValueError("Khối bật 'chạy code' không được có thêm: " + "; ".join(_du) + " (sandbox R12).")
@@ -1083,34 +1086,27 @@ class AgentBaseNode(
             output_node_files: list[NodeFile] = []
             executed_source: NodeFile | None = None
 
+            _e2b = getattr(self, "_e2b_dung", None)
+            _e2b_bat = bool(_e2b is not None and _e2b())
+            _rp = self._validated_params.get("tool_run_python")
+            _rp_bat = _rp is True or (isinstance(_rp, str) and _rp.strip().lower() in ("true", "1", "yes", "on"))
             needs_sandbox = self._sandbox_mode == SandboxMode.ALWAYS or (
-                self._sandbox_mode == SandboxMode.IF_FILES and bool(input_files)
+                self._sandbox_mode == SandboxMode.IF_FILES and (bool(input_files) or (_e2b_bat and _rp_bat))
             )
 
             # [VÁ B2b chay_thu 09/11 — nhóm kỹ thuật, người vận hành] File đầu vào (vd từ khối Nhận file, nằm ở S3 / MinIO) đi vào HỘP CÁCH LY CỦA MÌNH
-            # thay vì E2B: chỉ khi lớp con có hook (khối agent_node, nodes/agent/node.py) và hook nhận (bật run_python). Hook tải file, ghi vào thư
-            # mục file của người chạy hộp, điền mã file cho run_python ⇒ ở đây bỏ danh sách file ⇒ không dựng E2B. Hook từ chối (False) ⇒ đi tiếp
-            # như cũ (R12 dưới vẫn chặn E2B). Hook lỗi ⇒ raise, khối báo lỗi rõ.
+            # thay vì E2B khi ở chế độ hộp máy (not _e2b_bat): chỉ khi lớp con có hook (agent_node) và hook nhận (bật run_python).
             _nhan_vao_hop = getattr(self, "_chay_thu_nhan_file_vao_hop", None)
             if _nhan_vao_hop is not None:
                 self._ma_file_tai = None   # mỗi lần chạy tính lại — không mang mã file của lần chạy trước (chạy lại / thử lại)
-            if input_files and self._sandbox_mode == SandboxMode.IF_FILES and _nhan_vao_hop is not None:
+            if not _e2b_bat and input_files and self._sandbox_mode == SandboxMode.IF_FILES and _nhan_vao_hop is not None:
                 if await _nhan_vao_hop(input_files):
                     input_files = []
                     needs_sandbox = False
 
-            # [VÁ 10 chay_thu 06/11] sandbox R12 — D phát hiện (việc 4): khối Agent mặc định IF_FILES ⇒ hễ có FILE đầu vào là dựng máy ảo E2B CÓ
-            # MẠNG (sandbox_runtime.py:117, :457). File từ khối chạy code chảy xuống khối sau ⇒ E2B. Máy thử không dùng E2B ⇒ cấm bằng code, báo rõ
-            # (không im lặng bỏ qua). Tắt: CHAY_THU_CAM_E2B=false.
-            # [ghi chú] KHÔNG cấm khi khối ALWAYS (họ chạy code) đi HỘP PHIÊN (không mạng) thay E2B —
-            # quyết định ở sandbox_runtime._ci_dung_hop_phien (bản vá cùng đợt). Thiếu bản vá đó (chỉ gắn file này) ⇒ getattr None ⇒ vẫn cấm.
+            # [VÁ 10 chay_thu 06/11] sandbox R12 — cấm E2B khi không qua hộp phiên lẫn đường E2B đã duyệt (_e2b_bat).
             _ci_hop = getattr(self, "_ci_dung_hop_phien", None)
             _ci_hop_phien = bool(_ci_hop is not None and _ci_hop())
-            # [ghi chú] khối có _e2b_dung() (sandbox_runtime: chỉ loại trong
-            #   CHAY_THU_E2B_KHOI + có khoá riêng; rào sha file giả lập, TTL, sổ máy) ⇒ KHÔNG cấm. Khối Agent IF_FILES (không có trong CHAY_THU_E2B_KHOI)
-            #   vẫn bị cấm như cũ. Không đặt CHAY_THU_CAM_E2B=false chung (mở cho mọi khối).
-            _e2b = getattr(self, "_e2b_dung", None)
-            _e2b_bat = bool(_e2b is not None and _e2b())
             if needs_sandbox and not _ci_hop_phien and not _e2b_bat and os.environ.get("CHAY_THU_CAM_E2B", "true").strip().lower() not in ("false", "0", "no", "off"):
                 raise ValueError(
                     f"Máy thử cấm hộp E2B (có mạng): khối nhận {len(input_files)} file đầu vào nên Capitol định dựng E2B. "
@@ -1118,6 +1114,9 @@ class AgentBaseNode(
                 )
             try:
                 if needs_sandbox:
+                    _cb_e2b = getattr(self, "_chay_thu_chuan_bi_file_e2b", None)
+                    if _e2b_bat and _cb_e2b is not None:
+                        _cb_e2b()
                     input_file_names = await self._setup_sandbox(input_files)
 
                 await self._pre_compile()

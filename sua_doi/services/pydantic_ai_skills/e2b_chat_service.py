@@ -1976,14 +1976,23 @@ class E2BSkillsChatService:
                 self._ct_e2b = _sr.e2b_cho_khoi_lam_file(_chay_thu_mo_hinh_hop_phien(self._emit_progress)[0])
                 self._ct_da_soat = False
             if getattr(self, "_ct_e2b", False):
+                ten_mau = os.path.basename(str(filename or "")).strip()
+                du_lieu_mau = bytes(file_content or b"")
                 try:
-                    _sr._e2b_kiem_noi_dung(os.path.basename(filename), bytes(file_content))
+                    if not ten_mau or ten_mau in (".", ".."):
+                        raise ValueError("tên file mẫu không hợp lệ")
+                    if not du_lieu_mau:
+                        raise ValueError("file mẫu rỗng")
+                    if len(du_lieu_mau) > _sr._E2B_TRAN_FILE_NGUOI_DUNG:
+                        raise ValueError(f"file mẫu '{ten_mau[:80]}' {len(du_lieu_mau)} byte, vượt trần {_sr._E2B_TRAN_FILE_NGUOI_DUNG} byte lên E2B")
+                    _sr._e2b_kiem_noi_dung(ten_mau, du_lieu_mau)
                 except ValueError as exc:
                     logger.warning("[chay_thu e2b] file mẫu không qua rào file lên E2B ⇒ không gửi: %s", str(exc)[:200])
                     if self._emit_progress is not None:
                         await self._emit_progress("File mẫu không được gửi lên máy ảo E2B (khối chạy tiếp, không dùng mẫu): " + str(exc)[:300])
                     return None
-                file_content = bytes(file_content)
+                file_content = du_lieu_mau
+                filename = ten_mau
         try:
             sandbox = await self._ensure_sandbox()
             path = f"{TEMPLATE_SANDBOX_DIR}/{os.path.basename(filename)}"

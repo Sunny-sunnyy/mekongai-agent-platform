@@ -1,7 +1,7 @@
-// [ghi chú kỹ thuật] TRỢ LÝ: chat với trợ lý dựng workflow (Operator của Capitol) qua máy chủ trang (POST /api/chat).
+// [ghi chú] TRỢ LÝ: chat với trợ lý dựng workflow (Operator của Capitol) qua máy chủ trang (POST /api/chat).
 // Trang CHỈ gửi câu hỏi + mã cuộc trò chuyện; hồ sơ trợ lý do máy chủ gắn cứng. Trợ lý liệt kê / xem / TẠO MỚI workflow; không sửa workflow có sẵn,
 // không chạy, không duyệt — muốn chạy thì mở workflow trong xưởng rồi bấm Chạy (đi qua giữ chỗ tiền). Lịch sử chỉ giữ trong phiên trình duyệt này.
-// [Lần gắn 4 — người dùng: "tab trợ lý bên trái nhỏ và chật… chuyển sang góc dưới bên phải hoặc cửa sổ pop up riêng"] CỬA SỔ NỔI góc dưới phải:
+// [Lần gắn 4 — User: "tab trợ lý bên trái nhỏ và chật… chuyển sang góc dưới bên phải hoặc cửa sổ pop up riêng"] CỬA SỔ NỔI góc dưới phải:
 // nút "Trợ lý" luôn thấy; mở ra khung rộng, có phóng to / thu nhỏ; nhớ mở / đóng + cỡ theo phiên trình duyệt. Câu trả lời hiển thị qua Markdown.tsx
 // (dựng bằng phần tử React, không innerHTML).
 import { useEffect, useRef, useState } from "react";
@@ -9,19 +9,19 @@ import { api, usd, type ChatTraLoi, type DauVet, type HoiNhanh, type TepLuot, ty
 import { Markdown } from "./Markdown";
 import { xepHang, maTrongChu, oMotNhanVien, tongDoiTrongCau, type Dong } from "./xepHang";
 import { TEN_CONG_CU } from "./tenCongCu";
-import { banDuLieu } from "./banDuLieu";   // [ghi chú kỹ thuật] bản dữ liệu đang dùng
+import { banDuLieu } from "./banDuLieu";   // [ghi chú] bản dữ liệu đang dùng
 
 type Tin = { ai: "toi" | "tro_ly" | "loi"; chu: string; kq?: ChatTraLoi; hn?: HoiNhanh; kpi?: boolean; tl?: TroLyTraLoi };   // tl: câu trả lời đường một khung chat (/api/tro-ly)
 const KHO = "xuong_chat_v1";
-// [ghi chú kỹ thuật] gợi ý KHÔNG ghi cứng "tháng 10" / mã NV: kỳ lấy từ meta của hộp KPI đang bật (prop ky = period),
+// [ghi chú] gợi ý KHÔNG ghi cứng "tháng 10" / mã NV: kỳ lấy từ meta của hộp KPI đang bật (prop ky = period),
 // mã NV chỉ lấy từ câu / bảng của chính lượt (xếp hạng) — đổi tháng là gợi ý đổi theo, không còn hỏi NV08 / Turnover của tháng 10.
 const tenKy = (ky?: string | null) => (ky && /^\d{4}-\d{2}$/.test(ky) ? `tháng ${Number(ky.slice(5))}/${ky.slice(0, 4)}` : "kỳ đang chạy");
 const goiYKpi = (ky?: string | null) => [`Tổng lương kinh doanh cả đội ${tenKy(ky)} là bao nhiêu?`, `Ai được lương kinh doanh nhiều nhất ${tenKy(ky)}?`,
   `Những ai chưa có tiền ở KPI nào ${tenKy(ky)}, vì sao?`];
-// [ghi chú kỹ thuật] bỏ chọn chế độ: máy chủ (/api/tro-ly) tự chọn quy trình
+// [ghi chú] bỏ chọn chế độ: máy chủ (/api/tro-ly) tự chọn quy trình
 const GOI_Y = ["Trong tổ chức này đang có những workflow nào?", "Tạo workflow mới: một ô nhập chữ nối sang một ô ra chữ, tên “Thử chat”."];
-// [ghi chú kỹ thuật] mã cuộc chat = 32 hex (cùng khuôn chat_operator); máy chủ vẫn tự đổi khi chuyển sang trợ lý dựng
-// [ghi chú kỹ thuật] cùng chữ với chat_chay.NHAN_TAM_TINH (máy chủ) — nhãn dưới câu trả lời đường một khung chat
+// [E U9] mã cuộc chat = 32 hex (cùng khuôn chat_operator); máy chủ vẫn tự đổi khi chuyển sang trợ lý dựng
+// [ghi chú] cùng chữ với chat_chay.NHAN_TAM_TINH (máy chủ) — nhãn dưới câu trả lời đường một khung chat
 const NHAN_TAM_TINH = "Số tạm tính, chưa có người duyệt. File tải ngay trong chat là bản NHÁP; muốn bản chính thức (có người duyệt) thì bảo \"xuất bảng thưởng chính thức\".";
 const moiConv = () => { const b = new Uint8Array(16); crypto.getRandomValues(b); return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join(""); };
 const CONV_HOP_LE = /^[0-9a-f]{32}$/;
@@ -38,8 +38,13 @@ const TEN_BUOC: Record<string, string> = {
 };
 const tenBuoc = (t: string) => TEN_BUOC[t] || t;
 
-const doc = (): { tin: Tin[]; conv?: string } => {
-  try { return JSON.parse(sessionStorage.getItem(KHO) || "") || { tin: [] }; } catch { return { tin: [] }; }
+const khoUser = (uid?: string) => `${KHO}_${uid || "mac_dinh"}`;
+const doc = (uid?: string): { tin: Tin[]; conv?: string } => {
+  try { return JSON.parse(sessionStorage.getItem(khoUser(uid)) || "") || { tin: [] }; } catch { return { tin: [] }; }
+};
+const docConv = (uid?: string): string | undefined => {
+  try { const v = localStorage.getItem(`xuong_chat_conv_${uid || "mac_dinh"}`); if (v && CONV_HOP_LE.test(v)) return v; } catch { /* bỏ qua */ }
+  return doc(uid).conv;
 };
 
 const KHO_CUA = "xuong_chat_cua_v1";
@@ -54,7 +59,7 @@ const kep = (x: number, a: number, b: number) => Math.max(a, Math.min(Math.max(a
 const so = (x: unknown) => (typeof x === "number" ? x.toLocaleString("vi-VN") : String(x ?? "—"));
 const soTrong = (chu: string) => { const r = new Set<number>(); (chu.match(/\d{1,3}(?:[.,]\d{3})+|\d+/g) || []).forEach((m) => { const n = Number(m.replace(/[.,]/g, "")); if (n >= 1000) r.add(n); }); return r; };
 // ô số của bảng: nhãn theo KHOÁ (ghi đè nhãn máy chủ khi cần) + ngày yyyy-mm-dd ⇒ dd/mm/yyyy
-const NHAN_O: Record<string, string> = { cutoff: "Ngày chốt kỳ", period: "Kỳ", captured_at: "Đơn hàng mới nhất trong số liệu" };   // [ghi chú kỹ thuật] hộp KPI chạy đường RAW: giá trị = ngày đơn mới nhất được tính (SAI nghĩa nếu hộp chạy chế độ Tracking)
+const NHAN_O: Record<string, string> = { cutoff: "Ngày chốt kỳ", period: "Kỳ", captured_at: "Đơn hàng mới nhất trong số liệu" };   // [ghi chú] hộp KPI chạy đường RAW: giá trị = ngày đơn mới nhất được tính (SAI nghĩa nếu hộp chạy chế độ Tracking)
 const CHU_THICH_O: Record<string, string> = { captured_at: "Đơn phát sinh sau ngày này chưa nằm trong con số" };
 const giaTriO = (v: unknown) => { const m = typeof v === "string" ? v.match(/^(\d{4})-(\d{2})-(\d{2})$/) : null; const k = typeof v === "string" ? v.match(/^(\d{4})-(\d{2})$/) : null;
   return m ? `${m[3]}/${m[2]}/${m[1]}` : k ? `${k[2]}/${k[1]}` : so(v); };
@@ -101,7 +106,7 @@ function SoNhatKy({ phien, giay, onChonKhoi }: { phien: string; giay: number; on
       buoc.push({ khoi: k.id, mau, ten: "Kiểm số", tom: r ? (r.dat ? "đạt" : "KHÔNG đạt") : "", dai, muc: r?.ly_do ? [["Kết quả kiểm", r.ly_do]] : [] });
     } else if (k.loai === "text_output_node") buoc.push({ khoi: k.id, mau, ten: "Trả kết quả", tom: "câu trả lời đã qua kiểm được đưa về cuộc trò chuyện", dai, muc: [] });
   }
-  // [ghi chú kỹ thuật] thấy NGAY Trợ lý đã gọi công cụ gì, tham số gì (chi tiết + kết quả vẫn ở mục gập bên dưới)
+  // [ghi chú] thấy NGAY Trợ lý đã gọi công cụ gì, tham số gì (chi tiết + kết quả vẫn ở mục gập bên dưới)
   const daGoi = (d?.khoi || []).flatMap((k) => (k.loai === "agent_node" ? k.cong_cu || [] : [])).map((c) => {
     let ts = "";
     try { const j = JSON.parse(c.tham_so || "{}"); ts = Object.values(j && typeof j === "object" ? j : {}).filter((v) => typeof v === "string" || typeof v === "number").map(String).join(", ").slice(0, 60); } catch { /* tham số không phải JSON — bỏ */ }
@@ -122,7 +127,7 @@ function SoNhatKy({ phien, giay, onChonKhoi }: { phien: string; giay: number; on
     </div>
   );
 }
-// [ghi chú kỹ thuật] Dải xếp hạng do CODE sắp từ bảng của phần tính thưởng — luôn hiện dưới câu trả lời để người đọc tự đối chiếu câu
+// [ghi chú] Dải xếp hạng do CODE sắp từ bảng của phần tính thưởng — luôn hiện dưới câu trả lời để người đọc tự đối chiếu câu
 // "ai nhiều nhất / ít nhất" của AI (khối kiểm số không bắt được lỗi xếp hạng). Tô đậm nhân viên mà câu trả lời nhắc tới.
 function DaiXepHang({ cao, thap, tong, nhac }: { cao: Dong[]; thap: Dong[]; tong: number; nhac: Set<string> }) {
   const o = (d: Dong) => <span key={d.ma} className={"xh-o" + (nhac.has(d.ma) ? " nhac" : "")} title={nhac.has(d.ma) ? "Nhân viên này được nhắc trong câu trả lời" : undefined}><b>{d.ma}</b> <span className="so">{so(d.tien)}</span></span>;
@@ -135,18 +140,18 @@ function DaiXepHang({ cao, thap, tong, nhac }: { cao: Dong[]; thap: Dong[]; tong
   );
 }
 // Câu trả lời của một lượt "Hỏi KPI": chỉ hiện SAU KHI workflow chạy xong và khối kiểm số cho qua
-// [ghi chú kỹ thuật] gợi ý hỏi tiếp CỐ ĐỊNH do code chọn (không dùng AI sinh). KHÔNG gồm loại câu đang biết lỗi trên mốc 4: xếp hạng "ai ít nhất",
+// [ghi chú] gợi ý hỏi tiếp CỐ ĐỊNH do code chọn (không dùng AI sinh). KHÔNG gồm loại câu đang biết lỗi trên mốc 4: xếp hạng "ai ít nhất",
 // "dữ liệu có gì cần để ý". Đúng một mã nhân viên ⇒ gợi ý về người đó; còn lại ⇒ gợi ý chung.
 function goiYHoiTiep(x: HoiNhanh): string[] {
   const ma = [...new Set([...maTrongChu(x.cau, x.view), ...maTrongChu(x.tra_loi, x.view)])];
-  const cao = (xepHang(x.view)?.cao || []).map((d) => d.ma);   // [ghi chú kỹ thuật] người so lấy từ bảng của lượt, không ghi cứng NV04 / NV09
+  const cao = (xepHang(x.view)?.cao || []).map((d) => d.ma);   // [ghi chú] người so lấy từ bảng của lượt, không ghi cứng NV04 / NV09
   if (ma.length === 1) {
     const so = cao.find((m) => m !== ma[0]);
     return [`${ma[0]} được tiền ở những KPI nào, mỗi KPI bao nhiêu?`, ...(so ? [`So ${ma[0]} với ${so}: ai được nhiều hơn, hơn ở KPI nào?`] : [])];
   }
   return ["Ai được lương kinh doanh nhiều nhất?", ...(cao[0] ? [`${cao[0]} được bao nhiêu, ở những KPI nào?`] : [])];
 }
-// [ghi chú kỹ thuật] DÒNG CỐ ĐỊNH do code in dưới mọi câu trả lời KPI: kỳ + ngày chốt + trạng thái của ĐÚNG lượt đó (không phải chữ AI). Lớp kiểm số không
+// [ghi chú] DÒNG CỐ ĐỊNH do code in dưới mọi câu trả lời KPI: kỳ + ngày chốt + trạng thái của ĐÚNG lượt đó (không phải chữ AI). Lớp kiểm số không
 // bắt được câu ghi nhầm kỳ ⇒ người đọc đối chiếu kỳ ở dòng này. Không đọc được ⇒ nói rõ, không bỏ trống.
 const ngayVN = (s: string) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s); return m ? `${m[3]}/${m[2]}/${m[1]}` : s; };
 const thangVN = (s: string) => { const m = /^(\d{4})-(\d{2})$/.exec(s); return m ? `tháng ${Number(m[2])}/${m[1]}` : s; };
@@ -161,7 +166,7 @@ function KetQuaHoiKpi({ x, onMo, onMoLuot, onChonKhoi, onHoi }: { x: HoiNhanh; o
   x.view?.facts.forEach((f) => { if (typeof f.value === "number") soBang.add(f.value); });
   x.view?.tables.forEach((b) => b.rows.forEach((r) => r.forEach((o) => { if (typeof o === "number") soBang.add(o); })));
   const v = x.view && [...trongCau].some((n) => soBang.has(n)) ? x.view : null;   // câu không dùng số nào của bảng ⇒ không hiện bảng
-  // [Đ2] dải xếp hạng: có bảng là hiện, kể cả khi câu không chứa số của bảng — [ghi chú kỹ thuật] trừ khi câu trả lời KHÔNG dính KPI:
+  // [Đ2] dải xếp hạng: có bảng là hiện, kể cả khi câu không chứa số của bảng — [ghi chú] trừ khi câu trả lời KHÔNG dính KPI:
   // không dùng số nào của bảng, không có mã NV, câu hỏi không hỏi xếp hạng ⇒ ẩn (ca "Viết giúp email xin nghỉ phép" từng gắn bảng lương vào email)
   const dinhKpi = !!v || maTrongChu(x.tra_loi, x.view).length > 0 || maTrongChu(x.cau, x.view).length > 0 || /nhiều nhất|ít nhất|cao nhất|thấp nhất|xếp hạng|ai được/i.test(x.cau || "");
   const xh = x.tra_loi && dinhKpi ? xepHang(x.view) : null;
@@ -192,15 +197,16 @@ function KetQuaHoiKpi({ x, onMo, onMoLuot, onChonKhoi, onHoi }: { x: HoiNhanh; o
   );
 }
 
-export function TroLyChat({ onMo, onMoLuot, onDoi, onMoDong, onTheoLuot, onChonKhoi, luotDangXem, khoiDangChay, buocLuot, ky }: {
-  ky?: string | null;   // [ghi chú kỹ thuật] kỳ của hộp KPI đang bật (/api/kpi/dung-san ky.period) — chỉ để viết gợi ý
+export function TroLyChat({ onMo, onMoLuot, onDoi, onMoDong, onTheoLuot, onChonKhoi, luotDangXem, khoiDangChay, buocLuot, ky, userId }: {
+  ky?: string | null;   // [ghi chú] kỳ của hộp KPI đang bật (/api/kpi/dung-san ky.period) — chỉ để viết gợi ý
+  userId?: string;      // [ghi chú] tách lịch sử chat bền vững theo tài khoản người dùng
   onMo: (id: string) => void; onMoLuot: (phien: string, wf: string) => void; onDoi: () => void; onMoDong?: (mo: boolean, to: boolean, gan: boolean) => void;
   onTheoLuot: (phien: string, wf: string) => void | Promise<void>; onChonKhoi: (id: string) => void; luotDangXem: string | null; khoiDangChay: string[]; buocLuot: string | null }) {
-  // [ghi chú kỹ thuật] KHÔNG còn chọn chế độ: mọi câu đi /api/tro-ly; máy chủ chọn quy trình (pplx-decider), tự chạy / hỏi lại / hỏi tiền
+  // [ghi chú] KHÔNG còn chọn chế độ: mọi câu đi /api/tro-ly; máy chủ chọn quy trình (pplx-decider), tự chạy / hỏi lại / hỏi tiền
   const [cua, setCua] = useState<Cua>(docCua);
   const [gan, setGan] = useState<boolean>(() => { try { return localStorage.getItem(KHO_GAN) === "1"; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem(KHO_GAN, gan ? "1" : "0"); } catch { /* bỏ qua */ } }, [gan]);
-  // [ghi chú kỹ thuật] kéo góc TRÊN-TRÁI để đổi cỡ (cửa sổ neo góc dưới phải ⇒ kéo sang trái / lên trên là to ra); nhớ cỡ theo phiên
+  // [ghi chú] kéo góc TRÊN-TRÁI để đổi cỡ (cửa sổ neo góc dưới phải ⇒ kéo sang trái / lên trên là to ra); nhớ cỡ theo phiên
   const khung = useRef<HTMLElement>(null);
   const keo = (e: React.PointerEvent<HTMLDivElement>) => {
     const k = khung.current;
@@ -215,17 +221,45 @@ export function TroLyChat({ onMo, onMoLuot, onDoi, onMoDong, onTheoLuot, onChonK
   useEffect(() => { try { sessionStorage.setItem(KHO_CUA, JSON.stringify(cua)); } catch { /* bỏ qua */ } onMoDong?.(cua.mo, cua.to, gan); }, [cua, gan]);   // eslint-disable-line react-hooks/exhaustive-deps
   const oNhap = useRef<HTMLTextAreaElement>(null);
   useEffect(() => { if (cua.mo) oNhap.current?.focus(); }, [cua.mo]);
-  const [tin, setTin] = useState<Tin[]>(() => doc().tin);
-  const [conv, setConv] = useState<string>(() => { const c = doc().conv; return c && CONV_HOP_LE.test(c) ? c : moiConv(); });
+  const [tin, setTin] = useState<Tin[]>(() => doc(userId).tin);
+  const [conv, setConv] = useState<string>(() => { const c = docConv(userId); return c && CONV_HOP_LE.test(c) ? c : moiConv(); });
+  const prevUser = useRef<string | undefined>(userId);
+  useEffect(() => {
+    if (prevUser.current !== userId) {
+      prevUser.current = userId;
+      const d = doc(userId);
+      const c = docConv(userId);
+      setTin(d.tin);
+      setConv(c && CONV_HOP_LE.test(c) ? c : moiConv());
+      setTep({});
+      setTl(null);
+    }
+  }, [userId]);
+  useEffect(() => {
+    let con = true;
+    api.troLyLichSu(conv).then((r) => {
+      if (!con) return;
+      if (r.tin?.length) {
+        setTin((hien) => (hien.length >= r.tin.length ? hien : r.tin.map((m) => ({ ai: m.vai === "nguoi_dung" ? "toi" : "tro_ly", chu: m.noi_dung }))));
+      } else if (r.conv && r.conv !== conv && CONV_HOP_LE.test(r.conv)) {
+        // Nếu người dùng đăng nhập trên máy mới và chưa có lịch sử cục bộ cho conv mới, khôi phục cuộc chat gần nhất
+        setTin((hien) => {
+          if (hien.length === 0) setConv(r.conv!);
+          return hien;
+        });
+      }
+    }).catch(() => {});
+    return () => { con = false; };
+  }, [conv, userId]);
   const [tep, setTep] = useState<Record<string, TepLuot[] | "dang" | "loi">>({});   // file của lượt (bấm "Xem file")
   const [cau, setCau] = useState("");
-  // [ghi chú kỹ thuật] trang Dữ liệu bấm một câu ví dụ ⇒ MỞ khung trợ lý và ĐIỀN SẴN câu đó vào ô nhập (KHÔNG tự gửi — người dùng đọc lại rồi bấm gửi)
+  // [ghi chú] trang Dữ liệu bấm một câu ví dụ ⇒ MỞ khung trợ lý và ĐIỀN SẴN câu đó vào ô nhập (KHÔNG tự gửi — người dùng đọc lại rồi bấm gửi)
   useEffect(() => {
     const h = (e: Event) => { const c = (e as CustomEvent).detail; if (typeof c === "string" && c.trim()) { setCua((x) => ({ ...x, mo: true })); setCau(c.slice(0, 2000)); } };
     window.addEventListener("tro-ly-dien-cau", h);
     return () => window.removeEventListener("tro-ly-dien-cau", h);
   }, []);
-  // [ghi chú kỹ thuật] trang Dữ liệu bấm "Hỏi trên tài liệu này" ⇒ mở khung trợ lý + gắn tài liệu đã nạp kho vào cuộc trò chuyện (hàm thật gán ở dưới, sau taiLen)
+  // [ghi chú] trang Dữ liệu bấm "Hỏi trên tài liệu này" ⇒ mở khung trợ lý + gắn tài liệu đã nạp kho vào cuộc trò chuyện (hàm thật gán ở dưới, sau taiLen)
   const moKhoRef = useRef<(sha: string, ten: string) => void>(() => {});
   useEffect(() => {
     const h = (e: Event) => { const d = (e as CustomEvent).detail as { sha?: unknown; ten?: unknown } | null; if (d && typeof d.sha === "string") moKhoRef.current(d.sha, typeof d.ten === "string" ? d.ten : "tài liệu"); };
@@ -234,13 +268,16 @@ export function TroLyChat({ onMo, onMoLuot, onDoi, onMoDong, onTheoLuot, onChonK
   }, []);
   const [dang, setDang] = useState(false);
   const [giay, setGiay] = useState(0);
-  // [ghi chú kỹ thuật] file đang mở của cuộc trò chuyện (máy chủ giữ 24 giờ) — trang chỉ nhớ TÊN để hiện; tải lại trang thì hỏi lại máy chủ
+  // [ghi chú] file đang mở của cuộc trò chuyện (máy chủ giữ 24 giờ) — trang chỉ nhớ TÊN để hiện; tải lại trang thì hỏi lại máy chủ
   const [tl, setTl] = useState<string | null>(null);
   const oTep = useRef<HTMLInputElement>(null);
   useEffect(() => { let con = true; api.troLyTaiLieuDangMo(conv).then((r) => { if (con) setTl(r.ten); }).catch(() => { if (con) setTl(null); }); return () => { con = false; }; }, [conv]);
   const cuoi = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { try { sessionStorage.setItem(KHO, JSON.stringify({ tin: tin.slice(-60), conv })); } catch { /* đầy bộ nhớ phiên — bỏ qua */ } }, [tin, conv]);
+  useEffect(() => {
+    try { sessionStorage.setItem(khoUser(userId), JSON.stringify({ tin: tin.slice(-60), conv })); } catch { /* đầy bộ nhớ phiên — bỏ qua */ }
+    try { localStorage.setItem(`xuong_chat_conv_${userId || "mac_dinh"}`, conv); } catch { /* bỏ qua */ }
+  }, [tin, conv, userId]);
   useEffect(() => { cuoi.current?.scrollIntoView({ block: "end" }); }, [tin, dang]);
   useEffect(() => {
     if (!dang) return;
@@ -249,7 +286,7 @@ export function TroLyChat({ onMo, onMoLuot, onDoi, onMoDong, onTheoLuot, onChonK
     return () => clearInterval(h);
   }, [dang]);
 
-  // [ghi chú kỹ thuật] thẻ KPI đầy đủ (bảng, xếp hạng, kiểm số) do MÁY CHỦ dựng trong chính câu trả lời /api/tro-ly (r.the) — không gọi thêm đường nào
+  // [ghi chú] thẻ KPI đầy đủ (bảng, xếp hạng, kiểm số) do MÁY CHỦ dựng trong chính câu trả lời /api/tro-ly (r.the) — không gọi thêm đường nào
   const theKpi = (r: TroLyTraLoi): HoiNhanh | null => (r.the && r.the.ket_thuc && r.the.view ? r.the : null);
   const nhan = async (r: TroLyTraLoi) => {
     if (r.loai === "dung_moi") {   // máy chủ đã chuyển sang trợ lý dựng workflow (Operator) — hiện như chat dựng cũ
@@ -268,7 +305,7 @@ export function TroLyChat({ onMo, onMoLuot, onDoi, onMoDong, onTheoLuot, onChonK
     catch (e) { setTin((t) => [...t, { ai: "loi", chu: (e as { body?: { chu?: string } }).body?.chu || (e as Error).message }]); }
     finally { setDang(false); }
   };
-  const gui = async (chu: string) => { const c = chu.trim(); if (!c || dang) return; await goi({ cau: c, conv }, c); };   // [ghi chú kỹ thuật] không cắt ở trang; máy chủ từ chối có báo khi > 20.000 ký tự
+  const gui = async (chu: string) => { const c = chu.trim(); if (!c || dang) return; await goi({ cau: c, conv }, c); };   // [ghi chú] không cắt ở trang; máy chủ từ chối có báo khi > 20.000 ký tự
   const chon = async (phieu: string, ma: string, ten: string) => { if (!dang) await goi({ conv, phieu, chon: ma }, `Chọn: ${ten}`); };
   const taiLen = async (f: File | undefined | null) => {
     if (!f || dang) return;
@@ -338,13 +375,29 @@ export function TroLyChat({ onMo, onMoLuot, onDoi, onMoDong, onTheoLuot, onChonK
               : m.ai === "tro_ly" ? <Markdown chu={m.chu} onMo={onMo} /> : <div className="chu">{m.chu}</div>}
             {m.tl?.loai === "tra_loi" && m.tl.ky && <DongKy ky={m.tl.ky} />}
             {m.tl?.loai === "tra_loi" && !m.hn && m.tl.nhan && <div className="canh-bao">{NHAN_TAM_TINH}</div>}
-            {m.tl?.tai_lieu && (m.tl.tai_lieu.loi.length > 0   // [ghi chú kỹ thuật] kết quả kiểm bằng code của câu trả lời trên tài liệu
+            {m.tl?.tai_lieu && (m.tl.tai_lieu.loi.length > 0   // [ghi chú] kết quả kiểm bằng code của câu trả lời trên tài liệu
               ? <div className="canh-bao">Kiểm tự động thấy vấn đề ở chỗ dẫn / câu trích — hãy đối chiếu lại với tài liệu “{m.tl.tai_lieu.ten}”:
                   <ul>{m.tl.tai_lieu.loi.map((l, j) => <li key={j}>{l}</li>)}</ul></div>
               : <div className="phu">Trả lời theo tài liệu “{m.tl.tai_lieu.ten}”. {m.tl.tai_lieu.co_dan
                   ? `Các chỗ dẫn [${m.tl.tai_lieu.don_vi} …] đều có trong tài liệu và câu trích khớp nguyên văn (kiểm bằng code; không kiểm được câu trả lời có đúng ý hay không).`
                   : "Câu trả lời này không kèm chỗ dẫn."}</div>)}
             {(m.tl as { lich_su_rut_gon?: boolean } | undefined)?.lich_su_rut_gon && <div className="phu">Cuộc trò chuyện đã dài: một phần lịch sử cũ không còn được dùng để hiểu câu này. Nếu câu trả lời lạc ý, bấm “Cuộc mới” rồi hỏi lại đủ ý.</div>}
+            {(() => {
+              const dsAnh = (m.tl?.anh || []).filter(
+                (a) => /^image\/(png|jpeg|jpg|webp|gif)$/i.test(a.image_mime || "") && /^[A-Za-z0-9+/=\s]{10,2500000}$/.test(a.image_base64 || "")
+              ).slice(0, 4);
+              if (!dsAnh.length) return null;
+              return (
+                <div className="tl-anh" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginTop: 8 }}>
+                  {dsAnh.map((a, idx) => (
+                    <figure key={idx} style={{ margin: 0, border: "1px solid var(--vien2)", borderRadius: 6, padding: 4, background: "var(--giay2, #f8f8f6)" }}>
+                      <img src={`data:${a.image_mime};base64,${a.image_base64.replace(/\s+/g, "")}`} alt={a.chu_thich || `Biểu đồ ${idx + 1}`} style={{ width: "100%", height: "auto", display: "block", borderRadius: 4 }} />
+                      {a.chu_thich && <figcaption className="phu" style={{ fontSize: 11, marginTop: 4 }}>{a.chu_thich}</figcaption>}
+                    </figure>
+                  ))}
+                </div>
+              );
+            })()}
             {m.tl?.loai === "hoi" && m.tl.phieu && m.tl.lua_chon?.length ? (
               <div className="wf-doi">{m.tl.lua_chon.map((x) => (
                 <button key={x.chon} className="nut nho" disabled={dang || i !== tin.length - 1} onClick={() => chon(m.tl!.phieu!, x.chon, x.ten)}>{x.ten}</button>))}
@@ -358,11 +411,11 @@ export function TroLyChat({ onMo, onMoLuot, onDoi, onMoDong, onTheoLuot, onChonK
                   if (!d.length) return <span className="phu"> {m.tl!.loai === "cho_duyet" ? "chưa có file — bảng chính thức còn chờ duyệt" : "lượt này không có file"}</span>;
                   return <span>{d.map((f) => <a key={f.id} className="nut nho" href={`/api/tep/tai-ve?phien=${encodeURIComponent(m.tl!.phien!)}&tep=${encodeURIComponent(f.id)}`}>Tải {f.ten}</a>)}</span>; })()}
               </div>)}
-            {m.tl?.loai === "tra_loi" && m.tl.co_xuat && !m.tl.tep?.length && i === tin.length - 1 && (   // [ghi chú kỹ thuật] chỉ ở câu trả lời MỚI NHẤT (máy chủ xuất lượt gần nhất)
+            {m.tl?.loai === "tra_loi" && m.tl.co_xuat && !m.tl.tep?.length && i === tin.length - 1 && (   // [ghi chú] chỉ ở câu trả lời MỚI NHẤT (máy chủ xuất lượt gần nhất)
               <div className="wf-doi"><button className="nut nho" disabled={dang} onClick={() => { if (!dang) void goi({ conv, xuat: "xlsx" }, "Tải Excel"); }}>Tải Excel</button>
                 <span className="phu"> bảng thưởng cả đội + phần của câu này, bản nháp (số tạm tính)</span></div>)}
-            {(m.tl?.loai === "tep" || m.tl?.loai === "tra_loi") && m.tl.tep?.length ? (   // [ghi chú kỹ thuật] + câu trả lời kèm file nháp (thẻ xuất file, không chờ duyệt)
-                 // [ghi chú kỹ thuật] file xuất từ kết quả vừa trả lời — tải qua máy chủ, chỉ đúng cuộc chat này
+            {(m.tl?.loai === "tep" || m.tl?.loai === "tra_loi") && m.tl.tep?.length ? (   // [ghi chú] + câu trả lời kèm file nháp (thẻ xuất file, không chờ duyệt)
+                 // [ghi chú] file xuất từ kết quả vừa trả lời — tải qua máy chủ, chỉ đúng cuộc chat này
               <div className="wf-doi">{m.tl.tep.map((f) => (
                 <a key={f.id} className="nut nho" href={`/api/tro-ly/tep?conv=${encodeURIComponent(conv)}&id=${encodeURIComponent(f.id)}`}>Tải {f.ten}</a>))}
                 <span className="phu"> (giữ 30 phút)</span></div>) : null}

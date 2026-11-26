@@ -79,7 +79,7 @@ def test_money_after_section_word_is_not_masked():
 
 
 def test_chat_number_before_code_belongs_to_that_code():
-    # kiem_so@22 vòng sửa (C B-C4): "<số> đ là tiền PC_BT của NV04" — Capitol chặn, chat từng cho qua (thiếu same_sentence_after)
+    # kiem_so@22 vòng sửa (C B): "<số> đ là tiền PC_BT của NV04" — Capitol chặn, chat từng cho qua (thiếu same_sentence_after)
     results = [{"employee_id": "NV04", "kpis": [{"kpi": "LPPC", "amount": 2000000}, {"kpi": "PC_BT", "amount": 2200000}]}]
     _, wrong = _check_answer("2.000.000 đ là tiền PC_BT của NV04.", results, "NV04 được bao nhiêu?", CTX)
     _, right = _check_answer("2.200.000 đ là tiền PC_BT của NV04.", results, "NV04 được bao nhiêu?", CTX)

@@ -1,6 +1,6 @@
 """MỘT khung chat — lõi máy chủ cho POST /api/tro-ly (đợt 1) — C 18/11/2026. ĐANG GẮN từ 18/11/2026 (gói U2; sửa chữ 19/11).
-Kế hoạch: tài liệu thiết kế nội bộ (đối chiếu kỹ thuật).
-yêu cầu vận hành 18/11: bộ định tuyến AI thay code (đang dùng pplx-decider ngưỡng 0,7 — chon_jev.DINH_TUYEN; chữ "Jev" trong mã là tên cũ của vai này); tự chạy, không nút xác nhận; dưới 0,20 USD tự chạy, đắt hơn thì hỏi; một loại chat.
+Kế hoạch: tài liệu kỹ thuật (đã gật; E ĐẠT giấy có điều kiện G1 + G2 + 4 minor).
+người vận hành 18/11: bộ định tuyến AI thay code (đang dùng pplx-decider ngưỡng 0,7 — chon_jev.DINH_TUYEN; chữ "Jev" trong mã là tên cũ của vai này); tự chạy, không nút xác nhận; dưới 0,20 USD tự chạy, đắt hơn thì hỏi; một loại chat.
 
 Hàm THUẦN: mọi phụ thuộc truyền vào (thử bằng đồ giả ở thu_tro_ly.py). Không ném ra ngoài: lỗi ⇒ câu báo lời thường.
   xu_ly(than, dep) ⇒ (http, {"loai", "chu", "lua_chon"?, "phieu"?, "workflow"?, "phien"?, "nhan"?})
@@ -10,7 +10,7 @@ Rào (giữ bằng CODE, không dựa vào Jev):
   · bậc 0 từ chối (chon.bac0) · chỉ thẻ trong the_ghim.json (UUID + sha payload GHIM — E G2: sha lúc chạy khác ⇒ không chạy, hỏi lại)
   · khối của workflow ∈ KHOI_DA_XEP, không có ô nhận file, đúng 1 ô nhập chữ, có mức tối đa (muc_toi_da.toi_da)
   · mức LÚC CHẠY < 0,20 ⇒ tự chạy; ≥ 0,20 ⇒ hỏi tiền (phiếu gắn mức lúc hỏi); mức > phần còn của trần ngày ⇒ không chạy
-  · phiếu (đối chiếu kỹ thuật): máy chủ cấp, MỘT LẦN, gắn conv + danh sách mã đưa ra + mức lúc hỏi, hết hạn PHIEU_GIAY; trang chỉ gửi lại mã phiếu + lựa chọn
+  · phiếu (E G1): máy chủ cấp, MỘT LẦN, gắn conv + danh sách mã đưa ra + mức lúc hỏi, hết hạn PHIEU_GIAY; trang chỉ gửi lại mã phiếu + lựa chọn
   · Jev quá CHO_JEV giây ⇒ hỏi lại (không chạy), đếm; Jev / OpenRouter lỗi ⇒ báo lỗi thường, không chạy
   · cùng conv + cùng câu + cùng workflow đã chạy xong ⇒ trả lại câu trả lời cũ, không chạy lại
 """
@@ -29,13 +29,13 @@ import sys  # noqa: E402
 sys.path[:0] = [str(G.parent)]
 import chon as C  # noqa: E402
 import chon_jev as J  # noqa: E402
-sys.path.append(str(G.parent.parent / "va_tai_lieu_chat"))   # [ghi chú kỹ thuật] hỏi đáp trên file kéo vào khung chat (đường "đọc thẳng")
+sys.path.append(str(G.parent.parent / "va_tai_lieu_chat"))   # [ghi chú] hỏi đáp trên file kéo vào khung chat (đường "đọc thẳng")
 import tai_lieu_chat as TLC  # noqa: E402
 
 PHIEU_GIAY = 600           # phiếu hỏi lại / hỏi tiền hết hạn sau 10 phút
-LS_GIAY = 7200             # lịch sử một cuộc chat giữ 2 giờ (đối chiếu kỹ thuật)
+LS_GIAY = 7200             # lịch sử một cuộc chat giữ 2 giờ (E minor: có hạn)
 LS_TOI_DA_CONV = 500       # tối đa số cuộc chat giữ trong bộ nhớ (cũ nhất bị bỏ trước)
-LS_KY_TU_MOT_CUOC = 200_000   # [ghi chú kỹ thuật] tổng ký tự lịch sử của MỘT cuộc — chốt RAM: 500 cuộc × 200.000 ký tự ≈ 200 MB cận trên (vượt ⇒ bỏ mục cũ nhất, có đếm)
+LS_KY_TU_MOT_CUOC = 200_000   # [ghi chú] tổng ký tự lịch sử của MỘT cuộc — chốt RAM: 500 cuộc × 200.000 ký tự ≈ 200 MB cận trên (vượt ⇒ bỏ mục cũ nhất, có đếm)
 CHO_JEV = 5.0              # A: Jev quá 5 s ⇒ hỏi lại
 KHOI_DA_XEP = {"agent_node", "text_input_node", "guardrails_node", "text_output_node", "human_intervention_node",
                "flexible_code_interpreter_node", "markdown_output_node", "evals_node", "docx_chat_node", "xlsx_chat_node", "pptx_chat_node",
@@ -43,11 +43,11 @@ KHOI_DA_XEP = {"agent_node", "text_input_node", "guardrails_node", "text_output_
 MA_CONV = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 MA_PHIEU = re.compile(r"^[A-Za-z0-9_-]{16,64}$")
 
-# Câu cho người dùng phổ thông — không chữ kỹ thuật (đối chiếu kỹ thuật)
+# Câu cho người dùng phổ thông — không chữ kỹ thuật (A 18/11)
 CHU = {
     "ban": "Hệ thống đang bận, bạn hỏi lại giúp mình sau ít phút nhé.",
     "loi": "Mình chưa xử lý được câu này lúc này. Bạn thử hỏi lại sau ít phút nhé.",
-    # [ghi chú kỹ thuật] lượt được nhận nhưng hệ thống chạy không ghi nhận được (Temporal đã kết thúc, không có dòng lượt) — chưa gọi AI
+    # [ghi chú] lượt được nhận nhưng hệ thống chạy không ghi nhận được (Temporal đã kết thúc, không có dòng lượt) — chưa gọi AI
     "mat_dong": "Hệ thống đang bận nên lượt này chưa chạy được (chưa tốn tiền). Bạn bấm gửi lại câu hỏi giúp mình nhé.",
     "mat_dong_co_khoi": "Hệ thống đang bận nên lượt này bị gián đoạn giữa chừng, mình chưa có câu trả lời. Bạn bấm gửi lại câu hỏi giúp mình nhé.",
     "het_tran": "Hôm nay hệ thống đã gần hết hạn mức chi phí, nên việc này chưa chạy được. Bạn thử lại vào ngày mai hoặc báo người phụ trách nhé.",
@@ -57,13 +57,13 @@ CHU = {
     "khong_co": "Hiện chưa có quy trình nào làm được việc này. Bạn có thể hỏi về thưởng, KPI hoặc tài liệu của công ty.",
     "tu_choi": "Câu hỏi trống hoặc quá dài, bạn viết gọn lại giúp mình nhé.",
     "cho_duyet": "Mình đã chạy xong phần tính. Bảng chính thức đang chờ người phụ trách duyệt — khi duyệt xong bạn sẽ tải được file ở đây.",
-    # [ghi chú kỹ thuật] workflow BẬT tự duyệt khi quá hạn ⇒ nói rõ hạn + điều xảy ra khi hết hạn (trước: lượt lỗi sau 300 giây mà lời vẫn hứa "duyệt xong sẽ có file")
+    # [ghi chú] workflow BẬT tự duyệt khi quá hạn ⇒ nói rõ hạn + điều xảy ra khi hết hạn (trước: lượt lỗi sau 300 giây mà lời vẫn hứa "duyệt xong sẽ có file")
     "cho_duyet_co_han": "Mình đã chạy xong phần tính. Bảng đang chờ người phụ trách duyệt (hạn {han}). Nếu hết hạn mà chưa ai bấm, hệ thống tự cho đi tiếp: file ra khi đó là "
                         "bản NHÁP mang nhãn “tự duyệt khi quá hạn — chưa có người duyệt”. Sau {han}, hỏi lại ĐÚNG câu này để lấy kết quả của lượt đang chờ (không chạy lượt mới), "
-                        "hoặc bấm “Mở lượt này trên xưởng” bên dưới để xem.",   # [ghi chú kỹ thuật] nay hỏi lại ĐÚNG câu thì đọc lại lượt đang chờ (đã có ca thử) ⇒ được hứa
+                        "hoặc bấm “Mở lượt này trên xưởng” bên dưới để xem.",   # [ghi chú] nay hỏi lại ĐÚNG câu thì đọc lại lượt đang chờ (đã có ca thử) ⇒ được hứa
     "khong_doc": "Mình đã chạy nhưng chưa đọc được kết quả. Bạn mở lượt chạy trên xưởng để xem nhé.",
-    # [ghi chú kỹ thuật] lượt bị bước kiểm số chặn: nói thật + gợi ý; KHÔNG nêu con số bị chặn (số chưa qua kiểm — E T2)
-    # [ghi chú kỹ thuật] nói TRUNG TÍNH ("chưa xác nhận được", không khẳng định trợ lý tính sai — sáng 20/11 4 / 4 lượt bị chặn là chặn oan); lý do thô chỉ dành cho người phụ trách
+    # [ghi chú] lượt bị bước kiểm số chặn: nói thật + gợi ý; KHÔNG nêu con số bị chặn (số chưa qua kiểm — E T2)
+    # [ghi chú] nói TRUNG TÍNH ("chưa xác nhận được", không khẳng định trợ lý tính sai — sáng 20/11 4 / 4 lượt bị chặn là chặn oan); lý do thô chỉ dành cho người phụ trách
     "rao_giu_lai": "Câu trả lời đã được viết nhưng bị GIỮ LẠI: bước kiểm số chưa xác nhận được một con số trong câu trả lời, nên mình không đưa ra. "
                    "Bạn hỏi lại giúp mình, hoặc hỏi hẹp hơn (một nhân viên, một KPI) nhé. Người phụ trách xem được lý do ở màn lượt chạy trên xưởng.",
     "hoi_ma_nv": "Bạn đang hỏi về nhân viên nào? Cho mình đúng một mã nhân viên (ví dụ NV05) nhé.",
@@ -71,7 +71,7 @@ CHU = {
     "khong_co_nv": "Mình không thấy nhân viên {ma} trong dữ liệu kỳ này. Bạn kiểm lại mã giúp mình nhé.",
     "nhanh_chua_doc": "Phần này chưa đọc được (chưa qua bước kiểm số).",
     "khong_dat_luat": "Quy trình này chưa đúng luật an toàn KPI nên mình không chạy từ chat. Người phụ trách cần sửa nó trên xưởng trước.",
-    "dung_giua": "_Lượt dừng giữa chừng ở một phần; phần nào chưa đọc được hoặc chưa qua bước kiểm số đều ghi rõ ngay tại phần đó._",   # [ghi chú kỹ thuật]
+    "dung_giua": "_Lượt dừng giữa chừng ở một phần; phần nào chưa đọc được hoặc chưa qua bước kiểm số đều ghi rõ ngay tại phần đó._",   # [E minor 2]
     "chua_kiem_so": "_Số trong phần này do khối chạy code / AI tính, CHƯA qua bước kiểm số bằng code._",
     "so_ca_doi": "_Mẫu này cho số của CẢ ĐỘI (không xem riêng từng người)._",
     "xuat_chua_co": "Mình chưa có kết quả nào trong cuộc trò chuyện này để xuất. Bạn hỏi một câu về thưởng / KPI trước nhé.",
@@ -82,7 +82,7 @@ CHU = {
 
 
 def _usd(x: float) -> str:
-    """[ghi chú kỹ thuật] số tiền kiểu Việt: 0,40 (dấu phẩy thập phân)."""
+    """[ghi chú] số tiền kiểu Việt: 0,40 (dấu phẩy thập phân)."""
     return f"{float(x):.2f}".replace(".", ",")
 
 
@@ -95,12 +95,12 @@ def doc_ghim(f: Path = G / "the_ghim.json") -> dict:
     return {x["ma"]: x for x in json.loads(Path(f).read_text(encoding="utf-8"))["the"]}
 
 
-# [ghi chú kỹ thuật] mẫu NHIỀU ô nhập (mỗi ô một câu CÀI SẴN, chạy thành nhánh riêng) hoặc 0 ô: câu người dùng KHÔNG đổ vào ô.
+# [ghi chú] mẫu NHIỀU ô nhập (mỗi ô một câu CÀI SẴN, chạy thành nhánh riêng) hoặc 0 ô: câu người dùng KHÔNG đổ vào ô.
 #   giu_nguyen ⇒ chạy đúng câu cài sẵn (bản đã ghim sha) · thay_nv ⇒ thay ĐÚNG 1 mã NV trong mỗi câu cài sẵn bằng mã lấy từ câu người dùng
 CACH_NAP = {"kpi_ban_tin": "giu_nguyen", "kpi_xem_nhanh_chinh_thuc": "giu_nguyen", "kpi_phieu_nhan_vien": "thay_nv", TLC.MA_THE: "tai_lieu", TLC.MA_THE_TINH: "tinh_bang"}
-# [ghi chú kỹ thuật] wf_11fa5c4d BỎ: ca thật G4 — trang chặn lúc chạy "luật KPI: 13 lỗi" (mẫu không theo luật an toàn KPI) ⇒ không mở từ chat
+# [ghi chú] wf_11fa5c4d BỎ: ca thật G4 — trang chặn lúc chạy "luật KPI: 13 lỗi" (mẫu không theo luật an toàn KPI) ⇒ không mở từ chat
 MA_NV = re.compile(r"(?<![A-Z0-9])NV\d{2}(?![A-Z0-9])")          # chỗ đánh dấu trong câu CÀI SẴN (mẫu dựng 2 chữ số)
-MA_NV_CAU = re.compile(r"(?<![A-Z0-9])NV\d+(?![A-Z0-9])")        # [ghi chú kỹ thuật] mã trong câu người dùng (sau .upper()); hợp lệ = ∈ ds_nv, không theo số chữ số
+MA_NV_CAU = re.compile(r"(?<![A-Z0-9])NV\d+(?![A-Z0-9])")        # [E minor] mã trong câu người dùng (sau .upper()); hợp lệ = ∈ ds_nv, không theo số chữ số
 
 
 def o_nhap(payload) -> dict:
@@ -127,7 +127,7 @@ def ra_ngoai_hop_le(payload, cach=None):
         ps = {p.get("field_id"): p.get("value") for p in st.get("params", []) if isinstance(p, dict)}
         if ps.get("mcp_servers") not in (None, "", []):
             return None, ["workflow có máy chủ MCP (có thể gửi ra ngoài)"]
-    la = sorted({str(v) for v in loai.values() if v not in KHOI_DA_XEP and not (cach == "tinh_bang" and v == "file_input_node")})   # [ghi chú kỹ thuật] chỉ thẻ tính trên bảng được có khối nhận file
+    la = sorted({str(v) for v in loai.values() if v not in KHOI_DA_XEP and not (cach == "tinh_bang" and v == "file_input_node")})   # [ghi chú] chỉ thẻ tính trên bảng được có khối nhận file
     if la:
         return None, ["có khối chưa được xếp cho chạy từ chat (" + ", ".join(la)[:200] + ")"]
     o = [k for k, v in loai.items() if v == "text_input_node"]
@@ -137,18 +137,18 @@ def ra_ngoai_hop_le(payload, cach=None):
         return o[0], []
     if cach == "giu_nguyen":
         if any(MA_NV.search(c or "") for c in o_nhap(payload).values()):
-            return None, ["câu cài sẵn có mã nhân viên nhưng thẻ khai giữ nguyên"]   # [ghi chú kỹ thuật] tránh chạy số một người mà câu hỏi người khác
+            return None, ["câu cài sẵn có mã nhân viên nhưng thẻ khai giữ nguyên"]   # [E G4-2 kèm] tránh chạy số một người mà câu hỏi người khác
         return o, []
     if cach == "thay_nv":
         cau = o_nhap(payload)
         if not o or any(len(MA_NV.findall(cau.get(k) or "")) != 1 for k in o):
             return None, ["mỗi câu cài sẵn phải có đúng một mã nhân viên để thay"]
         return o, []
-    if cach == "tai_lieu":   # [ghi chú kỹ thuật] đúng 1 ô nhập: nhận toàn văn tài liệu + câu hỏi
+    if cach == "tai_lieu":   # [ghi chú] đúng 1 ô nhập: nhận toàn văn tài liệu + câu hỏi
         if len(o) != 1:
             return None, ["phải có đúng một ô nhập (nhận tài liệu + câu hỏi)"]
         return o, []
-    if cach == "tinh_bang":   # [ghi chú kỹ thuật] ⇒ [mã ô câu hỏi, mã khối nhận file]
+    if cach == "tinh_bang":   # [ghi chú] ⇒ [mã ô câu hỏi, mã khối nhận file]
         fi = [k for k, v in loai.items() if v == "file_input_node"]
         if len(o) != 1 or len(fi) != 1:
             return None, ["phải có đúng một ô câu hỏi và đúng một khối nhận file"]
@@ -156,7 +156,7 @@ def ra_ngoai_hop_le(payload, cach=None):
     return None, ["cách nạp ô lạ"]
 
 
-# [ghi chú kỹ thuật] thẻ HÀNH ĐỘNG "xuất kết quả vừa trả lời" — không phải workflow; chỉ đưa vào danh sách định tuyến
+# [ghi chú] thẻ HÀNH ĐỘNG "xuất kết quả vừa trả lời" — không phải workflow; chỉ đưa vào danh sách định tuyến
 # khi cuộc chat ĐÃ có một câu trả lời KPI (kho.da_chay). Dạng file đọc bằng CODE từ chữ câu; xuất bằng hàm nhóm kỹ thuật (va_xuat_ket_qua.xuat — 0 AI, không tính lại).
 THE_XUAT = {"ma": "xuat_ket_qua", "ten_tim": "Xuất kết quả vừa trả lời ra file",
             "lam_gi": "Xuất KẾT QUẢ VỪA TRẢ LỜI ở lượt trước trong cuộc trò chuyện ra file Excel / Word / PDF / PowerPoint — dùng đúng bảng số đã kiểm, không tính lại.",
@@ -178,14 +178,51 @@ def dang_trong_cau(cau: str) -> str | None:
 
 
 class Kho:
-    """Lịch sử + phiếu + lượt đã chạy — trong bộ nhớ tiến trình (mất khi bật lại máy chủ: chấp nhận)."""
+    """Lịch sử + phiếu + lượt đã chạy — giữ trong bộ nhớ và tự đồng bộ SQLite khi có `store` (khoá (user_id, conv))."""
 
-    def __init__(self, gio=time.time, ghi=None):
-        self.ghi, self.dem_ls = ghi, {"cat_muc": 0, "bo_muc": 0}   # [ghi chú kỹ thuật] bộ đếm lịch sử bị cắt / bỏ lúc LƯU; ghi = hàm nhật ký của máy chủ
+    def __init__(self, gio=time.time, ghi=None, store=None, user_id: str = "mac_dinh"):
+        self.ghi, self.dem_ls = ghi, {"cat_muc": 0, "bo_muc": 0}   # [ghi chú] bộ đếm lịch sử bị cắt / bỏ lúc LƯU; ghi = hàm nhật ký của máy chủ
+        self.store, self.user_id = store, (user_id or "mac_dinh")
         self.ls_rut = {}   # conv ⇒ True khi lịch sử GỬI bộ định tuyến ở yêu cầu này bị cắt / bỏ (noi_may_chu đưa cờ lich_su_rut_gon vào kết quả lượt)
         self.gio, self.ls, self.phieu, self.da_chay, self.tep, self.cuoi = gio, {}, {}, {}, {}, {}   # cuoi: conv ⇒ phiên trả lời GẦN NHẤT (để xuất)
-        self.cau_cuoi = {}   # [ghi chú kỹ thuật] conv ⇒ câu người dùng hỏi ở lượt trả lời gần nhất (in tiêu đề phần đầu file xuất)
-        self.org_cuoi = {}   # [ghi chú kỹ thuật] conv ⇒ tổ chức của yêu cầu đã tạo lượt đó — _xuat chỉ xuất khi yêu cầu xuất thuộc ĐÚNG tổ chức ấy
+        self.cau_cuoi = {}   # [ghi chú] conv ⇒ câu người dùng hỏi ở lượt trả lời gần nhất (in tiêu đề phần đầu file xuất)
+        self.org_cuoi = {}   # [E minor 1] conv ⇒ tổ chức của yêu cầu đã tạo lượt đó — _xuat chỉ xuất khi yêu cầu xuất thuộc ĐÚNG tổ chức ấy
+
+    def _nap(self, conv: str) -> None:
+        if not self.store or not conv or conv in self.ls:
+            return
+        d = self.store.tai_cuoc_chat(self.user_id, conv)
+        if not d:
+            return
+        self.ls[conv] = {"t": d["updated_at"], "m": list(d.get("m") or [])}
+        if d.get("cuoi"):
+            self.cuoi[conv] = d["cuoi"]
+        if d.get("cau_cuoi") is not None:
+            self.cau_cuoi[conv] = d["cau_cuoi"]
+        if d.get("org_cuoi") is not None:
+            self.org_cuoi[conv] = d["org_cuoi"]
+        if d.get("da_chay"):
+            raw_dc = d["da_chay"]
+            if isinstance(raw_dc, list):
+                self.da_chay[conv] = {
+                    (tuple(item[0]) if isinstance(item[0], list) else item[0]): item[1]
+                    for item in raw_dc
+                    if isinstance(item, (list, tuple)) and len(item) == 2
+                }
+            elif isinstance(raw_dc, dict):
+                self.da_chay[conv] = dict(raw_dc)
+
+    def ds_cuoc_chat(self, gioi_han: int = 20) -> list[dict]:
+        if self.store:
+            return self.store.ds_cuoc_chat(self.user_id, gioi_han)
+        ds = []
+        for conv, v in self.ls.items():
+            msgs = v.get("m") or []
+            if not msgs:
+                continue
+            dau = next((m.get("noi_dung") for m in msgs if m.get("vai") == "nguoi_dung"), None)
+            ds.append({"conv": conv, "updated_at": v.get("t", 0), "tieu_de": (dau or "Cuộc trò chuyện")[:80], "so_tin": len(msgs)})
+        return sorted(ds, key=lambda x: x["updated_at"], reverse=True)[:gioi_han]
 
     def cat_tep(self, conv, ten, raw) -> str:
         for k in [k for k, v in self.tep.items() if self.gio() > v["het"]]:
@@ -201,13 +238,26 @@ class Kho:
         return v if v and v["conv"] == conv and self.gio() <= v["het"] else None   # chỉ đúng cuộc chat đã xuất
 
     def phien_tra_loi_cuoi(self, conv) -> str | None:
+        self._nap(conv)
         return self.cuoi.get(conv) if conv in self.ls else None
 
     def nho_cuoi(self, conv, out, cau=None, org=None):
+        self._nap(conv)
         if out.get("loai") == "tra_loi" and out.get("phien"):
             self.cuoi[conv] = out["phien"]
             self.cau_cuoi[conv] = str(cau or "")[:2000]
             self.org_cuoi[conv] = org
+        if self.store and conv:
+            dc = self.da_chay.get(conv)
+            dc_luu = [[list(k) if isinstance(k, tuple) else k, v] for k, v in dc.items()] if dc else None
+            self.store.luu_trang_thai(
+                self.user_id,
+                conv,
+                cuoi=self.cuoi.get(conv),
+                cau_cuoi=self.cau_cuoi.get(conv),
+                org_cuoi=self.org_cuoi.get(conv),
+                da_chay=dc_luu,
+            )
         return out
 
     def _don(self):
@@ -221,6 +271,7 @@ class Kho:
 
     def lich_su(self, conv) -> list[dict]:
         self._don()
+        self._nap(conv)
         return list((self.ls.get(conv) or {}).get("m", []))
 
     def lich_su_dt(self, conv) -> list[dict]:
@@ -229,11 +280,15 @@ class Kho:
 
     def them(self, conv, vai, chu, dt=None):
         self._don()
+        self._nap(conv)
         v = self.ls.setdefault(conv, {"t": self.gio(), "m": []})
-        # [ghi chú kỹ thuật] giữ đủ câu trả lời (rào cỡ J.LS_KY_TU ký tự / mục, J.LS_SO_MUC mục — nay rất rộng) — cắt ngắn làm mất lời mời ở cuối. [ghi chú kỹ thuật] cắt / bỏ thì ĐẾM + ghi nhật ký (không ghi nội dung)
+        # [ghi chú] giữ đủ câu trả lời (rào cỡ J.LS_KY_TU ký tự / mục, J.LS_SO_MUC mục — nay rất rộng) — cắt ngắn làm mất lời mời ở cuối. [E F-U1] cắt / bỏ thì ĐẾM + ghi nhật ký (không ghi nội dung)
         cat, bo = int(len(str(chu)) > J.LS_KY_TU), int(len(v["m"]) + 1 > J.LS_SO_MUC)
-        v["t"] = self.gio(); v["m"] = (v["m"] + [{"vai": vai, "noi_dung": str(chu)[:J.LS_KY_TU], **({"dt": dt} if dt else {})}])[-J.LS_SO_MUC:]
-        while len(v["m"]) > 1 and sum(len(x["noi_dung"]) for x in v["m"]) > LS_KY_TU_MOT_CUOC:   # [ghi chú kỹ thuật] chốt RAM mỗi cuộc; mục MỚI nhất luôn giữ
+        noi_dung = str(chu)[:J.LS_KY_TU]
+        v["t"] = self.gio(); v["m"] = (v["m"] + [{"vai": vai, "noi_dung": noi_dung, **({"dt": dt} if dt else {})}])[-J.LS_SO_MUC:]
+        if self.store and conv:
+            self.store.them_tin(self.user_id, conv, vai, noi_dung, dt=dt, ts=v["t"])
+        while len(v["m"]) > 1 and sum(len(x["noi_dung"]) for x in v["m"]) > LS_KY_TU_MOT_CUOC:   # [ghi chú] chốt RAM mỗi cuộc; mục MỚI nhất luôn giữ
             v["m"].pop(0); bo += 1
         if cat or bo:
             self.dem_ls["cat_muc"] += cat; self.dem_ls["bo_muc"] += bo
@@ -259,7 +314,7 @@ def _chuan(c: str) -> str:
 
 
 def _file_dang_mo(dep, conv):
-    """[ghi chú kỹ thuật] File đang mở của cuộc trò chuyện — CHỈ khi đúng tổ chức của yêu cầu (dep["org"]) và thẻ hỏi tài liệu đã ghim + mở."""
+    """[ghi chú] File đang mở của cuộc trò chuyện — CHỈ khi đúng tổ chức của yêu cầu (dep["org"]) và thẻ hỏi tài liệu đã ghim + mở."""
     k = dep.get("tai_lieu")
     if not k or not dep.get("org") or not (dep["ghim"].get(TLC.MA_THE) or {}).get("mo"):
         return None
@@ -267,7 +322,7 @@ def _file_dang_mo(dep, conv):
 
 
 def _bang_dang_mo(dep, conv):
-    """[ghi chú kỹ thuật] File bảng tính ĐANG MỞ của cuộc trò chuyện còn giữ byte gốc — và thẻ tính trên bảng đã ghim + mở, máy chủ có đường đưa file vào kho Capitol."""
+    """[ghi chú] File bảng tính ĐANG MỞ của cuộc trò chuyện còn giữ byte gốc — và thẻ tính trên bảng đã ghim + mở, máy chủ có đường đưa file vào kho Capitol."""
     f = _file_dang_mo(dep, conv)
     if not f or f.get("raw") is None or not dep.get("dua_file") or not (dep["ghim"].get(TLC.MA_THE_TINH) or {}).get("mo"):
         return None
@@ -275,7 +330,7 @@ def _bang_dang_mo(dep, conv):
 
 
 def _kho_cong_ty(dep) -> list:
-    """[ghi chú kỹ thuật] Các kho BỀN chưa ẩn của tổ chức của yêu cầu (máy chủ trang lọc từ sổ kho). Thiếu phần nối / thẻ hỏi tài liệu chưa mở ⇒ []."""
+    """[ghi chú] Các kho BỀN chưa ẩn của tổ chức của yêu cầu (máy chủ trang lọc từ sổ kho). Thiếu phần nối / thẻ hỏi tài liệu chưa mở ⇒ []."""
     if not dep.get("ds_kho") or not dep.get("tai_lieu") or not dep.get("org") or not (dep["ghim"].get(TLC.MA_THE) or {}).get("mo"):
         return []
     try:
@@ -296,19 +351,37 @@ def _chay_kho(cau, conv, dep):
     return _chay(TLC.MA_THE, cau, conv, dep)
 
 
+def _thieu_nhan_vien_ca_nhan(cau: str) -> str | None:
+    """[ghi chú] Câu hỏi KPI cho MỘT nhân viên nhưng chỉ dùng đại từ mơ hồ ("nhân viên này", "của tôi"...) không nêu mã/tên ⇒ hỏi thẳng, 0 nút."""
+    s = _chuan(cau)
+    if not s or re.search(r"(?<![a-z0-9])nv\d{1,3}(?![a-z0-9])", s):
+        return None
+    if not re.search(r"\b(lương|thưởng|kpi|doanh số|chỉ tiêu|phiếu)\b", s):
+        return None
+    if re.search(r"\b(cả đội|toàn đội|từng nhân viên|mọi người|tất cả nhân viên|bảng thưởng cả đội|nhiều nhất|ít nhất|cao nhất|thấp nhất)\b", s):
+        return None
+    if not re.search(r"\b(nhân viên này|bạn này|người này|nv này|anh này|chị này|em này|của tôi|của mình)\b", s):
+        return None
+    m_thang = re.search(r"\btháng\s+\d{1,2}(?:/\d{4})?\b", s)
+    ky = m_thang.group(0) if m_thang else "kỳ này"
+    return f"Bạn muốn xem lương kinh doanh {ky} của nhân viên nào ạ? Vui lòng nêu mã nhân viên (vd NV01–NV14) hoặc họ tên."
+
+
 def _sau_tai_lieu(out, f_tl, tim=None):
     """Câu trả lời trên tài liệu: kiểm chỗ dẫn + câu trích bằng code ⇒ ô `tai_lieu`; bỏ nhãn "tạm tính" (nhãn của số KPI).
-    [ghi chú kỹ thuật] tim = hồ sơ tìm (câu tìm, k, trang trả về) của lượt đi đường kho ⇒ gắn vào lượt (ô `tim`) cả khi lượt hỏng, để đo "tìm trượt" tách khỏi
+    [ghi chú] tim = hồ sơ tìm (câu tìm, k, trang trả về) của lượt đi đường kho ⇒ gắn vào lượt (ô `tim`) cả khi lượt hỏng, để đo "tìm trượt" tách khỏi
     "AI trả lời sai"."""
     if tim and isinstance(out, dict):
         out = dict(out, tim=tim)
+        if tim.get("anh"):
+            out["anh"] = list(tim["anh"])[:4]
     if not f_tl or out.get("loai") != "tra_loi":
         return out
     out = dict(out, tai_lieu=dict(TLC.hau_kiem(out.get("chu") or "", f_tl), **({"chi_trang_tim_duoc": True} if f_tl["kq"].get("doan") else {})))
     out.pop("nhan", None)
-    if not f_tl.get("kieu") and f_tl.get("raw_vb") is not None and TLC.can_goi_y_hinh(out.get("chu")):   # [ghi chú kỹ thuật]
+    if not f_tl.get("kieu") and f_tl.get("raw_vb") is not None and TLC.can_goi_y_hinh(out.get("chu")):   # [ghi chú]
         out = dict(out, chu=(out.get("chu") or "").rstrip() + "\n\n" + TLC.GOI_Y_HINH, goi_y_hinh=True)
-    if f_tl.get("kieu") == "kho_chung":   # [ghi chú kỹ thuật] đổi [đoạn N] ra TÊN FILE + trang cho người đọc; nói rõ đã tìm trên bao nhiêu tài liệu
+    if f_tl.get("kieu") == "kho_chung":   # [ghi chú] đổi [đoạn N] ra TÊN FILE + trang cho người đọc; nói rõ đã tìm trên bao nhiêu tài liệu
         nguon = f_tl.get("nguon_doan") or {}
         dan = sorted({int(n) for n in re.findall(r"\[đoạn (\d+)\]", out.get("chu") or "") if int(n) in nguon})
         duoi = "\n\n" + ("Nguồn: " + "; ".join(f"[đoạn {n}] = {nguon[n]}" for n in dan) + ". " if dan else "") + f"Đã tìm trên {len(f_tl.get('kho_ds') or [])} tài liệu trong kho của công ty."
@@ -328,12 +401,12 @@ def xu_ly(than, dep, org=None) -> tuple[int, dict]:
         if not (isinstance(conv, str) and MA_CONV.fullmatch(conv)):
             return 400, {"loai": "loi", "chu": CHU["loi"]}
         kho: Kho = dep["kho"]
-        dep = dict(dep, org=org)   # [ghi chú kỹ thuật] tổ chức của CHÍNH yêu cầu này (may_chu truyền) — file đang mở chỉ thấy được trong đúng tổ chức
-        if than.get("xuat") is not None:   # [ghi chú kỹ thuật] nút "Tải Excel" dưới câu trả lời: xuất THẲNG kết quả lượt gần nhất của chính cuộc trò chuyện (0 AI)
+        dep = dict(dep, org=org)   # [ghi chú] tổ chức của CHÍNH yêu cầu này (may_chu truyền) — file đang mở chỉ thấy được trong đúng tổ chức
+        if than.get("xuat") is not None:   # [ghi chú] nút "Tải Excel" dưới câu trả lời: xuất THẲNG kết quả lượt gần nhất của chính cuộc trò chuyện (0 AI)
             if than.get("xuat") != "xlsx" or than.get("cau") is not None or than.get("phieu") is not None:
                 return 400, {"loai": "loi", "chu": CHU["loi"]}
             return _xuat("Tải Excel", conv, dep, "xlsx")
-        # --- đường TRẢ LỜI một phiếu (đối chiếu kỹ thuật): chỉ nhận mã phiếu + lựa chọn trong danh sách máy chủ đã đưa
+        # --- đường TRẢ LỜI một phiếu (E G1): chỉ nhận mã phiếu + lựa chọn trong danh sách máy chủ đã đưa
         if than.get("phieu") is not None:
             if not (isinstance(than["phieu"], str) and MA_PHIEU.fullmatch(than["phieu"])):
                 return 400, {"loai": "loi", "chu": CHU["phieu_het"]}
@@ -347,7 +420,7 @@ def xu_ly(than, dep, org=None) -> tuple[int, dict]:
                 return _chay(p["ma"], p["cau"], conv, dep, muc_da_hoi=p["muc"])
             if p["loai"] == "xuat_dang":
                 return _xuat(p["cau"], conv, dep, chon)
-            if chon == "danh_sach":   # [ghi chú kỹ thuật] nút "Xem mọi việc mình làm được" — không chạy gì
+            if chon == "danh_sach":   # [ghi chú] nút "Xem mọi việc mình làm được" — không chạy gì
                 chu = danh_sach_viec(dep); kho.them(conv, "tro_ly", chu)
                 return 200, {"loai": "khong_co", "chu": chu, "danh_sach_viec": True}
             if chon == "dung_moi":
@@ -364,15 +437,19 @@ def xu_ly(than, dep, org=None) -> tuple[int, dict]:
         if r0 is not None:
             return 200, {"loai": "loi", "chu": CHU["tu_choi"]}
         ls = kho.lich_su(conv)
-        ls_dt = kho.lich_su_dt(conv)   # [ghi chú kỹ thuật] bản gửi bộ định tuyến
+        ls_dt = kho.lich_su_dt(conv)   # [E T1] bản gửi bộ định tuyến
         kho.them(conv, "nguoi_dung", cau)
-        if " ".join(cau.lower().split()).strip(" .!?“”\"'") in CAU_XEM_HET:   # [ghi chú kỹ thuật] lối xem ĐỦ danh sách việc — bằng code, không gọi bộ định tuyến, 0 đồng
+        hoi_ten = _thieu_nhan_vien_ca_nhan(cau)
+        if hoi_ten:
+            kho.them(conv, "tro_ly", hoi_ten)
+            return 200, {"loai": "hoi", "chu": hoi_ten, "lua_chon": []}
+        if " ".join(cau.lower().split()).strip(" .!?“”\"'") in CAU_XEM_HET:   # [ghi chú] lối xem ĐỦ danh sách việc — bằng code, không gọi bộ định tuyến, 0 đồng
             chu = danh_sach_viec(dep, day_du=True); kho.them(conv, "tro_ly", chu)
             return 200, {"loai": "khong_co", "chu": chu, "danh_sach_viec": True}
         ghim = dep["ghim"]
-        muc_luc_chay = lambda ma: _muc(TLC.MA_THE if ma == TLC.MA_THE_KHO else ma, dep)   # noqa: E731  [ghi chú kỹ thuật] thẻ kho chạy CHÍNH workflow hỏi tài liệu
-        # [ghi chú kỹ thuật] thẻ có mã NV gắn cứng chỉ gửi định tuyến khi câu / lịch sử có đúng mã đó (vd "Tối ưu KPI cho NV02" với câu hỏi về NV05 ⇒ bỏ thẻ)
-        # [ghi chú kỹ thuật] câu mới CÓ mã NV ⇒ chỉ xét câu mới (lịch sử NV02 rồi hỏi "còn NV05?" ⇒ không đưa thẻ NV02); câu mới không mã ⇒ xét cả lịch sử
+        muc_luc_chay = lambda ma: _muc(TLC.MA_THE if ma == TLC.MA_THE_KHO else ma, dep)   # noqa: E731  [ghi chú] thẻ kho chạy CHÍNH workflow hỏi tài liệu
+        # [E U8] thẻ có mã NV gắn cứng chỉ gửi định tuyến khi câu / lịch sử có đúng mã đó (vd "Tối ưu KPI cho NV02" với câu hỏi về NV05 ⇒ bỏ thẻ)
+        # [E b1] câu mới CÓ mã NV ⇒ chỉ xét câu mới (lịch sử NV02 rồi hỏi "còn NV05?" ⇒ không đưa thẻ NV02); câu mới không mã ⇒ xét cả lịch sử
         co_ma = re.search(r"(?<![A-Z0-9])NV\d{2}(?![A-Z0-9])", cau.upper())
         chu_ls = (cau if co_ma else cau + " " + " ".join(m.get("noi_dung", "") for m in ls)).upper()
         the_cau = [t for t in dep["the"] if not (ghim.get(t["ma"]) or {}).get("ma_nv_co_dinh")
@@ -380,16 +457,16 @@ def xu_ly(than, dep, org=None) -> tuple[int, dict]:
         if dep.get("xuat") and kho.phien_tra_loi_cuoi(conv):
             the_cau = the_cau + [THE_XUAT]   # chỉ khi đã có kết quả để xuất
         if _file_dang_mo(dep, conv):
-            # [ghi chú kỹ thuật] đang mở file ⇒ KHÔNG gửi thẻ "Hỏi dữ liệu thử"
+            # [ghi chú] đang mở file ⇒ KHÔNG gửi thẻ "Hỏi dữ liệu thử"
             # (thẻ không chạy được từ khung chat). Chỉ rút khi đang mở file, không rút hẳn: lời gửi bộ định tuyến (chon_jev) có nhắc tên thẻ ⇒ rút hẳn là đổi lời + phải đo lại trạng thái không file.
-            the_cau = [t for t in the_cau if t.get("ma") != "hoi_du_lieu_thu"] + [TLC.THE_TAI_LIEU]   # [ghi chú kỹ thuật] chỉ khi cuộc trò chuyện ĐANG có file mở
+            the_cau = [t for t in the_cau if t.get("ma") != "hoi_du_lieu_thu"] + [TLC.THE_TAI_LIEU]   # [ghi chú] chỉ khi cuộc trò chuyện ĐANG có file mở
             if _bang_dang_mo(dep, conv):
-                the_cau = the_cau + [TLC.THE_TINH]   # [ghi chú kỹ thuật] file đang mở là bảng tính còn byte gốc ⇒ thêm việc TÍNH trên cả bảng
+                the_cau = the_cau + [TLC.THE_TINH]   # [ghi chú] file đang mở là bảng tính còn byte gốc ⇒ thêm việc TÍNH trên cả bảng
         elif _kho_cong_ty(dep):
-            the_cau = the_cau + [TLC.THE_KHO]   # [ghi chú kỹ thuật] hỏi tự do trên kho nạp sẵn — chỉ khi tổ chức có kho bền và không có file đang mở
+            the_cau = the_cau + [TLC.THE_KHO]   # [ghi chú] hỏi tự do trên kho nạp sẵn — chỉ khi tổ chức có kho bền và không có file đang mở
         try:
             r = J.chon(cau, the=the_cau, goi_jev=lambda b, n: dep["goi_jev"](b, n, CHO_JEV), muc=muc_luc_chay, lich_su=ls_dt, tu_chay=True)
-            if J.LS_LAN_CUOI["cat_muc"] or J.LS_LAN_CUOI["bo_muc"]:   # [ghi chú kỹ thuật] lịch sử gửi bộ định tuyến bị cắt / bỏ ⇒ đếm + nhật ký
+            if J.LS_LAN_CUOI["cat_muc"] or J.LS_LAN_CUOI["bo_muc"]:   # [E F-U1] lịch sử gửi bộ định tuyến bị cắt / bỏ ⇒ đếm + nhật ký
                 dep["dem"]["ls_gui_cat_muc"] = dep["dem"].get("ls_gui_cat_muc", 0) + J.LS_LAN_CUOI["cat_muc"]
                 dep["dem"]["ls_gui_bo_muc"] = dep["dem"].get("ls_gui_bo_muc", 0) + J.LS_LAN_CUOI["bo_muc"]
                 dep["ghi"](f"TRO-LY lịch sử (lúc gửi định tuyến): cắt {J.LS_LAN_CUOI['cat_muc']} mục, bỏ {J.LS_LAN_CUOI['bo_muc']} mục")
@@ -404,7 +481,7 @@ def xu_ly(than, dep, org=None) -> tuple[int, dict]:
             return 200, {"loai": "loi", "chu": CHU["tu_choi"]}
         if r["loai"] == "khong_co":
             kho.them(conv, "tro_ly", CHU["khong_co"]); return 200, {"loai": "khong_co", "chu": CHU["khong_co"]}
-        if r["loai"] == "hoi_he_thong":   # [ghi chú kỹ thuật] "đang có những workflow nào", "bạn làm được gì" ⇒ trả lời bằng CODE
+        if r["loai"] == "hoi_he_thong":   # [ghi chú] "đang có những workflow nào", "bạn làm được gì" ⇒ trả lời bằng CODE
             chu = danh_sach_viec(dep); kho.them(conv, "tro_ly", chu)
             dep["ghi"]("TRO-LY câu hỏi về chính hệ thống ⇒ trả danh sách việc (không chạy lượt)")
             return 200, {"loai": "khong_co", "chu": chu, "danh_sach_viec": True}
@@ -418,11 +495,15 @@ def xu_ly(than, dep, org=None) -> tuple[int, dict]:
         if r["loai"] == "chay":
             return _chay(r["ma"], cau, conv, dep)
         # hoi_lai: tiền / gửi ngoài / làm rõ
-        if r.get("kieu_hoi") in ("tien", "gui_ngoai") and r.get("ma") in ghim and not ghim[r["ma"]].get("mo"):   # [ghi chú kỹ thuật] thẻ ĐÓNG ⇒ không hỏi tiền
+        if r.get("kieu_hoi") in ("tien", "gui_ngoai") and r.get("ma") in ghim and not ghim[r["ma"]].get("mo"):   # [ghi chú] thẻ ĐÓNG ⇒ không hỏi tiền
             kho.them(conv, "tro_ly", CHU["thieu_muc"]); return 200, {"loai": "loi", "chu": CHU["thieu_muc"]}
         if r.get("kieu_hoi") == "tien" and r["ma"] in ghim:
+            v_t = dep["pb"](ghim[r["ma"]]["uuid"])
+            ket_t = _kiem_ky_cho_the(r["ma"], (v_t or {}).get("payload"), ghim[r["ma"]], conv, dep)
+            if ket_t:
+                return ket_t
             m = muc_luc_chay(r["ma"])
-            if m is None:   # [ghi chú kỹ thuật] không tính được mức ⇒ báo thẳng, không hỏi tiền
+            if m is None:   # [E minor 4] không tính được mức ⇒ báo thẳng, không hỏi tiền
                 kho.them(conv, "tro_ly", CHU["thieu_muc"]); return 200, {"loai": "loi", "chu": CHU["thieu_muc"]}
             ph = kho.cap_phieu(conv, "tien", ["co", "khong"], muc=m, cau=cau); kho.phieu[ph]["ma"] = r["ma"]
             chu = f"Việc này tốn tối đa khoảng {_usd(m)} USD. Bạn muốn chạy không?"
@@ -434,11 +515,23 @@ def xu_ly(than, dep, org=None) -> tuple[int, dict]:
         _thu = {t["ma"] for t in dep["the"] if str((_mt.get(t.get("ten_goc") or t.get("ten_tim")) or {}).get("lam") or "").startswith("Mẫu thử")}   # thẻ mẫu thử: không làm nút
         _co_kho = bool(_kho_cong_ty(dep)) and not _file_dang_mo(dep, conv)
         lc = [x for x in (r.get("ung_vien") or []) if x == TLC.MA_THE_KHO and _co_kho or x not in _thu and (x in ghim and ghim[x].get("mo")) or x == "dung_moi" or (x == "xuat_ket_qua" and co_xuat)][:3]   # [gói 6] bỏ thẻ đóng
-        ten_nut = lambda x: (TEN_NUT_DANH_SACH if x == "danh_sach" else TLC.TEN_THE_KHO if x == TLC.MA_THE_KHO else "Tạo / sửa quy trình mới" if x == "dung_moi" else   # noqa: E731
-                             ("Xuất kết quả vừa rồi ra file" if x == "xuat_ket_qua" else ghim[x]["ten"]))
+        NHAN_NUT_CHUNG = {
+            "danh_sach": TEN_NUT_DANH_SACH,
+            TLC.MA_THE: "Tìm trong tài liệu công ty",
+            TLC.MA_THE_KHO: "Tìm trong tài liệu công ty",
+            TLC.MA_THE_TINH: "Tính toán trên file bảng tính",
+            "dung_moi": "Tạo / sửa quy trình mới",
+            "xuat_ket_qua": "Xuất file từ kết quả vừa rồi",
+            "kpi_hoi_nhanh": "Tra cứu lương / thưởng KPI",
+            "kpi_bang_excel": "Gửi duyệt bảng thưởng chính thức",
+            "kpi_xem_nhanh_chinh_thuc": "Gửi duyệt bảng thưởng chính thức",
+            "kpi_ban_tin": "Tra cứu lương / thưởng KPI",
+            "kpi_phieu_nhan_vien": "Tra cứu lương / thưởng KPI",
+        }
+        ten_nut = lambda x: NHAN_NUT_CHUNG.get(x) or re.sub(r"^KPI mẫu \d+\s*[—-]?\s*|^KPI hỏi nhanh\b\s*[—-]?\s*", "", ghim[x]["ten"]).strip() or "Tra cứu lương / thưởng KPI"   # noqa: E731
         hoi_nv = r.get("kieu_hoi") == "lam_ro" and "mã nhân viên" in (r.get("ly_do") or "")
         conf = (r.get("jev") or {}).get("conf")
-        # [ghi chú kỹ thuật] KHÔNG CHẮC THẤP: bộ định tuyến chọn "không thẻ nào" / "tạo mới" mà không chắc, hoặc độ tin < 0,5 (vd câu hỏi VỀ chính xưởng:
+        # [ghi chú] KHÔNG CHẮC THẤP: bộ định tuyến chọn "không thẻ nào" / "tạo mới" mà không chắc, hoặc độ tin < 0,5 (vd câu hỏi VỀ chính xưởng:
         # "đang có những workflow nào", "bạn làm được gì") ⇒ trả DANH SÁCH VIỆC bằng code; nút chọn nhanh chỉ khi có ≥ 2 ứng viên (không bao giờ đúng một nút)
         thap = not hoi_nv and (r.get("ma") in (None, "dung_moi", "hoi_ve_he_thong") or (isinstance(conf, (int, float)) and conf < NGUONG_KHONG_CHAC_THAP))
         mot_the = not hoi_nv and len(lc) == 1 and r.get("ma") not in (None, "dung_moi", "hoi_ve_he_thong")   # đúng MỘT ứng viên và bộ định tuyến có nghiêng về chính thẻ đó
@@ -475,13 +568,13 @@ def _muc(ma, dep):
 
 
 def conv_operator(conv: str) -> str:
-    """[ghi chú kỹ thuật] chat_operator chỉ nhận conv 32 hex / UUID (_CONV) ⇒ đổi conv của khung chat sang 32 hex CỐ ĐỊNH theo conv (băm) — cùng cuộc chat
+    """[E U9 18/11] chat_operator chỉ nhận conv 32 hex / UUID (_CONV) ⇒ đổi conv của khung chat sang 32 hex CỐ ĐỊNH theo conv (băm) — cùng cuộc chat
     luôn cùng mã Operator (giữ lịch sử dựng), mọi dạng conv hợp lệ của trang đều qua."""
     return hashlib.sha256(("tro_ly:" + conv).encode("utf-8")).hexdigest()[:32]
 
 
 def ma_nv_cua(cau) -> list[str]:
-    """[ghi chú kỹ thuật] mã NV khác nhau trong CÂU MỚI. KHÔNG lấy từ lịch sử ("phiếu của tôi", "chị Lan thì sao" sẽ âm thầm chạy cho người cũ) ⇒
+    """[E a + G4-1] mã NV khác nhau trong CÂU MỚI. KHÔNG lấy từ lịch sử ("phiếu của tôi", "chị Lan thì sao" sẽ âm thầm chạy cho người cũ) ⇒
     câu không có mã ⇒ hỏi lại."""
     return sorted(set(MA_NV_CAU.findall((cau or "").upper())))
 
@@ -510,7 +603,7 @@ def _xuat(cau, conv, dep, dang):
     """Xuất kết quả lượt trả lời GẦN NHẤT của chính cuộc chat (máy chủ tự lấy phiên — không nhận từ trình duyệt). 0 AI."""
     kho = dep["kho"]
     ph = kho.phien_tra_loi_cuoi(conv)
-    if ph and dep.get("org") and kho.org_cuoi.get(conv) not in (None, dep["org"]):   # [ghi chú kỹ thuật] lượt đó do tổ chức KHÁC tạo ⇒ coi như chưa có kết quả để xuất
+    if ph and dep.get("org") and kho.org_cuoi.get(conv) not in (None, dep["org"]):   # [E minor 1] lượt đó do tổ chức KHÁC tạo ⇒ coi như chưa có kết quả để xuất
         dep["ghi"]("TRO-LY xuất: cuộc trò chuyện này có kết quả của tổ chức khác — không xuất"); ph = None
     if not ph:
         kho.them(conv, "tro_ly", CHU["xuat_chua_co"]); return 200, {"loai": "khong_co", "chu": CHU["xuat_chua_co"]}
@@ -520,31 +613,31 @@ def _xuat(cau, conv, dep, dang):
         kho.them(conv, "tro_ly", CHU["xuat_hoi_dang"])
         return 200, {"loai": "hoi", "chu": CHU["xuat_hoi_dang"], "phieu": m, "lua_chon": [{"chon": d, "ten": TEN_DANG[d]} for d in lc]}
     try:
-        kq_x = dep["xuat"](ph, dang, kho.cau_cuoi.get(conv))   # [ghi chú kỹ thuật] kèm câu vừa hỏi; hàm trả (tên, byte[, thông tin])
+        kq_x = dep["xuat"](ph, dang, kho.cau_cuoi.get(conv))   # [ghi chú] kèm câu vừa hỏi; hàm trả (tên, byte[, thông tin])
         ten, raw, tt_x = (kq_x[0], kq_x[1], kq_x[2] if len(kq_x) > 2 and isinstance(kq_x[2], dict) else {})
     except Exception as e:  # noqa: BLE001 — LoiXuat nhóm kỹ thuật mang lời thường; lỗi khác ⇒ câu chung
         chu = str(e) if type(e).__name__ == "LoiXuat" and str(e) else CHU["loi"]
         dep["ghi"](f"TRO-LY xuất {dang} lỗi {type(e).__name__}"); kho.them(conv, "tro_ly", chu)
         return 200, {"loai": "loi", "chu": chu}
     m = kho.cat_tep(conv, ten, raw)
-    import hashlib as _hl   # [ghi chú kỹ thuật] mỗi lần xuất THÀNH CÔNG ghi một dòng nhật ký (trước: chỉ ghi khi lỗi ⇒ không truy được ai đã xuất gì)
+    import hashlib as _hl   # [ghi chú] mỗi lần xuất THÀNH CÔNG ghi một dòng nhật ký (trước: chỉ ghi khi lỗi ⇒ không truy được ai đã xuất gì)
     dep["ghi"](f"TRO-LY xuất {dang} xong: phiên {str(ph)[:8]} · {len(raw)} byte · sha {_hl.sha256(raw).hexdigest()[:8]} · phần theo câu hỏi: "
                f"{'có' if tt_x.get('phan_cau_hoi') else 'không'}{' · ' + str(tt_x['ly_do'])[:120] if tt_x.get('ly_do') else ''}")
-    if tt_x.get("phan_cau_hoi"):   # [ghi chú kỹ thuật] bộ dựng báo ĐÃ in phần theo câu hỏi (đã gọi lại công cụ và so khớp); in được MỘT PHẦN thì có thêm ly_do
+    if tt_x.get("phan_cau_hoi"):   # [ghi chú] bộ dựng báo ĐÃ in phần theo câu hỏi (đã gọi lại công cụ và so khớp); in được MỘT PHẦN thì có thêm ly_do
         chu = (f"Đã xuất kết quả vừa rồi ra {TEN_DANG[dang]}. PHẦN ĐẦU file là đúng nội dung câu bạn vừa hỏi (số lấy từ phần tính thưởng, không phải chữ AI viết); "
-               "PHẦN SAU là bảng thưởng cả đội của kỳ đó (mọi nhân viên, tên + lương). Trạng thái số liệu (tạm tính / đã duyệt) ghi ngay đầu file.")   # [ghi chú kỹ thuật] không ghi cứng trạng thái
+               "PHẦN SAU là bảng thưởng cả đội của kỳ đó (mọi nhân viên, tên + lương). Trạng thái số liệu (tạm tính / đã duyệt) ghi ngay đầu file.")   # [E minor 2] không ghi cứng trạng thái
         if tt_x.get("ly_do"):
             chu += " Lưu ý: " + str(tt_x["ly_do"])[:300].rstrip(".") + "."
     else:
         chu = (f"Đã xuất kết quả vừa rồi ra {TEN_DANG[dang]}. File gồm BẢNG THƯỞNG CẢ ĐỘI của kỳ đó (mọi nhân viên, tên + lương) — "
-               "không chỉ người vừa hỏi; số lấy đúng bảng đã kiểm, không tính lại.")   # [ghi chú kỹ thuật] nói rõ phạm vi file
+               "không chỉ người vừa hỏi; số lấy đúng bảng đã kiểm, không tính lại.")   # [E x1 18/11] nói rõ phạm vi file
         if tt_x.get("ly_do"):
             chu += " File này CHƯA có phần riêng cho câu bạn vừa hỏi: " + str(tt_x["ly_do"])[:300].rstrip(".") + "."
     kho.them(conv, "tro_ly", chu)
     return 200, {"loai": "tep", "chu": chu, "tep": [{"id": m, "ten": ten}], "phien": ph}
 
 
-NGUONG_KHONG_CHAC_THAP = 0.5   # [ghi chú kỹ thuật] dưới mức này bộ định tuyến gần như không biết câu thuộc việc nào ⇒ đưa DANH SÁCH VIỆC thay vì nút thẻ gần nhất
+NGUONG_KHONG_CHAC_THAP = 0.5   # [ghi chú] dưới mức này bộ định tuyến gần như không biết câu thuộc việc nào ⇒ đưa DANH SÁCH VIỆC thay vì nút thẻ gần nhất
 TEN_NUT_DANH_SACH = "Xem mọi việc mình làm được"
 
 
@@ -562,7 +655,7 @@ def _ha_hoa(chu: str) -> str:
 
 
 def danh_sach_viec(dep, mo_dau="Mình làm được các việc dưới đây", day_du=False) -> str:
-    """[ghi chú kỹ thuật] Danh sách việc khung chat ĐANG làm được — dựng bằng CODE từ thẻ đã ghim và đang MỞ (dep["ghim"]) +
+    """[ghi chú] Danh sách việc khung chat ĐANG làm được — dựng bằng CODE từ thẻ đã ghim và đang MỞ (dep["ghim"]) +
     thuộc tính thẻ (dep["the"]); không gọi AI. Nhóm theo THUỘC TÍNH THẺ LÚC CHẠY (xuất file / có bước duyệt) — thẻ đổi mẫu thì nhóm tự đổi. day_du=False ⇒ mỗi nhóm
     MOI_NHOM_HIEN dòng đầu + "… và N việc khác". Thẻ đóng / không chạy được từ khung chat / thẻ mẫu thử không liệt kê."""
     ghim, tt = dep["ghim"], {t["ma"]: t for t in dep["the"]}
@@ -611,7 +704,7 @@ def danh_sach_viec(dep, mo_dau="Mình làm được các việc dưới đây", 
 
 
 def _tu_xuat_file(out, g, phien, cau, conv, dep):
-    """[ghi chú kỹ thuật] Thẻ có cờ xuất file (ghim) và lượt đã TRẢ LỜI (không phải chờ duyệt / lỗi) ⇒ tự xuất Excel
+    """[ghi chú] Thẻ có cờ xuất file (ghim) và lượt đã TRẢ LỜI (không phải chờ duyệt / lỗi) ⇒ tự xuất Excel
     NHÁP từ gói số đã qua kiểm của chính lượt (bộ dựng nhóm kỹ thuật qua dep["xuat"]; 0 đồng AI, không lượt mới). Thành công ⇒ thêm ô tep + một câu nói rõ file là bản nháp
     chưa có người duyệt. Không xuất được ⇒ GIỮ câu trả lời, thêm một dòng lý do thật. Không có bộ xuất / thẻ không xuất file / lượt chưa trả lời ⇒ trả nguyên."""
     if not (isinstance(out, dict) and out.get("loai") == "tra_loi" and g.get("xuat_file") and dep.get("xuat") and phien):
@@ -627,7 +720,7 @@ def _tu_xuat_file(out, g, phien, cau, conv, dep):
     import hashlib as _hl
     m = kho.cat_tep(conv, ten, raw)
     dep["ghi"](f"TRO-LY tự xuất xlsx xong: phiên {str(phien)[:8]} · {len(raw)} byte · sha {_hl.sha256(raw).hexdigest()[:8]}")
-    # [ghi chú kỹ thuật] file ĐÃ dựng được ⇒ dòng của CODE đứng ĐẦU câu trả lời
+    # [ghi chú] file ĐÃ dựng được ⇒ dòng của CODE đứng ĐẦU câu trả lời
     return dict(out, chu="**File Excel bảng thưởng cả đội đã có ở nút tải bên dưới** — bản NHÁP, số tạm tính, CHƯA có người duyệt.\n\n" + out["chu"].strip(), tep=[{"id": m, "ten": ten}])
 
 
@@ -656,7 +749,7 @@ def _nhanh_cua(payload, ma_ra, cau_o) -> str | None:
 
 
 def _qua_rao(payload, ma_ra, kq, tin_khoi=None) -> dict:
-    """[ghi chú kỹ thuật] khối Kết quả KHÔNG có giá trị (bị bỏ qua vì lượt dừng ở nhánh khác) ⇒ lấy câu đã qua Rào của CHÍNH nhánh:
+    """[ghi chú] khối Kết quả KHÔNG có giá trị (bị bỏ qua vì lượt dừng ở nhánh khác) ⇒ lấy câu đã qua Rào của CHÍNH nhánh:
     đúng 1 khối Rào nối thẳng vào khối Kết quả, Rào chế độ code, dat is True VÀ ket_qua_dich_vu.dat is True, Rào nhận đúng 1 khối Trợ lý, giá trị
     Trợ lý là chữ ⇒ {"kieu": "chu_qua_rao", "v": chữ}. Đã đo lượt bản tin 98ca14a0: 3/3 nhánh cau_tra_loi của gói == chữ Trợ lý, bảng số trùng.
     Thiếu bất kỳ điều nào ⇒ {} (nhánh "chưa đọc được")."""
@@ -674,7 +767,7 @@ def _qua_rao(payload, ma_ra, kq, tin_khoi=None) -> dict:
     ai = [x for x in truoc.get(rao[0]) or [] if loai.get(x) == "agent_node"]
     if len(ai) != 1:
         return {}
-    # [ghi chú kỹ thuật] Rào chế độ code không ghi câu đã kiểm ⇒ chỉ tin "chữ Trợ lý = chữ Rào nhận" khi CẢ HAI khối có đúng 1 kết quả của CHÍNH lượt này
+    # [E minor 1] Rào chế độ code không ghi câu đã kiểm ⇒ chỉ tin "chữ Trợ lý = chữ Rào nhận" khi CẢ HAI khối có đúng 1 kết quả của CHÍNH lượt này
     # (bảng node_result: COMPLETED, không cached_from lượt khác). Không kiểm được ⇒ chưa đọc được.
     try:
         if not (tin_khoi and tin_khoi([rao[0], ai[0]]) is True):
@@ -686,9 +779,9 @@ def _qua_rao(payload, ma_ra, kq, tin_khoi=None) -> dict:
 
 
 def _doc_nhieu_nhanh(ra_ds, kq, v, phien, wf, cau_o, tin_khoi=None):
-    """[ghi chú kỹ thuật] lượt NHIỀU khối Kết quả: ghép theo thứ tự payload. Gói KPI chưa kiem.dat ⇒ nhánh đó chỉ một câu "chưa đọc được"
+    """[ghi chú] lượt NHIỀU khối Kết quả: ghép theo thứ tự payload. Gói KPI chưa kiem.dat ⇒ nhánh đó chỉ một câu "chưa đọc được"
     (KHÔNG chữ / bảng / số của nhánh). Không nhánh nào đọc được ⇒ khong_doc. Không dựng r.the (nhiều gói)."""
-    phan, doc_duoc, ky_ds = [], 0, []   # [ghi chú kỹ thuật] kỳ của từng nhánh đọc được
+    phan, doc_duoc, ky_ds = [], 0, []   # [ghi chú] kỳ của từng nhánh đọc được
     for n in ra_ds:
         o = kq.get(n.get("id")) or _qua_rao(v["payload"], n.get("id"), kq, tin_khoi)
         dau = _nhanh_cua(v["payload"], n.get("id"), cau_o)
@@ -700,7 +793,7 @@ def _doc_nhieu_nhanh(ra_ds, kq, v, phien, wf, cau_o, tin_khoi=None):
         elif o.get("kieu") == "chu_qua_rao":
             chu = o["v"].strip()   # câu Rào chế độ code đã kiểm (dat True) — cùng nghĩa với cau_tra_loi của gói khi lượt chạy hết
         elif o.get("kieu") == "chu" and isinstance(o.get("v"), str) and o["v"].strip():
-            chu = o["v"].strip() + "\n\n" + CHU["chua_kiem_so"]   # [ghi chú kỹ thuật] số không qua Rào chế độ code
+            chu = o["v"].strip() + "\n\n" + CHU["chua_kiem_so"]   # [E G4-2] số không qua Rào chế độ code
         doc_duoc += chu is not None
         phan.append(((f"**{dau.strip()[:300]}**\n\n") if dau else "") + (chu if chu else CHU["nhanh_chua_doc"]))
     if not doc_duoc:
@@ -710,15 +803,15 @@ def _doc_nhieu_nhanh(ra_ds, kq, v, phien, wf, cau_o, tin_khoi=None):
 
 
 def _chu_luot_hong(phien, dep) -> str:
-    """[ghi chú kỹ thuật] Lượt không xong: nếu trang ĐÃ làm rõ được lý do (loi_de_hieu: Rào chặn đúng luật, lớp chặn lỗi mềm, rào file) thì nói
+    """[ghi chú] Lượt không xong: nếu trang ĐÃ làm rõ được lý do (loi_de_hieu: Rào chặn đúng luật, lớp chặn lỗi mềm, rào file) thì nói
     lý do đó ra khung chat; không làm rõ được ⇒ câu chung như cũ (KHÔNG đưa chữ lỗi thô của hệ thống ra chat)."""
     try:
         ly = dep["ly_do_hong"](phien) if dep.get("ly_do_hong") else None
     except Exception:  # noqa: BLE001
         ly = None
-    # [ghi chú kỹ thuật] lý do của LỚP KIỂM SỐ ("Bị Rào CHẶN …") mang chính con số bị chặn ⇒ KHÔNG đưa ra khung chat (số chưa qua kiểm); chi tiết chỉ ở màn dấu vết
+    # [E T2] lý do của LỚP KIỂM SỐ ("Bị Rào CHẶN …") mang chính con số bị chặn ⇒ KHÔNG đưa ra khung chat (số chưa qua kiểm); chi tiết chỉ ở màn dấu vết
     if isinstance(ly, str) and ly.lstrip().startswith("Bị Rào CHẶN"):
-        return CHU["rao_giu_lai"]   # [ghi chú kỹ thuật] nói thật là bị giữ lại ở bước kiểm số; không lặp lại lý do thô (có con số chưa kiểm)
+        return CHU["rao_giu_lai"]   # [ghi chú] nói thật là bị giữ lại ở bước kiểm số; không lặp lại lý do thô (có con số chưa kiểm)
     if isinstance(ly, str) and ly.strip() and not ly.lstrip().startswith("Bị Rào CHẶN"):
         return "Lượt chạy đã dừng giữa chừng nên chưa có câu trả lời. Lý do: " + ly.strip()[:600] + "\n\nBạn mở lượt chạy trên xưởng để xem chi tiết nhé."
     return CHU["khong_doc"]
@@ -728,7 +821,7 @@ MAT_DONG_SAU_GIAY, MAT_DONG_CACH_GIAY = 15, 10
 
 
 def ky_cua_goi(goi) -> dict:
-    """[ghi chú kỹ thuật] Kỳ dữ liệu của CHÍNH lượt, đọc từ gói số của khối Kiểm số (do lõi tính thưởng dựng, không phải chữ AI):
+    """[ghi chú] Kỳ dữ liệu của CHÍNH lượt, đọc từ gói số của khối Kiểm số (do lõi tính thưởng dựng, không phải chữ AI):
     {"period": "2026-10", "cutoff": "2026-10-31", "trang_thai": "tam_tinh", "data_version": … | None} — sai khuôn / thiếu ⇒ {"khong_ro": True} (web nói rõ, không bỏ trống).
     Gói hiện không có ô "đã chốt" ⇒ luôn "tam_tinh"."""
     b = goi.get("bang_thuong") if isinstance(goi, dict) else None
@@ -740,7 +833,7 @@ def ky_cua_goi(goi) -> dict:
 
 
 def han_tu_duyet(payload) -> int | None:
-    """[ghi chú kỹ thuật] Số giây chờ của khối Người duyệt NẾU khối bật tự duyệt khi quá hạn và hạn là số nguyên 30–3600 (cùng luật workflow_kpi Đ-17);
+    """[ghi chú] Số giây chờ của khối Người duyệt NẾU khối bật tự duyệt khi quá hạn và hạn là số nguyên 30–3600 (cùng luật workflow_kpi Đ-17);
     không có khối duyệt / không bật / hạn lạ ⇒ None (lời cũ). Nhiều khối duyệt ⇒ lấy hạn DÀI nhất (nói hạn không bị thiếu)."""
     han = []
     for n in (payload or {}).get("nodes") or []:
@@ -764,7 +857,7 @@ def chu_han(giay: int) -> str:
 def _doc_ket_qua(phien, v, g, dep, het_giay=300, cau_o=None):  # noqa: C901
     """Chờ lượt xong (hoặc dừng chờ Người duyệt) rồi đọc chữ ở khối Kết quả. Trả dict cho trang (KHÔNG lưu)."""
     het, tt = dep["gio"]() + het_giay, None
-    rong_tu, hoi_ke = None, 0.0   # [ghi chú kỹ thuật] chưa thấy dòng lượt từ lúc nào; lần hỏi Temporal kế
+    rong_tu, hoi_ke = None, 0.0   # [ghi chú] chưa thấy dòng lượt từ lúc nào; lần hỏi Temporal kế
     while dep["gio"]() < het:
         tt = dep["trang_thai"](phien)
         if tt in ("SUCCESS", "FAILED", "CANCELLED", "STOPPED", "PAUSED", "paused", "awaiting_intervention"):
@@ -783,12 +876,12 @@ def _doc_ket_qua(phien, v, g, dep, het_giay=300, cau_o=None):  # noqa: C901
         dep["ngu"](1.5)
     wf = {"ten": g["ten"], "id": g["uuid"]}   # [đợt 2] id để trang mở lượt trên xưởng
     if tt in ("PAUSED", "paused", "awaiting_intervention"):
-        han = han_tu_duyet(v.get("payload") if isinstance(v, dict) else None)   # [ghi chú kỹ thuật]
+        han = han_tu_duyet(v.get("payload") if isinstance(v, dict) else None)   # [ghi chú]
         return {"loai": "cho_duyet", "chu": CHU["cho_duyet_co_han"].format(han=chu_han(han)) if han else CHU["cho_duyet"], "phien": phien, "workflow": wf,
                 **({"han_tu_duyet_giay": han} if han else {})}
     ra_ds = [n for n in v["payload"]["nodes"]
              if (((n or {}).get("data") or {}).get("struct") or {}).get("node_id") in ("text_output_node", "markdown_output_node")]
-    # [ghi chú kỹ thuật] lượt NHIỀU nhánh bị chặn ở một nhánh (Capitol dừng cả lượt, khối Kết quả nhánh khác bị bỏ qua) ⇒ vẫn đọc nhánh có Rào ĐẠT
+    # [ghi chú] lượt NHIỀU nhánh bị chặn ở một nhánh (Capitol dừng cả lượt, khối Kết quả nhánh khác bị bỏ qua) ⇒ vẫn đọc nhánh có Rào ĐẠT
     if tt != "SUCCESS" and not (tt in ("FAILED", "STOPPED") and len(ra_ds) > 1):
         return {"loai": "loi", "chu": _chu_luot_hong(phien, dep), "phien": phien, "workflow": wf}
     kq = dep["ket_qua"](phien) or {}
@@ -805,11 +898,11 @@ def _doc_ket_qua(phien, v, g, dep, het_giay=300, cau_o=None):  # noqa: C901
                 goi = o.get("v") if isinstance(o.get("v"), dict) else {}
                 chu = goi.get("cau_tra_loi")
                 if (goi.get("kiem") or {}).get("dat") is not True:
-                    # [ghi chú kỹ thuật] gói KPI CHƯA có dấu đạt của khối kiểm số ⇒ đóng: KHÔNG hiện số
-                    return {"loai": "loi", "chu": CHU["rao_giu_lai"], "phien": phien, "workflow": wf}   # [ghi chú kỹ thuật] nói thật thay cho "chưa đọc được"
+                    # [ghi chú] gói KPI CHƯA có dấu đạt của khối kiểm số ⇒ đóng: KHÔNG hiện số
+                    return {"loai": "loi", "chu": CHU["rao_giu_lai"], "phien": phien, "workflow": wf}   # [ghi chú] nói thật thay cho "chưa đọc được"
                 if isinstance(chu, str) and chu.strip():
-                    out = {"loai": "tra_loi", "chu": chu.strip(), "nhan": "tạm tính", "phien": phien, "workflow": wf, "ky": ky_cua_goi(goi)}   # [ghi chú kỹ thuật]
-                    if dep.get("bang"):   # [ghi chú kỹ thuật] thẻ KPI đầy đủ (bảng / xếp hạng / ô một NV) — cùng khuôn /api/hoi-nhanh, dựng bằng hoi_nhanh._bang
+                    out = {"loai": "tra_loi", "chu": chu.strip(), "nhan": "tạm tính", "phien": phien, "workflow": wf, "ky": ky_cua_goi(goi)}   # [ghi chú]
+                    if dep.get("bang"):   # [ghi chú] thẻ KPI đầy đủ (bảng / xếp hạng / ô một NV) — cùng khuôn /api/hoi-nhanh, dựng bằng hoi_nhanh._bang
                         k = goi.get("kiem") or {}
                         out["the"] = {"session": phien, "cau": "", "workflow": g["uuid"], "ten": g["ten"], "giay": 0, "status": "SUCCESS", "ket_thuc": True,
                                       "tra_loi": out["chu"], "nhan": dep.get("nhan_tam_tinh") or "tạm tính", "view": dep["bang"](goi),
@@ -818,18 +911,50 @@ def _doc_ket_qua(phien, v, g, dep, het_giay=300, cau_o=None):  # noqa: C901
                 continue
             chu = o.get("v") if o.get("kieu") == "chu" else None
             if isinstance(chu, str) and chu.strip():
-                if g.get("ma") in CACH_NAP and CACH_NAP[g["ma"]] != "tai_lieu":   # [ghi chú kỹ thuật] vd wf_11: số do khối chạy code tính, không qua Rào
+                if g.get("ma") in CACH_NAP and CACH_NAP[g["ma"]] != "tai_lieu":   # [E G4-2] vd wf_11: số do khối chạy code tính, không qua Rào
                     chu = chu.strip() + "\n\n" + CHU["chua_kiem_so"]
-                    return {"loai": "tra_loi", "chu": chu.strip(), "nhan": "tạm tính", "phien": phien, "workflow": wf, "ky": {"khong_ro": True}}   # [ghi chú kỹ thuật] thẻ KPI không qua gói số
+                    return {"loai": "tra_loi", "chu": chu.strip(), "nhan": "tạm tính", "phien": phien, "workflow": wf, "ky": {"khong_ro": True}}   # [ghi chú] thẻ KPI không qua gói số
                 return {"loai": "tra_loi", "chu": chu.strip(), "nhan": "tạm tính", "phien": phien, "workflow": wf}
     return {"loai": "loi", "chu": CHU["khong_doc"], "phien": phien, "workflow": wf}
 
 
 def _ca_doi(out, cach, cau):
-    """[ghi chú kỹ thuật] thẻ cả đội (giu_nguyen) mà câu có mã NV ⇒ nói rõ đây là số cả đội."""
+    """[E G4-2 kèm] thẻ cả đội (giu_nguyen) mà câu có mã NV ⇒ nói rõ đây là số cả đội."""
     if cach == "giu_nguyen" and out.get("loai") == "tra_loi" and ma_nv_cua(cau):
         out = dict(out, chu=CHU["so_ca_doi"] + "\n\n" + out["chu"])
     return out
+
+
+def _la_kpi_the(ma, payload=None, g=None) -> bool:
+    """[ghi chú] Thẻ này có phải thẻ KPI cần dữ liệu kỳ từ hộp KPI không (không chặn thẻ tài liệu / tính bảng / dựng mới)."""
+    if ma in (TLC.MA_THE, TLC.MA_THE_KHO, TLC.MA_THE_TINH, "hoi_du_lieu_thu", "tai_lieu_rag", "xuat_ket_qua"):
+        return False
+    if isinstance(payload, dict) and isinstance(payload.get("nodes"), list):
+        for n in payload["nodes"]:
+            st = ((n or {}).get("data") or {}).get("struct") or {}
+            loai = st.get("node_id")
+            ps = {p.get("field_id"): p.get("value") for p in st.get("params") or [] if isinstance(p, dict)}
+            if loai == "agent_node" and (ps.get("tool_kpi") is True or str(ps.get("tool_kpi") or "").strip().lower() in ("true", "1", "yes", "on")):
+                return True
+            if loai == "guardrails_node" and ps.get("che_do_kiem") == "code":
+                return True
+            if loai == "human_intervention_node" and (ps.get("che_do_kpi") is True or str(ps.get("che_do_kpi") or "").strip().lower() in ("true", "1", "yes", "on")):
+                return True
+    return str(ma or "").startswith("kpi_")
+
+
+def _kiem_ky_cho_the(ma, payload, g, conv, dep):
+    """Đang kỳ trống (GET /ky báo `cho_du_file`) mà người dùng hỏi thẻ KPI ⇒ trả câu báo rõ thiếu file gì, 0 đồng."""
+    if not dep.get("ky_trong") or not _la_kpi_the(ma, payload, g):
+        return None
+    try:
+        chu = dep["ky_trong"]()
+    except Exception:  # noqa: BLE001
+        return None
+    if isinstance(chu, str) and chu.strip():
+        dep["kho"].them(conv, "tro_ly", chu)
+        return 200, {"loai": "khong_co", "chu": chu, "ky_cho_du_file": True}
+    return None
 
 
 def _chay(ma, cau, conv, dep, muc_da_hoi=None):
@@ -840,16 +965,16 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
     if g.get("gui_thay_nguoi_dung"):
         return 200, {"loai": "loi", "chu": CHU["thieu_muc"]}   # ngoại lệ gửi thay người dùng: đợt 1 KHÔNG chạy (chưa có thẻ nào)
     f_tl = f_bang = None
-    if CACH_NAP.get(ma) == "tinh_bang":   # [ghi chú kỹ thuật]
+    if CACH_NAP.get(ma) == "tinh_bang":   # [ghi chú]
         f_bang = _bang_dang_mo(dep, conv)
         if not f_bang:
             chu_b = "Mình không còn giữ file bảng tính của cuộc trò chuyện này (hết hạn giữ hoặc máy chủ vừa bật lại). Bạn kéo lại file vào khung chat rồi hỏi nhé."
             kho.them(conv, "tro_ly", chu_b); return 200, {"loai": "khong_co", "chu": chu_b}
-    if CACH_NAP.get(ma) == "tai_lieu":   # [ghi chú kỹ thuật]
+    if CACH_NAP.get(ma) == "tai_lieu":   # [ghi chú]
         f_tl = _file_dang_mo(dep, conv)
         if not f_tl:
             kho.them(conv, "tro_ly", TLC.CHU["het_han"]); return 200, {"loai": "khong_co", "chu": TLC.CHU["het_han"]}
-        if not f_tl.get("kieu") and f_tl.get("raw_vb") is not None and TLC.hoi_ve_hinh(cau):   # [ghi chú kỹ thuật] nạp kho tạm MUỘN, chỉ khi câu hỏi nhắc hình
+        if not f_tl.get("kieu") and f_tl.get("raw_vb") is not None and TLC.hoi_ve_hinh(cau):   # [ghi chú] nạp kho tạm MUỘN, chỉ khi câu hỏi nhắc hình
             ma_h, r_h = dep["tai_lieu"].chuyen_sang_kho(conv)
             if ma_h == 200:
                 dep["ghi"]("TRO-LY câu hỏi về hình trên file đọc thẳng ⇒ chuyển file sang kho tạm để đọc cả hình")
@@ -858,7 +983,7 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
     cau_k = (TLC.khoa_cau(f_tl, cau) + ("[hình]" if f_tl.get("ly_do") == "co_hinh" else "")) if f_tl else (TLC.khoa_cau(f_bang, cau) + "[tính]") if f_bang else cau   # cùng câu trên file KHÁC ⇒ khoá khác (không trả lại câu trả lời của file cũ)
     khoa = (_chuan(cau_k), g["uuid"])
     cu = kho.da_chay.get(conv, {}).get(khoa)
-    doc_lai = None   # [ghi chú kỹ thuật] mã lượt CHỜ DUYỆT đã kết thúc ⇒ đọc lại kết quả của chính lượt đó (không chạy lượt mới)
+    doc_lai = None   # [ghi chú] mã lượt CHỜ DUYỆT đã kết thúc ⇒ đọc lại kết quả của chính lượt đó (không chạy lượt mới)
     if cu and cu.get("loai") == "cho_duyet" and cu.get("phien"):
         # [phiên kiểm H6, vòng 2] CHỈ đọc lại khi trạng thái thuộc tập ĐÃ KẾT THÚC; đang chờ / đang chạy / không đọc được / trạng thái lạ ⇒ coi như CHƯA xong:
         #   trả câu đã nhớ, KHÔNG quên, KHÔNG chạy lượt mới (cổng đóng khi không hiểu — trước: mọi thứ khác ba chữ "chờ" đều đi đọc lại ⇒ lỗi ⇒ quên câu ⇒ lượt thứ hai)
@@ -870,17 +995,24 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
     v = dep["pb"](g["uuid"])
     if not v or sha_payload(v.get("payload")) != g["sha"]:
         dep["ghi"](f"TRO-LY {ma}: sha khác ghim — không chạy"); return 200, {"loai": "loi", "chu": CHU["doi"]}
+    ket_trong = _kiem_ky_cho_the(ma, v.get("payload"), g, conv, dep)
+    if ket_trong:
+        return ket_trong
     cach = CACH_NAP.get(ma)
     o_vao, ly = ra_ngoai_hop_le(v["payload"], cach)
     if ly or (cach is None and not o_vao) or (cach is not None and o_vao is None):
         dep["ghi"](f"TRO-LY {ma}: {'; '.join(ly)[:200]}"); return 200, {"loai": "loi", "chu": CHU["thieu_muc"]}
     hs_tim = None
-    if cach == "tai_lieu" and f_tl.get("kieu") in ("kho", "kho_chung"):   # [ghi chú kỹ thuật] file bản chụp đã / đang nạp kho: chưa xong ⇒ nói rõ; xong ⇒ TÌM rồi mới chạy
+    if cach == "tai_lieu" and f_tl.get("kieu") in ("kho", "kho_chung"):   # [ghi chú] file bản chụp đã / đang nạp kho: chưa xong ⇒ nói rõ; xong ⇒ TÌM rồi mới chạy
         tt_kho, tin = dep["tai_lieu"].trang_thai_kho(f_tl)
         if tt_kho != "xong":
             kho.them(conv, "tro_ly", tin["chu"]); return 200, {"loai": "khong_co", "chu": tin["chu"], "dang_doc": tt_kho == "dang_nap"}
-        truoc_nd = [m.get("noi_dung") for m in kho.lich_su(conv)[:-1] if isinstance(m, dict) and m.get("vai") == "nguoi_dung" and str(m.get("noi_dung") or "").strip()]
-        kq_tim, hs_tim = dep["tai_lieu"].tim_trang(f_tl, cau, truoc_nd[-1] if truoc_nd else None)
+        ls_truoc = kho.lich_su(conv)[:-1]
+        truoc_nd = [m.get("noi_dung") for m in ls_truoc if isinstance(m, dict) and m.get("vai") == "nguoi_dung" and str(m.get("noi_dung") or "").strip()]
+        try:
+            kq_tim, hs_tim = dep["tai_lieu"].tim_trang(f_tl, cau, truoc_nd[-1] if truoc_nd else None, lich_su=ls_truoc)
+        except TypeError:
+            kq_tim, hs_tim = dep["tai_lieu"].tim_trang(f_tl, cau, truoc_nd[-1] if truoc_nd else None)
         dep["ghi"](f"TRO-LY tài liệu (kho): {len(hs_tim['luot'])} lượt tìm, k={hs_tim['k']} ⇒ {hs_tim['so_trang_tra']} trang {hs_tim['trang'][:12]} · {hs_tim['ky_tu']} ký tự · "
                    f"mã {[x['http'] for x in hs_tim['luot']]}")   # không ghi câu tìm vào nhật ký (câu của người dùng) — câu tìm nằm trong ô `tim` của lượt
         if not kq_tim["phan"]:
@@ -889,7 +1021,7 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
             kho.them(conv, "tro_ly", chu); return 200, {"loai": "khong_co", "chu": chu, "tim": hs_tim}
         f_tl = dict(f_tl, kq=kq_tim)   # bản ghi của RIÊNG lượt này: "tài liệu" = các trang tìm được (kho file đang mở giữ nguyên)
     fi = None
-    if cach == "tinh_bang":   # [ghi chú kỹ thuật] câu hỏi vào ô chữ; byte gốc của file vào kho file Capitol (một lần mỗi file đang mở) rồi vào khối nhận file của LƯỢT NÀY
+    if cach == "tinh_bang":   # [ghi chú] câu hỏi vào ô chữ; byte gốc của file vào kho file Capitol (một lần mỗi file đang mở) rồi vào khối nhận file của LƯỢT NÀY
         if not f_bang.get("phong_bi"):
             ma_f, env = dep["dua_file"](f_bang["ten"], f_bang["raw"])
             if ma_f != 200 or not isinstance(env, dict) or not env.get("file"):
@@ -900,18 +1032,18 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
     elif cach == "tai_lieu":
         ti = {o_vao[0]: TLC.o_nhap(f_tl, cau, kho.lich_su(conv)[:-1])}   # toàn văn (hoặc các trang tìm được) + lượt trước + câu hỏi — KHÔNG cắt
     elif cach is None:
-        ti = {o_vao: cau.strip()}   # [ghi chú kỹ thuật] không cắt 2.000 ký tự — câu người dùng vào workflow ĐỦ
+        ti = {o_vao: cau.strip()}   # [ghi chú] không cắt 2.000 ký tự — câu người dùng vào workflow ĐỦ
     else:
         ti, hoi = _nap_o(ma, cach, v["payload"], cau, conv, dep)
         if hoi:
             kho.them(conv, "tro_ly", hoi); return 200, {"loai": "khong_co", "chu": hoi}
-    # [ghi chú kỹ thuật] cùng cuộc chat đang có lượt CHỜ DUYỆT của cùng workflow ⇒ không chạy lượt mới (câu khác chữ vẫn bắt)
+    # [A U7] cùng cuộc chat đang có lượt CHỜ DUYỆT của cùng workflow ⇒ không chạy lượt mới (câu khác chữ vẫn bắt)
     for x in list(kho.da_chay.get(conv, {}).values()):
-        if x.get("loai") == "cho_duyet" and (x.get("workflow") or {}).get("id") == g["uuid"] and x.get("phien")\
+        if x.get("loai") == "cho_duyet" and (x.get("workflow") or {}).get("id") == g["uuid"] and x.get("phien") \
                 and dep["trang_thai"](x["phien"]) in ("PAUSED", "paused", "awaiting_intervention"):
             kho.them(conv, "tro_ly", CHU["dang_cho_duyet"])
             return 200, {"loai": "cho_duyet", "chu": CHU["dang_cho_duyet"], "phien": x["phien"], "workflow": x.get("workflow"), "lap_lai": True}
-    if doc_lai:   # [ghi chú kỹ thuật] lượt chờ duyệt của ĐÚNG câu này đã kết thúc ⇒ đọc lại, 0 đồng, không chạy lượt mới
+    if doc_lai:   # [ghi chú] lượt chờ duyệt của ĐÚNG câu này đã kết thúc ⇒ đọc lại, 0 đồng, không chạy lượt mới
         out = _sau_tai_lieu(_ca_doi(dict(_doc_ket_qua(doc_lai, v, g, dep, het_giay=5, cau_o=dict(o_nhap(v["payload"]), **(ti or {}))), doc_lai_luot_cho=True), cach, cau), f_tl, hs_tim)
         dep["ghi"](f"TRO-LY hỏi lại câu của lượt chờ duyệt {str(doc_lai)[:8]} đã kết thúc ⇒ đọc lại kết quả: {out.get('loai')}")
         if out["loai"] == "cho_duyet":   # vừa quay lại trạng thái chờ giữa hai lần hỏi trạng thái ⇒ coi như còn chờ
@@ -922,7 +1054,7 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
             kho.da_chay.get(conv, {}).pop(khoa, None)      # lượt hỏng / bị dừng ⇒ bỏ câu đã nhớ: lần hỏi sau chạy lượt mới
         kho.them(conv, "tro_ly", out["chu"], dt=TLC.DT_TRA_LOI if f_tl else None)
         return 200, kho.nho_cuoi(conv, out, cau, dep.get("org"))
-    # [ghi chú kỹ thuật] cache câu trả lời DÙNG CHUNG (cache_tra_loi nhóm kỹ thuật): câu y hệt + cùng lịch sử + cùng workflow / phiên bản + vân tay hộp KPI ⇒ trả lại phiên cũ, KHÔNG chạy
+    # [A — bài 46] cache câu trả lời DÙNG CHUNG (cache_tra_loi nhóm kỹ thuật): câu y hệt + cùng lịch sử + cùng workflow / phiên bản + vân tay hộp KPI ⇒ trả lại phiên cũ, KHÔNG chạy
     ca = dep.get("cache")
     if ca:
         ph_cu = ca["lay"](cau_k, g["uuid"], v.get("so"), kho.lich_su(conv)[:-1])
@@ -946,11 +1078,11 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
         return 200, {"loai": "loi", "chu": CHU["het_tran"]}
     code, r = dep["chay"](g["uuid"], ti, fi) if fi else dep["chay"](g["uuid"], ti)
     if code != 200 or not isinstance(r, dict) or not r.get("session"):
-        if code == 422:   # [ghi chú kỹ thuật] may_chu.chay chặn lúc chạy (0 đồng) — [ghi chú kỹ thuật] nói đúng luật nào chặn
+        if code == 422:   # [ghi chú] may_chu.chay chặn lúc chạy (0 đồng) — [ghi chú] nói đúng luật nào chặn
             chu_422 = CHU["khong_dat_luat"] if r.get("luat_kpi") else CHU["kho_chua_san"] if r.get("luat_kho") else CHU["thieu_muc"]
             dep["ghi"](f"TRO-LY {ma}: lượt bị chặn lúc chạy (422: {', '.join(k for k in r if k.startswith('luat_')) or 'không rõ luật'})")
             kho.them(conv, "tro_ly", chu_422); return 200, {"loai": "loi", "chu": chu_422}
-        if code == 413 and isinstance(r, dict) and r.get("qua_co") and isinstance(r.get("loi"), str):   # [ghi chú kỹ thuật] lời của o_nhap.kiem_co (nêu cỡ thật + chốt)
+        if code == 413 and isinstance(r, dict) and r.get("qua_co") and isinstance(r.get("loi"), str):   # [ghi chú] lời của o_nhap.kiem_co (nêu cỡ thật + chốt)
             kho.them(conv, "tro_ly", r["loi"]); return 200, {"loai": "loi", "chu": r["loi"]}
         return 200, {"loai": "loi", "chu": CHU["het_tran"] if code == 402 else CHU["loi"]}
     if r.get("version") != v.get("so") or (dep["pb"](g["uuid"]) or {}).get("so") != v.get("so"):
@@ -959,14 +1091,15 @@ def _chay(ma, cau, conv, dep, muc_da_hoi=None):
     if ca:
         ca["ghi"](cau_k, g["uuid"], v.get("so"), kho.lich_su(conv)[:-1], phien)
     out = _sau_tai_lieu(_ca_doi(_doc_ket_qua(phien, v, g, dep, cau_o=dict(o_nhap(v["payload"]), **(ti or {}))), cach, cau), f_tl, hs_tim)
-    if f_bang and isinstance(out, dict) and out.get("loai") == "tra_loi":   # [ghi chú kỹ thuật] nói rõ số từ đâu ra; KHÔNG mang nhãn "tạm tính" (không phải số thưởng)
+    if f_bang and isinstance(out, dict) and out.get("loai") == "tra_loi":   # [ghi chú] nói rõ số từ đâu ra; KHÔNG mang nhãn "tạm tính" (không phải số thưởng)
         out = dict(out, chu=out["chu"].rstrip() + f"\n\nSố do code tính trên toàn bộ file “{f_bang['ten']}” (chạy trên máy ảo). Muốn xem đoạn code đã chạy: bấm “Mở lượt này trên xưởng”; "
                    "file kết quả (nếu có): bấm “Xem file của lượt”.", tinh_tren_bang=True)
         out.pop("nhan", None)
     if (isinstance(out, dict) and out.get("loai") == "tra_loi" and not f_tl and not f_bang and dep.get("xuat") and phien and not g.get("xuat_file")
-            and re.search(r"^\s*\|.+\|\s*$", out.get("chu") or "", re.M)):   # [ghi chú kỹ thuật] câu trả lời KPI có BẢNG ⇒ web hiện nút "Tải Excel"
+            and (out.get("the") or re.search(r"^\s*\|.+\|\s*$", out.get("chu") or "", re.M))):   # [ghi chú] câu trả lời KPI có BẢNG ⇒ web hiện nút "Tải Excel".
+        # [sửa sau lượt thật 16:4x: bảng của câu trả lời KPI thật nằm ở THẺ do code dựng (ô `the`, chỉ có khi gói số đã qua kiểm), KHÔNG phải bảng markdown trong chữ ⇒ bắt cả hai]
         out = dict(out, co_xuat=True)
-    out = _tu_xuat_file(out, g, phien, cau, conv, dep)   # [ghi chú kỹ thuật] thẻ xuất file + trả lời ngay ⇒ kèm file NHÁP trong cùng câu trả lời
+    out = _tu_xuat_file(out, g, phien, cau, conv, dep)   # [ghi chú] thẻ xuất file + trả lời ngay ⇒ kèm file NHÁP trong cùng câu trả lời
     kho.them(conv, "tro_ly", out["chu"], dt=TLC.DT_TRA_LOI if f_tl else None)
     if out["loai"] in ("tra_loi", "cho_duyet"):
         kho.da_chay.setdefault(conv, {})[khoa] = out

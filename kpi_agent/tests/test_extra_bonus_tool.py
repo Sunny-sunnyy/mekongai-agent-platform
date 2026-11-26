@@ -2,7 +2,7 @@
 C phản biện 10:33).
 
 Phép ở đây chỉ kiểm DÂY NỐI (công cụ dùng cùng hàm `main._extra_bonus` với đường hệ thống ⇒ so hai đường là vòng tròn, không chứng minh số đúng);
-số ĐÚNG = người kiểm so 84 ô (+ 42 ô Meat 7.x từ 11/11) qua công cụ với đáp án độc lập của mình (ngoài test này).
+số ĐÚNG = so 84 ô (+ 42 ô Meat 7.x từ 11/11) qua công cụ với đáp án độc lập của mình (ngoài test này).
 Backend chạy thật (TestClient, workflow đường RAW, ngày chốt 31/10, dữ liệu thật trên máy, KPI_STORE tạm). 0 lần gọi AI. Ca xấu ghi trước khi code."""
 import json
 from datetime import date

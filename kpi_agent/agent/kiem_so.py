@@ -26,6 +26,7 @@ import openpyxl
 
 from kpi_agent.agent import number_check as nc
 from kpi_agent.agent import owner_check as oc
+from kpi_agent.agent import period_check
 # Một nguồn "dấu" nhận ra cờ của một người trong chữ trả lời — đúng bảng bộ chấm đang dùng (run_g4c, mức tra cứu vòng 3), rào và bộ chấm không lệch nhau
 FLAG_SIGNS = {
     "không thuộc MCP": re.compile(r"(?:ngoài|không thuộc)\s+(?:tuyến\s+)?MCP|công văn(?: mục)? 6\.2", re.IGNORECASE),
@@ -39,7 +40,7 @@ FLAG_SIGNS = {
 }
 EMPLOYEE_CODE = re.compile(r"\bNV\d{2}\b", re.IGNORECASE)
 
-VERSION = "kiem_so@30"   # @30 (19/11): số đúng bằng 8 KPI hoặc thưởng thêm của một người, nhắc lại sau khi đã nêu tiền cả hai phía dưới nhãn không nêu tên khoản đó ⇒ chặn · "8 KPI" trần là tên khoản · số tiền sau chữ "tháng" được xét (owner_check._repeated_part); @29 (19/11): dòng "Tổng cộng" sau hai phần 8 KPI + thưởng thêm phải là ô tổng gộp (owner_check.GRAND_TOTAL); @28 (19/11): lời chú có "không được tính" không còn làm mục thành câu "không có cờ" (lỗ của @26); @27 (19/11, 3a P5): che câu chuẩn lưu ý dữ liệu chép nguyên (owner_check.issue_sentences); @26 (18/11): mục nêu đúng một KPI ⇒ người gắn cờ lưu ý phải là chủ dòng của KPI đó; @25 (18/11): bảng đọc tên khoản ở tiêu đề cột · tổng 8 KPI + thưởng thêm cấp đội so ô đội · khoản lẻ không được gọi là "tổng" trần (owner_check); @24: khoản tổng 8 KPI + thưởng thêm   # đổi luật ⇒ đổi số — Capitol ghi vào bản ghi lượt để biết lượt đó kiểm bằng luật nào
+VERSION = "kiem_so@31"   # @31 (20/11): kỳ nêu bằng số trong câu trả lời (tháng / mã kỳ / năm) phải là kỳ của dữ liệu (`period_check`) · @30 (19/11): số đúng bằng 8 KPI hoặc thưởng thêm của một người, nhắc lại sau khi đã nêu tiền cả hai phía dưới nhãn không nêu tên khoản đó ⇒ chặn · "8 KPI" trần là tên khoản · số tiền sau chữ "tháng" được xét (owner_check._repeated_part); @29 (19/11): dòng "Tổng cộng" sau hai phần 8 KPI + thưởng thêm phải là ô tổng gộp (owner_check.GRAND_TOTAL); @28 (19/11): lời chú có "không được tính" không còn làm mục thành câu "không có cờ" (lỗ của @26); @27 (19/11, 3a P5): che câu chuẩn lưu ý dữ liệu chép nguyên (owner_check.issue_sentences); @26 (18/11): mục nêu đúng một KPI ⇒ người gắn cờ lưu ý phải là chủ dòng của KPI đó; @25 (18/11): bảng đọc tên khoản ở tiêu đề cột · tổng 8 KPI + thưởng thêm cấp đội so ô đội · khoản lẻ không được gọi là "tổng" trần (owner_check); @24: khoản tổng 8 KPI + thưởng thêm   # đổi luật ⇒ đổi số — Capitol ghi vào bản ghi lượt để biết lượt đó kiểm bằng luật nào
 MAX_EXCEL_BYTES = 5 * 1024 * 1024   # file KPI xuất của mình ≈ 14 KB; trần để file lạ không làm treo máy chủ
 EMPLOYEE_CELL = re.compile(r"^\s*(NV\d+)\b", re.IGNORECASE)
 # Mã kỳ YYYY-MM ("kỳ 2026-09") không phải số KPI — như ngày tháng (number_check.SKIP_PATTERNS). 10/11 (aa9ce76, hồi quy): từ khi lời
@@ -158,7 +159,7 @@ def _flagged_in_text(text: str, sign) -> tuple[set[str], bool]:
 
 
 def _person_flags(tool_results: list) -> list[tuple]:
-    """[(dấu chữ, {mã NV sở hữu cờ}, KPI của dòng lưu ý — None nếu lời không nêu đúng một KPI)] từ các mục cờ có `employee_ids` (get_data_issues — A6)."""
+    """[(dấu chữ, {mã NV sở hữu cờ}, KPI của dòng lưu ý — None nếu lời không nêu đúng một KPI)] từ các mục cờ có `employee_ids` (get_data_issues)."""
     flags = []
 
     def walk(value):
@@ -185,7 +186,7 @@ def _flag_problems(answer: str, question: str, tool_results: list) -> list[dict]
     # không có mã ⇒ câu cả đội đúng ("- … ngoài MCP đã bị loại …" ở một gạch, "- ASO_ALL lệch ở NV06, NV09" ở gạch khác) bị chặn oan 2 / 2 lượt trên
     # Capitol sau khi dòng lưu ý cả đội bắt đầu nêu mã người lệch. Các gạch CÙNG CẤP độc lập với nhau; dòng DẪN phía trên truyền mã + dấu cờ xuống gạch con.
     asked = {code.upper() for code in EMPLOYEE_CODE.findall(question)}
-    # Mỗi DẤU HIỆU lấy HỢP chủ của mọi cờ mang dấu đó (người kiểm độc lập 13/11): dấu "ngoài MCP" có 5 cờ với chủ khác nhau theo từng chỉ tiêu; xét
+    # Mỗi DẤU HIỆU lấy HỢP chủ của mọi cờ mang dấu đó: dấu "ngoài MCP" có 5 cờ với chủ khác nhau theo từng chỉ tiêu; xét
     # từng cờ riêng thì câu ĐÚNG "NV04 có cửa hàng ngoài MCP" bị chặn vì không giao với cờ PC_ON chỉ của NV08.
     # kiem_so@26 (18/11, ca thật Capitol): lớp THÊM lên luật gom chủ — mục nêu ĐÚNG MỘT tên KPI ⇒ người chữ của mục gắn cờ phải là chủ dòng lưu ý CỦA KPI ĐÓ
     # ("- PC_BT: 2 đơn ngoài MCP — NV04, NV14, NV08": NV08 là chủ dòng PC_ON, không phải PC_BT). KPI không có dòng nào mang dấu hiệu, mà mọi dòng của dấu
@@ -285,7 +286,7 @@ def _flag_claims(answer: str, signs: list) -> list[tuple[str, set[str]]]:
     for kind, text, indent in _units(answer):
         if kind == "blank":
             # Dòng trống chỉ khép khối của tiêu đề khi tiêu đề ĐÃ có gạch con (đoạn "Lưu ý chung: …" sau các gạch là khối mới). Tiêu đề chưa có gạch con
-            # nào mà gặp đoạn văn ("NV06:" ⏎ ⏎ "Có đơn ngoài MCP đã bị loại.") ⇒ đoạn văn là nội dung của tiêu đề ⇒ vẫn kế thừa mã (người kiểm, ca H3)
+            # nào mà gặp đoạn văn ("NV06:" ⏎ ⏎ "Có đơn ngoài MCP đã bị loại.") ⇒ đoạn văn là nội dung của tiêu đề ⇒ vẫn kế thừa mã (ca H3)
             right_after_heading = right_after_heading and not heading_has_child
             continue
         # Quan hệ cha–con theo THỤT LỀ (hoàn tất vòng 3, 13/11 — hình câu nháp thật của mô hình bị chặn oan): dòng dẫn là GẠCH chỉ là cha của các gạch
@@ -485,12 +486,18 @@ def _owner_problems_masked(answer: str, question: str, tool_results: list, conte
     return problems
 
 
+def _period_problems(raw_answer: str, tool_results: list) -> list[dict]:
+    """Kỳ nêu sai (kiem_so@31) — đọc câu trả lời CHƯA che: `_mask_answer` xoá mã kỳ, mà lớp này cần đúng chữ đó.
+    Giới hạn: đường chat trên máy (`chat._check_answer`) không gọi `kiem_so` / `owner_problems` ⇒ chưa có luật kỳ (việc riêng)."""
+    return [_problem("ky_sai", text) for text in period_check.period_problems(raw_answer, tool_results)]
+
+
 def owner_problems(answer: str, question: str, tool_results: list, context: list | tuple = (), name_entries: dict | None = None) -> list[dict]:
     """Phần "số / cờ thuộc đúng người" của rào — MỘT hàm cho cả hai lối vào: Rào Capitol (`kiem_so`) và đường chat trên máy
     (`chat._check_answer`). Trước đó đường chat gọi thẳng `check_owners` với kết quả công cụ thô ⇒ số trong chữ cờ không gắn chủ (chặn oan câu cờ có số
     2 / 3 lượt — 12:20 13/11), và không có phần cờ gán sai người / KPI tỷ lệ đúng y.
     """
-    return _owner_problems_masked(_mask_answer(answer), question, tool_results, context, name_entries)
+    return _period_problems(answer, tool_results) + _owner_problems_masked(_mask_answer(answer), question, tool_results, context, name_entries)
 
 
 def kiem_so(payload: dict, run_tool=None, context: list | tuple = (), name_entries: dict | None = None) -> dict:
@@ -516,6 +523,7 @@ def kiem_so(payload: dict, run_tool=None, context: list | tuple = (), name_entri
                              if not nc._sourced(options, multiplier, is_percent, sources, percent_sources, is_money)
                              and not _forgiven_from_question(text, asked, is_money or is_percent)]}
     problems = [_problem("so_khong_nguon", f"số '{text}' trong câu trả lời không có trong kết quả công cụ") for text in numbers["unsourced"]]
+    problems += _period_problems(payload["answer"], tool_results)
     problems += _owner_problems_masked(answer, question, tool_results, context, name_entries)
     if payload.get("excel_b64") is not None:
         problems += _excel_problems(payload["excel_b64"], tool_results, question, context)

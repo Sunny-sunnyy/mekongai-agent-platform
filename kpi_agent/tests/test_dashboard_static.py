@@ -6,7 +6,7 @@
    tự gắn mã vào URL); không file nào khác đụng tới kho của trình duyệt.
 
 GIỚI HẠN — nói thẳng: phép quét này bắt lỗi VÔ Ý (ai đó thêm `innerHTML` cho tiện, gọi `fetch` thẳng). Nó KHÔNG bắt được người cố ý lách (ghép chuỗi
-`el["inner" + "HTML"]`, `globalThis["local" + "Storage"]`, nạp code qua thư viện…) — đọc diff khi kiểm chéo vẫn là lớp chính. Người kiểm đã
+`el["inner" + "HTML"]`, `globalThis["local" + "Storage"]`, nạp code qua thư viện…) — đọc diff khi vẫn là lớp chính. đã
 thử: các kiểu vô ý bị bắt, các kiểu ghép chuỗi thì không. Chỉ đọc file, không cần dữ liệu thật."""
 import re
 from pathlib import Path

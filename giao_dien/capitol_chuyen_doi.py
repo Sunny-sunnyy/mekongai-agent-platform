@@ -1,8 +1,8 @@
 """Bộ chuyển đổi DUY NHẤT giữa hình dữ liệu chung (khung vẽ) và payload Capitol + lớp kiểm của trang.
 
-Viết 04/11/2026 (nhóm phát triển). Hình dữ liệu chung: mekongai-template `tài liệu thiết kế nội bộ` mục 8.
-  Hình chung v1 (yêu cầu vận hành 09/11 hai bên; sửa 14:54 09/11 — điểm 1, 2, 3, 6 của mekongai-template
-  `tài liệu thiết kế nội bộ`) — đây là hình TRANG GỬI / NHẬN:
+Viết 04/11/2026 (nhóm kỹ thuật). Hình dữ liệu chung: mekongai-template `tài liệu kỹ thuật` mục 8.
+  Hình chung v1 (người vận hành 09/11 hai bên; sửa 14:54 09/11 — điểm 1, 2, 3, 6 của mekongai-template
+  `tài liệu kỹ thuật`) — đây là hình TRANG GỬI / NHẬN:
   workflow = {id?, name, description, nodes: [{id, type, params?, position?}],                 ← khối đúng 4 trường
               edges: [{from_node, from_port, to_node, to_port}],                             ← dây đúng 4 khoá, from_port BẮT BUỘC
               ui?: {labels: {mã khối: tên hiển thị}}}                                       ← phần riêng của trang
@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from viet_hoa import viet_hoa_khoi  # noqa: E402  — tên / mô tả / ô tiếng Việt (người dùng yêu cầu 04/11)
+from viet_hoa import viet_hoa_khoi  # noqa: E402  — tên / mô tả / ô tiếng Việt (User yêu cầu 04/11)
 
 THU_MUC = Path(__file__).resolve().parent
 _RUNTIME_DIR = Path(os.environ.get("CAPITOL_RUNTIME_DIR") or (THU_MUC.parent / "runtime")).expanduser()
@@ -33,15 +33,15 @@ DANH_MUC_FILE = DANH_MUC_SONG if DANH_MUC_SONG.is_file() else DANH_MUC_CU
 # ---- khối chạy được trên máy này: CHỈ ghi điều đã chạy thật hoặc đã biết chắc lý do -------------------------------------------
 DA_CHAY = {"text_input_node", "agent_node", "human_intervention_node", "text_output_node",
            "markdown_output_node", "text_redaction_node",   # [đã chạy] 03–04/11
-           # Các khối chính đã kiểm chạy thật:
+           # A cập nhật 10/11 theo chay_thu/DEM_LOAI_KHOI.md (20 / 25 khối chính đã chạy thật — mục 1, 13, 15):
            "guardrails_node", "evals_node", "agentic_deep_research_node", "file_input_node", "file_browser_output_node",
            "pdf_redaction_node", "data_analysis_agent_node", "xlsx_chat_node", "flexible_code_interpreter_node",
            "skill_code_interpreter_node", "pptx_chat_node", "docx_chat_node", "d3_data_visualization_node",
            "network_graph_output_node",
            "text_to_speech_output_node",
            "vercel_deploy_agent_node"}   # 10/11 15:4x — Đăng trang bản thay: lên kho file nội bộ, CSP, 0 ra Internet (C, D ĐẠT)   # 10/11 15:29 — đọc giọng bản thay OpenAI tts-1 (C, D ĐẠT), T1 SUCCESS
-DA_CHAY.add("collections_node")   # [ghi chú kỹ thuật] nhóm phát triển xác nhận (a) nhóm kỹ thuật 17/11: hỏi kho bảng (ô query_text + datasets, cổng ra results); lượt thật đầu = E mục (10)
-# người dùng 10/11: "ở phần 'thêm khối' chỉ hiển thị các khối mà chúng ta đã xây dựng được, những khối nào chưa xây dựng được thì đừng đưa vào"
+DA_CHAY.add("collections_node")   # [ghi chú] đã chọn (a) nhóm kỹ thuật 17/11: hỏi kho bảng (ô query_text + datasets, cổng ra results); lượt thật đầu = E mục (10)
+# người vận hành: "ở phần 'thêm khối' chỉ hiển thị các khối mà chúng ta đã xây dựng được, những khối nào chưa xây dựng được thì đừng đưa vào"
 # ⇒ danh mục gửi trang chỉ gồm DA_CHAY. Khối dựng xong thì THÊM vào DA_CHAY (sau khi đã chạy thật) rồi làm mới danh mục.
 CHI_HIEN_DA_CHAY = True
 KHONG_CHAY = {
@@ -53,14 +53,14 @@ KHONG_CHAY = {
     "data_analysis_agent_node": "cần máy ảo E2B — máy này không có E2B_API_KEY",
     "vercel_deploy_agent_node": "cần tài khoản Vercel",
 }
-# Mô hình: chỉ gpt-6-luna đã chạy thật (khoá OpenAI của người dùng + bản vá bỏ temperature, sua_doi/). Claude: máy không có khoá Anthropic.
+# Mô hình: chỉ gpt-6-luna đã chạy thật (khoá OpenAI của User + bản vá bỏ temperature, sua_doi/). Claude: máy không có khoá Anthropic.
 # Tên lạ KHÔNG được để lọt: code Capitol tự đổi sang gpt-5.2 (đắt) hoặc Claude (model_resolution.py:205-242).
-# [ghi chú kỹ thuật] khớp luật trong hộp (kiem_sau_ghep.MO_HINH_O_MODEL nhóm kỹ thuật): Claude Sonnet / Opus 5.5 qua Bedrock + luna (còn giữ cho khối KPI khoá).
-MO_HINH_DUOC = ["claude-sonnet-5-5", "claude-opus-5-5", "gpt-6-luna"]
-MO_HINH_MAC_DINH = "claude-sonnet-5-5"
-# [ghi chú kỹ thuật] loại khối CHƯA chuyển sang Claude (muc_toi_da chưa có mức cho ô model Claude ở các loại này ⇒ trang sẽ chặn chạy) ⇒ ô model mặc định còn luna.
+# [ghi chú] người vận hành bỏ Claude Bedrock, chạy 100% gpt-6-luna.
+MO_HINH_DUOC = ["gpt-6-luna"]
+MO_HINH_MAC_DINH = "gpt-6-luna"
+# [ghi chú] loại khối CHƯA chuyển sang Claude (muc_toi_da chưa có mức cho ô model Claude ở các loại này ⇒ trang sẽ chặn chạy) ⇒ ô model mặc định còn luna.
 # Bỏ một dòng ở đây khi đã chuyển xong loại khối đó.
-MO_HINH_MAC_DINH_THEO_KHOI = {}   # [ghi chú kỹ thuật] trống từ khi gói va_skill_dr_claude nhóm kỹ thuật gắn (skill chạy code + tra cứu sâu đã chạy Claude theo file mô hình khối)
+MO_HINH_MAC_DINH_THEO_KHOI = {}   # [ghi chú] trống từ khi gói va_skill_dr_claude nhóm kỹ thuật gắn (skill chạy code + tra cứu sâu đã chạy Claude theo file mô hình khối)
 
 NHOM_VIEC = {"input": "Đầu vào", "agent": "AI", "governance": "Kiểm soát", "output": "Đầu ra", "tool": "Công cụ"}
 
@@ -117,13 +117,15 @@ class DanhMuc:
         ra = []
         for loai, s in self.struct.items():
             if CHI_HIEN_DA_CHAY and loai not in DA_CHAY:
-                continue   # khối chưa hỗ trợ ⇒ không đưa vào "Thêm khối"
+                continue   # khối chưa dựng được ⇒ không đưa vào "Thêm khối" (người vận hành); danh sách ở chay_thu/bao_cao/08_…
             params, inputs = [], []
             for p in s.get("params", []):
                 bc = p.get("bindable_config")
                 # đã kiểm 04/11 (BLOCKER): ô ẩn khỏi form (show=False) VẪN có thể là ô nhận dây bắt buộc — vd preview_context của khối duyệt,
                 # text_content của khối xuất chữ. Ẩn ⇒ chỉ bỏ khỏi form, KHÔNG bỏ khỏi danh sách cổng vào.
                 an = _true(p.get("hidden")) or p.get("show") in (False, "False")
+                if loai == "agentic_deep_research_node" and p["field_id"] == "mcp_servers":
+                    an = False   # [ghi chú] mở ô cấu hình tra web Exa (capitol-mcp-exa) cho khối Nghiên cứu sâu
                 if an and not bc:
                     continue
                 if loai == "agent_node" and p["field_id"] == "files":
@@ -174,7 +176,7 @@ KHOA_DAY = {"from_node", "from_port", "to_node", "to_port"}
 def tu_chung(wf: dict) -> tuple[dict, list[dict]]:
     """Hình chung (trang gửi) ⇒ hình trong. Trường lạ ở khối / dây ⇒ báo lỗi (không lặng lẽ bỏ) — điểm 1, 2."""
     if not isinstance(wf, dict):
-        raise ValueError("workflow phải là đối tượng")   # 400, không 503 (đối chiếu kỹ thuật)
+        raise ValueError("workflow phải là đối tượng")   # 400, không 503 (D 69.D2)
     ui = wf.get("ui") or {}
     nhan = ui.get("labels") or {} if isinstance(ui, dict) else None
     if not isinstance(nhan, dict) or not all(isinstance(v, str) for v in nhan.values()):
@@ -183,7 +185,7 @@ def tu_chung(wf: dict) -> tuple[dict, list[dict]]:
     nodes, edges = [], []
     for n in wf.get("nodes") or []:
         if not isinstance(n, dict):
-            raise ValueError("khối phải là đối tượng {id, type, params, position}")   # máy chủ trả 400, không 503 (đối chiếu kỹ thuật)
+            raise ValueError("khối phải là đối tượng {id, type, params, position}")   # máy chủ trả 400, không 503 (D 69.D minor)
         thieu = [k for k in ("id", "type") if not n.get(k)]
         if thieu:
             loi.append({"muc": "loi", "code": "thieu_truong_khoi", "node": n.get("id"), "field": None,
@@ -216,6 +218,31 @@ def dien_cong_ra(hinh: dict, dm: "DanhMuc") -> dict:
             e = {**e, "from_port": ops[0]["name"] if len(ops) == 1 else e.get("from_port")}
         edges.append(e)
     return {**hinh, "edges": edges}
+
+
+EXA_MCP_URL = "http://mcp-exa:8766/mcp"
+
+
+def _chuan_hoa_mcp(v):
+    """Chuẩn hoá ô mcp_servers (chuỗi JSON, list hoặc dict) về dạng Capitol {"mcp_servers": [...]}."""
+    if v in (None, "", [], {}):
+        return None
+    if isinstance(v, str):
+        v = json.loads(v)
+    if isinstance(v, list):
+        ds = v
+    elif isinstance(v, dict):
+        ds = v.get("mcp_servers")
+        if ds is None:
+            raise ValueError('object mcp_servers phải có trường "mcp_servers" (danh sách)')
+    else:
+        raise ValueError("mcp_servers phải là object JSON hoặc danh sách máy chủ MCP")
+    if not isinstance(ds, list):
+        raise ValueError("danh sách mcp_servers phải là mảng")
+    for s in ds:
+        if not isinstance(s, dict) or not str(s.get("url") or "").strip():
+            raise ValueError('mỗi máy chủ MCP cần có trường "url" không rỗng')
+    return {"mcp_servers": ds} if ds else None
 
 
 def _ten(n: dict) -> str:
@@ -316,6 +343,12 @@ def kiem(wf: dict, dm: DanhMuc) -> list[dict]:
             except ValueError as e:
                 bao("loi", "khuon_dau_ra_sai", f"“{_ten(n)}”: khuôn đầu ra không hợp lệ — {e}.",
                     'Ví dụ đúng: {"loai": ["doi_hang", "hoi_gia"], "tom_tat": "string"}', node=n["id"], field="output_schema")
+        if (pr.get("mcp_servers") or "").strip() if isinstance(pr.get("mcp_servers"), str) else pr.get("mcp_servers"):
+            try:
+                _chuan_hoa_mcp(pr["mcp_servers"])
+            except ValueError as e:
+                bao("loi", "mcp_servers_sai", f"“{_ten(n)}”: cấu hình máy chủ MCP không hợp lệ — {e}.",
+                    f'Dùng nút bật tra web Exa ({EXA_MCP_URL}) hoặc JSON {{"mcp_servers": [...]}}.', node=n["id"], field="mcp_servers")
         if n.get("type") == "agent_node":
             m = pr.get("model") or MO_HINH_MAC_DINH
             if m not in MO_HINH_DUOC:
@@ -325,7 +358,7 @@ def kiem(wf: dict, dm: DanhMuc) -> list[dict]:
         if n.get("type") not in DA_CHAY:
             bao("canh_bao", "chua_thu", f"“{_ten(n)}”: {KHONG_CHAY.get(n.get('type')) or 'loại khối này chưa chạy thử trên máy — lượt chạy có thể lỗi'}.",
                 node=n.get("id"))
-    try:   # [ghi chú kỹ thuật] 2 cảnh báo từ lỗi thật của Capitol (nối chéo theo tên · khoá lệch) — chỉ cảnh báo, hỏng thì bỏ qua
+    try:   # [ghi chú] 2 cảnh báo từ lỗi thật của Capitol (nối chéo theo tên · khoá lệch) — chỉ cảnh báo, hỏng thì bỏ qua
         import kiem_day
         ra += kiem_day.canh_bao(nodes, edges)
     except Exception:
@@ -349,7 +382,13 @@ def sang_capitol(wf: dict, dm: DanhMuc, wf_id: str) -> dict:
         pr = n.get("params") or {}
         for p in s.get("params", []):
             if p["field_id"] in pr:
-                p["value"] = pr[p["field_id"]]
+                val = pr[p["field_id"]]
+                if p["field_id"] == "mcp_servers" and val not in (None, "", [], {}):
+                    try:
+                        val = _chuan_hoa_mcp(val) or ""
+                    except ValueError:
+                        pass
+                p["value"] = val
             if p["field_id"] == "model" and n["type"] == "agent_node" and not pr.get("model"):
                 p["value"] = MO_HINH_MAC_DINH                         # không để mặc định claude-sonnet-5 của danh mục lọt vào
             if p["field_id"] in ("temperature", "top_p") and n["type"] == "agent_node" and pr.get(p["field_id"]) in (None, ""):

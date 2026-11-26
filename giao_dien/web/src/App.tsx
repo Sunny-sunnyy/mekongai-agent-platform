@@ -1,31 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Markdown } from "./Markdown";
 import { TEN_CONG_CU } from "./tenCongCu";
-import { TroLyChat } from "./TroLyChat";         // [ghi chú kỹ thuật] tab chat với trợ lý dựng workflow
-import { DuLieu } from "./DuLieu";   // [ghi chú kỹ thuật] trang "Dữ liệu" rộng cả màn hình — thay hai tab cũ "Dữ liệu KPI" / "Tài liệu" ở cột trái
-import { ChonKho, NguonTaiLieu } from "./TaiLieu";   // [ghi chú kỹ thuật] kho tài liệu (app RAG mekongai)   // [ghi chú kỹ thuật] tab tải file Excel KPI
-import { ChonDataset } from "./KhoBang";   // [ghi chú kỹ thuật] ô Dataset của khối hỏi kho bảng
-import { banDuLieu, useBanDuLieu, useDaGui } from "./banDuLieu";   // [ghi chú kỹ thuật] chạy trên bản dữ liệu vừa tải
-import { ChonFileNhan } from "./ChonFileNhan";   // [ghi chú kỹ thuật] nút Chọn file của khối Nhận file
+import { TroLyChat } from "./TroLyChat";         // [ghi chú] tab chat với trợ lý dựng workflow
+import { DuLieu } from "./DuLieu";   // [ghi chú] trang "Dữ liệu" rộng cả màn hình — thay hai tab cũ "Dữ liệu KPI" / "Tài liệu" ở cột trái
+import { ChonKho, NguonTaiLieu } from "./TaiLieu";   // [ghi chú] kho tài liệu (app RAG mekongai)   // [ghi chú] tab tải file Excel KPI
+import { ChonDataset } from "./KhoBang";   // [ghi chú] ô Dataset của khối hỏi kho bảng
+import { banDuLieu, useBanDuLieu, useDaGui } from "./banDuLieu";   // [ghi chú] chạy trên bản dữ liệu vừa tải
+import { ChonFileNhan } from "./ChonFileNhan";   // [ghi chú] nút Chọn file của khối Nhận file
 import {
   ReactFlow, Background, BackgroundVariant, Controls, MiniMap, addEdge, useEdgesState, useNodesState, useReactFlow,
   type Connection, type Edge, type IsValidConnection, type OnNodesChange,
 } from "@xyflow/react";
 import {
-  api, DANG_CHAY, giay, LUOT_VN, ms, ngayGio, usd, tenMoHinh, type MoHinhKhoi,
+  api, DANG_CHAY, giay, LUOT_VN, ms, ngayGio, usd, tenMoHinh, type MoHinhKhoi, type NguoiDungTrangThai,
   type BlockDef, type CheckItem, type Cost, type DauVet, type Dem, type GoiKpi, type KetQuaKhoi, type TepLuot, type TruyVan, type ParamDef, type RunDetail, type RunRow, type WfRow, type Workflow, type KpiDungSan, type KpiKhoi, type ChayLaiXem } from "./api";
 import { KhoiNode, CongCuNode, MAU_NHOM, kyHieu, oCongCuBat, tenCongCuNgan, CONG_CONG_CU, type KhoiRF, type CongCuRF } from "./KhoiNode";
-import { tinh, TT_VN, tomTatRao, tachCauTraLoi, lyDoRaoChan, loiThuong, loiDanhSach, luotBiRaoChan, NHAN_CHUA_KIEM, tenKhoiHien, luotCoTuDuyet } from "./trangThai";
+import { tinh, thoiLuongKhoi, thoiLuongLuot, TT_VN, tomTatRao, tachCauTraLoi, lyDoRaoChan, loiThuong, loiDanhSach, luotBiRaoChan, NHAN_CHUA_KIEM, tenKhoiHien, luotCoTuDuyet } from "./trangThai";
 
-const nodeTypes = { khoi: KhoiNode, congCu: CongCuNode };   // [ghi chú kỹ thuật] congCu = thẻ công cụ ảo (chỉ vẽ)
+const nodeTypes = { khoi: KhoiNode, congCu: CongCuNode };   // [ghi chú] congCu = thẻ công cụ ảo (chỉ vẽ)
 // màu dây theo khối nguồn (đủ tương phản trên nền trắng; lặp lại khi > 9 nguồn)
 const MAU_DAY = ["#2563eb", "#d97706", "#059669", "#db2777", "#7c3aed", "#0891b2", "#65a30d", "#b91c1c", "#475569"];
 type Ban = { id: string | null; name: string; description: string; version?: number; saved_at?: string };
 type XacNhan = { tieuDe: string; noiDung: React.ReactNode; nut: string; nguyHiem?: boolean; lam: () => void };
 
 const MAU_HOI_DL = /^Hỏi dữ liệu thử \d+/;
-const TEN_DO = /^(ĐO — |Mẫu Capitol - )/;   // [người dùng 12/11] workflow / lượt do script đo tự lưu — ẩn mặc định
-// (nhóm "Mẫu Capitol" đã gỡ 12/11 theo ý người dùng — tập trung KPI)
+const TEN_DO = /^(ĐO — |Mẫu Capitol - )/;   // [người vận hành] workflow / lượt do script đo tự lưu — ẩn mặc định
+// (nhóm "Mẫu Capitol" đã gỡ 12/11 theo ý User — tập trung KPI)
 export default function App() {
   const rf = useReactFlow<KhoiRF, Edge>();
   const [blocks, setBlocks] = useState<BlockDef[]>([]);
@@ -33,7 +33,7 @@ export default function App() {
   const [dsWf, setDsWf] = useState<WfRow[]>([]);
   const [dsLuot, setDsLuot] = useState<RunRow[]>([]);
   const [hienDo, setHienDo] = useState(false);
-  // [ghi chú kỹ thuật] máy chủ đòi mã mở trang cho mọi /api — chưa có mã thì hiện một màn nhắc rõ thay vì hàng loạt lỗi nhỏ
+  // [ghi chú] máy chủ đòi mã mở trang cho mọi /api — chưa có mã thì hiện một màn nhắc rõ thay vì hàng loạt lỗi nhỏ
   // nền sáng / tối: nhớ lựa chọn ở máy này; chưa chọn ⇒ theo cài đặt hệ điều hành
   const [toi, setToi] = useState<boolean>(() => {
     try { const v = localStorage.getItem("xuong_nen"); if (v) return v === "toi"; } catch { /* không đọc được ⇒ theo hệ điều hành */ }
@@ -42,14 +42,53 @@ export default function App() {
   useEffect(() => { document.documentElement.dataset.theme = toi ? "dark" : "light"; }, [toi]);
   const doiSangToi = () => setToi((x) => { try { localStorage.setItem("xuong_nen", x ? "sang" : "toi"); } catch { /* bỏ qua */ } return !x; });
   const [canMa, setCanMa] = useState(false);
+  const [canDangNhap, setCanDangNhap] = useState(false);
+  const [moDangNhap, setMoDangNhap] = useState(false);
+  const [ttNguoi, setTtNguoi] = useState<NguoiDungTrangThai | null>(null);
+  const [dnTen, setDnTen] = useState("nguoi_duyet");
+  const [dnMk, setDnMk] = useState("");
+  const [dnLoi, setDnLoi] = useState("");
+  const [dnDang, setDnDang] = useState(false);
   const [chatMo, setChatMo] = useState({ mo: false, to: false, gan: false });
-  useEffect(() => { const h = () => setCanMa(true); window.addEventListener("xuong-can-ma", h); return () => window.removeEventListener("xuong-can-ma", h); }, []);
-  // [ghi chú kỹ thuật] khối KPI dựng sẵn: dữ liệu + luật ở máy chủ (một nguồn với
+  useEffect(() => {
+    const hMa = () => setCanMa(true);
+    const hDn = () => setCanDangNhap(true);
+    window.addEventListener("xuong-can-ma", hMa);
+    window.addEventListener("xuong-can-dang-nhap", hDn);
+    api.nguoiDung().then((r) => {
+      setTtNguoi(r);
+      if (r.bat_buoc && !r.user) setCanDangNhap(true);
+    }).catch(() => {});
+    return () => { window.removeEventListener("xuong-can-ma", hMa); window.removeEventListener("xuong-can-dang-nhap", hDn); };
+  }, []);
+  const guiDangNhap = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (dnDang) return;
+    setDnLoi(""); setDnDang(true);
+    try {
+      await api.dangNhap(dnTen.trim(), dnMk);
+      const r = await api.nguoiDung();
+      setTtNguoi(r); setCanDangNhap(false); setMoDangNhap(false); setDnMk("");
+      thongBao(`Đã đăng nhập: ${r.user?.display_name || dnTen}`);
+    } catch (err) {
+      setDnLoi((err as Error).message || "Đăng nhập không thành công.");
+    } finally { setDnDang(false); }
+  };
+  const bamDangXuat = async () => {
+    try { await api.dangXuat(); } catch { /* bỏ qua */ }
+    try {
+      const r = await api.nguoiDung();
+      setTtNguoi(r);
+      if (r.bat_buoc && !r.user) setCanDangNhap(true);
+      thongBao("Đã đăng xuất.");
+    } catch { setCanDangNhap(true); }
+  };
+  // [ghi chú] khối KPI dựng sẵn: dữ liệu + luật ở máy chủ (một nguồn với
   // script nhóm kỹ thuật); trang chỉ hiện. Khoá ô ở đây là HIỂN THỊ — máy chủ kiểm lại lúc Lưu / Chạy.
   const [kpi, setKpi] = useState<KpiDungSan | null>(null);
   useEffect(() => { api.kpiDungSan().then(setKpi).catch(() => {}); }, []);
   const [tabTrai, setTabTrai] = useState<"khoi" | "wf" | "luot">("khoi");
-  const [trang, setTrang] = useState<"xuong" | "du_lieu">("xuong");   // [ghi chú kỹ thuật]
+  const [trang, setTrang] = useState<"xuong" | "du_lieu">("xuong");   // [ghi chú]
   // [10/11, A] lọc theo ngày + "xem thêm" (trước đây cứng 80 workflow / 60 lượt ⇒ phần cũ bị ẩn)
   const [ngayLoc, setNgayLoc] = useState("");
   const [soWf, setSoWf] = useState(50);
@@ -63,18 +102,18 @@ export default function App() {
   const [daLuu, setDaLuu] = useState("");
   const [kiemDs, setKiemDs] = useState<CheckItem[]>([]);
   const [chon, setChon] = useState<string | null>(null);
-  const [dungLai, setDungLai] = useState<Record<string, string>>({});   // [ghi chú kỹ thuật] khối dùng lại kết quả cũ ở lượt đang xem ⇒ phiên nguồn
+  const [dungLai, setDungLai] = useState<Record<string, string>>({});   // [ghi chú] khối dùng lại kết quả cũ ở lượt đang xem ⇒ phiên nguồn
 
   const [phien, setPhien] = useState<string | null>(null);
   const [luot, setLuot] = useState<RunDetail | null>(null);
   const [tien, setTien] = useState<Cost | null>(null);
-  const [tienLoi, setTienLoi] = useState(false);   // [ghi chú kỹ thuật] lượt đã xong mà 4 lần hỏi tiền đều hỏng
+  const [tienLoi, setTienLoi] = useState(false);   // [ghi chú] lượt đã xong mà 4 lần hỏi tiền đều hỏng
   const [dongHo, setDongHo] = useState<number | null>(null); // null = mốc cuối (trực tiếp); số = đang phát lại / kéo
   const [phat, setPhat] = useState(false);
   const [toc, setToc] = useState(2);
   const [, setNhip] = useState(0);
   const [xn, setXn] = useState<XacNhan | null>(null);
-  const [cheDo, setCheDo] = useState<"dung" | "ket_qua">("dung");   // màn hình dựng ↔ màn hình "Kết quả lượt chạy" (người dùng yêu cầu 04/11)
+  const [cheDo, setCheDo] = useState<"dung" | "ket_qua">("dung");   // màn hình dựng ↔ màn hình "Kết quả lượt chạy" (User yêu cầu 04/11)
   const [bao, setBao] = useState<{ chu: string; loi?: boolean } | null>(null);
   const [ban_ron, setBanRon] = useState(false);
 
@@ -100,7 +139,7 @@ export default function App() {
     setEdges(w.edges.map((e) => ({ id: `e-${e.from_node}-${e.from_port}-${e.to_node}-${e.to_port}`, source: e.from_node, target: e.to_node, sourceHandle: e.from_port, targetHandle: e.to_port })));
     setDaLuu(w.id ? vanTay(w) : "");
     setKiemDs([]); setChon(null);
-    // hình chung (yêu cầu vận hành 09/11): dây công cụ chưa hỗ trợ ⇒ báo rõ, không bỏ lặng
+    // hình chung (người vận hành 09/11): dây công cụ chưa hỗ trợ ⇒ báo rõ, không bỏ lặng
     if (w.unsupported_edges) thongBao(`Workflow có ${w.unsupported_edges} dây công cụ (cắm vào cổng Tools) — trang chưa vẽ / sửa được; LƯU từ trang này sẽ BỎ các dây đó.`, true);
     setTimeout(() => rf.fitView({ padding: 0.2, duration: 300 }), 50);
   }, [rf, setNodes, setEdges]);
@@ -119,10 +158,10 @@ export default function App() {
   const lamMoiDsWf = () => api.workflows(ngayLoc, soWf).then(setDsWf).catch(() => {});
   const tongLoc = (k: "wf" | "luot") => (dem ? (ngayLoc ? dem.ngay.find((d) => d.ngay === ngayLoc)?.[k] ?? 0 : dem[k]) : null);
 
-  // [ghi chú kỹ thuật] gắn / thả cửa sổ Trợ lý ⇒ khung vẽ đổi bề rộng ⇒ canh "vừa khung" lại (sau khi bố cục đổi xong)
+  // [ghi chú] gắn / thả cửa sổ Trợ lý ⇒ khung vẽ đổi bề rộng ⇒ canh "vừa khung" lại (sau khi bố cục đổi xong)
   const ganChat = chatMo.mo && chatMo.gan;
   useEffect(() => { const h = setTimeout(() => rf.fitView({ padding: 0.2, duration: 300 }), 120); return () => clearTimeout(h); }, [ganChat]);   // eslint-disable-line react-hooks/exhaustive-deps
-  // [ghi chú kỹ thuật] bước ĐANG diễn ra của lượt đang theo dõi, bằng lời thường, cho cửa sổ Trợ lý (chế độ Hỏi KPI). Đọc từ sự kiện trực tiếp sẵn có.
+  // [ghi chú] bước ĐANG diễn ra của lượt đang theo dõi, bằng lời thường, cho cửa sổ Trợ lý (chế độ Hỏi KPI). Đọc từ sự kiện trực tiếp sẵn có.
   const buocLuot = useMemo(() => {
     if (!luot || !DANG_CHAY.has(luot.luot.tt)) return null;
     const ten = (id: string | null | undefined) => nodes.find((n) => n.id === id)?.data.label || "khối";
@@ -152,9 +191,9 @@ export default function App() {
     else await lam();
   };
 
-  // [ghi chú kỹ thuật] moKetQua: bấm 1 lượt ĐÃ XONG ở tab "Lượt chạy" ⇒ mở thẳng màn kết quả;
+  // [ghi chú] moKetQua: bấm 1 lượt ĐÃ XONG ở tab "Lượt chạy" ⇒ mở thẳng màn kết quả;
   // lượt đang chạy ⇒ ở lại màn dựng (xem khối chạy dần). Gọi sau khi bấm Chạy giữ như cũ (không truyền moKetQua).
-  useEffect(() => {   // [ghi chú kỹ thuật] /?luot=<mã phiên>&wf=<mã workflow> ⇒ mở thẳng lượt đó ở màn Kết quả; mã sai dạng ⇒ bỏ qua
+  useEffect(() => {   // [ghi chú] /?luot=<mã phiên>&wf=<mã workflow> ⇒ mở thẳng lượt đó ở màn Kết quả; mã sai dạng ⇒ bỏ qua
     const q = new URLSearchParams(location.search), s = q.get("luot"), w = q.get("wf"), ma = /^[0-9a-f-]{36}$/;
     if (s && ma.test(s)) { history.replaceState(null, "", location.pathname); moLuot(s, w && ma.test(w) ? w : undefined, true); }
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -170,7 +209,7 @@ export default function App() {
 
   // lượt đang chạy: lấy thêm sự kiện mỗi 0,7 giây (gối lùi 5 giây ở máy chủ — giờ ghi có lúc lùi; bỏ trùng theo id)
   const luotRef = useRef(luot); luotRef.current = luot;
-  const dangHoi = useRef(false);   // [ghi chú kỹ thuật] chặn hỏi chồng: trả lời về muộn từng ghi đè danh sách đã gộp ⇒ hở một khúc sự kiện
+  const dangHoi = useRef(false);   // [ghi chú] chặn hỏi chồng: trả lời về muộn từng ghi đè danh sách đã gộp ⇒ hở một khúc sự kiện
   useEffect(() => {
     if (!phien) return;
     // lấy ĐỦ sự kiện (như F5) — dùng khi lượt vừa xong: sự kiện cuối (termination…, begin muộn) ghi SAU lúc trạng thái lượt đổi
@@ -196,7 +235,7 @@ export default function App() {
     const nhip = setInterval(() => setNhip((x) => x + 1), 250); // đồng hồ chạy mượt
     return () => { clearInterval(h); clearInterval(nhip); };
   }, [phien]);
-  // [ghi chú kỹ thuật] huy hiệu "dùng lại": hỏi máy chủ khi lượt đang xem đã kết thúc (lượt thường ⇒ danh sách rỗng; máy chủ cũ chưa có đường ⇒ bỏ qua)
+  // [ghi chú] huy hiệu "dùng lại": hỏi máy chủ khi lượt đang xem đã kết thúc (lượt thường ⇒ danh sách rỗng; máy chủ cũ chưa có đường ⇒ bỏ qua)
   useEffect(() => {
     if (!phien || !luot || DANG_CHAY.has(luot.luot.tt)) { setDungLai({}); return; }
     api.chayLaiDungLai(phien).then((r) => setDungLai(Object.fromEntries(r.dung_lai.map((x) => [x.khoi, x.tu_phien])))).catch(() => setDungLai({}));
@@ -204,7 +243,7 @@ export default function App() {
   // tiền: lấy khi lượt đã xong (node_result ghi gom cuối lượt), và lại mỗi 3 giây khi đang chạy
   useEffect(() => {
     if (!phien || !luot) return;
-    if (!DANG_CHAY.has(luot.luot.tt)) {   // [ghi chú kỹ thuật] lượt đã xong: thử lại 4 lần cách 2 giây rồi mới báo — trước: một lần hỏng là "đang tính…" mãi
+    if (!DANG_CHAY.has(luot.luot.tt)) {   // [ghi chú] lượt đã xong: thử lại 4 lần cách 2 giây rồi mới báo — trước: một lần hỏng là "đang tính…" mãi
       let bo = false, lan = 0;
       const thu = () => api.cost(phien).then((x) => { if (!bo) { setTien(x); setTienLoi(false); } })
         .catch(() => { if (bo) return; lan += 1; if (lan < 4) setTimeout(thu, 2000); else setTienLoi(true); });
@@ -221,7 +260,7 @@ export default function App() {
   const t = dongHo ?? mocCuoi;
   const hinhNay = useMemo(() => hinh(), [hinh]);
   const kq = useMemo(() => (luot ? tinh(luot.su_kien, nodes.map((n) => n.id), hinhNay.edges, t, luot.luot.tt) : null), [luot, nodes, hinhNay, t]);
-  const raoChan = useMemo(() => luotBiRaoChan(kq?.st), [kq]);   // [ghi chú kỹ thuật] lượt đang xem bị khối Kiểm số chặn ⇒ chữ AI + lý do mang nhãn, gập
+  const raoChan = useMemo(() => luotBiRaoChan(kq?.st), [kq]);   // [ghi chú] lượt đang xem bị khối Kiểm số chặn ⇒ chữ AI + lý do mang nhãn, gập
   const tienKhoi = useMemo(() => {
     const m: Record<string, { tien: number | null; ngam: boolean }> = {};
     for (const c of tien?.calls || []) {
@@ -238,7 +277,7 @@ export default function App() {
     return m;
   }, [kiemDs]);
 
-  // người dùng 04/11 chiều: "lúc 2 đường nối, lúc 1 … dễ lộn" ⇒ mỗi khối NGUỒN một màu; dây mang màu + tên khối nguồn; ô nhận ghi số dây + chấm màu từng nguồn
+  // người vận hành chiều: "lúc 2 đường nối, lúc 1 … dễ lộn" ⇒ mỗi khối NGUỒN một màu; dây mang màu + tên khối nguồn; ô nhận ghi số dây + chấm màu từng nguồn
   const mauNguon = useMemo(() => {
     const m: Record<string, string> = {};
     const nguon = new Set(edges.map((e) => e.source));
@@ -274,7 +313,7 @@ export default function App() {
     const b = theoLoai[n.data.loai];
     return {
       ...n, data: {
-        ...n.data, block: b, tt: x, raoChan, dungLai: dungLai[n.id] ?? null, vao: vaoTheoO[n.id], dur: x?.bd ? (x.kt ?? t) - x.bd - (x.choMs || 0) : null,
+        ...n.data, block: b, tt: x, raoChan, dungLai: dungLai[n.id] ?? null, vao: vaoTheoO[n.id], dur: thoiLuongKhoi(x, t),
         tien: tien ? (tienKhoi[n.id] ? tienKhoi[n.id].tien : undefined) : undefined, tienNgam: tienKhoi[n.id]?.ngam,
         doiChieu: tien?.checks?.[n.id] ? { tong: tien.checks[n.id].tong + tien.checks[n.id].khuon.length,
           khong: tien.checks[n.id].khong_nguon + tien.checks[n.id].khuon.filter((k) => !k.co_trong_ket_qua_cong_cu).length } : undefined,
@@ -293,7 +332,7 @@ export default function App() {
       labelBgPadding: [4, 2] as [number, number] };
   }), [edges, kq, mauNguon, tenKhoi]);
 
-  // [ghi chú kỹ thuật] DÂY CÔNG CỤ HIỂN THỊ: mỗi ô tick công cụ đang bật ⇒ một thẻ nhỏ dưới khối + dây nét đứt vào cổng “Công cụ” ở đáy khối.
+  // [ghi chú] DÂY CÔNG CỤ HIỂN THỊ: mỗi ô tick công cụ đang bật ⇒ một thẻ nhỏ dưới khối + dây nét đứt vào cổng “Công cụ” ở đáy khối.
   // CHỈ Ở LỚP VẼ: không thêm vào state nodes / edges ⇒ hinh() (Lưu / Chạy / Kiểm / vân tay thay đổi) và máy chủ không bao giờ thấy thẻ / dây này.
   const congCuVe = useMemo(() => {
     const ns: CongCuRF[] = [], es: Edge[] = [];
@@ -302,7 +341,7 @@ export default function App() {
       const cao = n.measured?.height ?? 230;   // chưa đo xong (lần vẽ đầu) ⇒ cỡ thường gặp; đo xong React Flow báo lại và thẻ về đúng chỗ
       bat.forEach((p, k) => {
         const id = `cc::${n.id}::${p.name}`;
-        // [ghi chú kỹ thuật] ô tool_kpi là CẢ BỘ công cụ KPI ⇒ ghi "Bộ tính KPI (N công cụ)" + danh sách lời thường khi rê chuột (trước: "Cụ · KPI")
+        // [ghi chú] ô tool_kpi là CẢ BỘ công cụ KPI ⇒ ghi "Bộ tính KPI (N công cụ)" + danh sách lời thường khi rê chuột (trước: "Cụ · KPI")
         const boKpi = p.name === "tool_kpi";
         const ten = boKpi ? `Bộ tính KPI${kpi?.cong_cu?.length ? ` (${kpi.cong_cu.length} công cụ)` : ""}` : tenCongCuNgan(p.label);
         const ds = boKpi && kpi?.cong_cu?.length ? kpi.cong_cu.map((c) => `• ${c.ten} — ${c.mo_ta}`).join("\n") : "";
@@ -431,8 +470,8 @@ export default function App() {
       noiDung: (
         <div>
           {banDuLieu.lay() && <p className="canh-bao" style={{ marginTop: 0 }}>Workflow KPI sẽ tính trên bản dữ liệu vừa tải <b>{banDuLieu.lay()!.dv.slice(0, 12)}</b> (ngày chốt {banDuLieu.lay()!.cutoff}) — workflow không phải KPI sẽ bị từ chối; bỏ chọn ở tab Dữ liệu KPI.</p>}
-          <p style={{ marginTop: 0 }}>Chạy <b>{coNhap ? "bản sẽ lưu ngay bây giờ" : `phiên bản ${ban.version}`}</b> trên bộ chạy thử Capitol. Có <b>{soAI}</b> khối AI ⇒ <b>gọi AI thật</b>. Khối chạy Claude (mặc định của hệ thống) đi qua Amazon Bedrock và không tính vào trần tiền API; khối chạy mô hình khác hoặc khối chạy code thì tính trần — tốn tiền thật.</p>
-          <p className="phu">Phần tính trần: 0 với khối AI chạy Claude; nếu khối AI được đặt chạy mô hình tính trần thì ước khoảng {usd(uoc)} (0,0002–0,0003 USD mỗi khối, theo các lượt đo cũ). Số thật hiện ở bảng tiền sau khi chạy.</p>
+          <p style={{ marginTop: 0 }}>Chạy <b>{coNhap ? "bản sẽ lưu ngay bây giờ" : `phiên bản ${ban.version}`}</b> trên bộ chạy thử Capitol. Có <b>{soAI}</b> khối AI ⇒ <b>gọi AI thật</b> (mặc định <code>gpt-6-luna</code>) — tính vào trần tiền API và tốn tiền thật.</p>
+          <p className="phu">Ước tính trần lượt chạy: khoảng {usd(uoc)} (0,0002–0,0003 USD mỗi khối AI gọi ngắn; khối E2B cộng thêm phần máy ảo). Số thật hiện ở bảng tiền sau khi chạy.</p>
           {chuaThu.length > 0 && <div className="canh-bao">Có khối chưa chạy thử trên máy: {chuaThu.map((n) => n.data.label).join(", ")} — lượt chạy có thể lỗi.</div>}
         </div>
       ),
@@ -485,14 +524,38 @@ export default function App() {
   const dsDanhMuc = blocks.filter((b) => !tim || (b.label + " " + b.description + " " + b.group).toLowerCase().includes(tim.toLowerCase()));
   const nhom = dsDanhMuc.reduce<Record<string, BlockDef[]>>((m, b) => ((m[b.group] ??= []).push(b), m), {});
   const tongMay = kq ? Object.values(kq.st).reduce((s, x) => s + (x.choMs || 0), 0) : 0;
-  const tongLuot = kq?.batDau ? (kq.ketThuc ?? t) - kq.batDau : null;
+  const tongLuot = thoiLuongLuot(kq, luot?.su_kien || [], t);
 
   return (
     <div className={"app" + (chatMo.mo ? (chatMo.gan ? " chat-gan" : chatMo.to ? " chat-to" : " chat-mo") : "")}>
       {/* [Lần gắn 4] Trợ lý = cửa sổ nổi góc dưới phải (luôn gắn để lượt chat đang chờ không mất khi đóng cửa sổ) */}
-      {!canMa && <TroLyChat onMo={(id) => moWorkflow(id)} onMoLuot={(s, wf) => moLuot(s, wf, true)} onDoi={lamMoiDsWf}
+      {!canMa && !canDangNhap && <TroLyChat onMo={(id) => moWorkflow(id)} onMoLuot={(s, wf) => moLuot(s, wf, true)} onDoi={lamMoiDsWf}
         onTheoLuot={async (s, wf) => { setCheDo("dung"); await moLuot(s, wf, false); }} onChonKhoi={(id) => { setCheDo("dung"); setChon(id); }}
-        ky={kpi?.ky?.period} luotDangXem={phien} buocLuot={buocLuot} khoiDangChay={kq ? nodes.filter((n) => kq.st[n.id]?.s === "chay").map((n) => n.data.label) : []} onMoDong={(mo, to, gan) => setChatMo({ mo, to, gan })} />}
+        ky={kpi?.ky?.period} userId={ttNguoi?.user?.id} luotDangXem={phien} buocLuot={buocLuot} khoiDangChay={kq ? nodes.filter((n) => kq.st[n.id]?.s === "chay").map((n) => n.data.label) : []} onMoDong={(mo, to, gan) => setChatMo({ mo, to, gan })} />}
+      {(canDangNhap || moDangNhap) && !canMa && (
+        <div className="man" role="dialog" aria-modal="true" aria-labelledby="dn-td" onClick={() => !canDangNhap && setMoDangNhap(false)}>
+          <form className="hop-xn" onSubmit={guiDangNhap} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <h3 id="dn-td">Đăng nhập tài khoản nội bộ</h3>
+            <p className="phu">Lịch sử chat được lưu bền theo từng tài khoản và quyền duyệt áp dụng theo vai trò.</p>
+            {(ttNguoi?.goi_y?.length ?? 0) > 0 && (
+              <div className="phu" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                <span>Tài khoản mẫu:</span>
+                {ttNguoi!.goi_y!.map((g) => (
+                  <button type="button" key={g.username} className={"nut nho" + (dnTen === g.username ? " chinh" : "")}
+                    onClick={() => setDnTen(g.username)}>{g.display_name} ({g.username})</button>
+                ))}
+              </div>
+            )}
+            <div className="o"><label>Tên đăng nhập</label><input className="tim" value={dnTen} onChange={(e) => setDnTen(e.target.value)} required /></div>
+            <div className="o"><label>Mật khẩu</label><input className="tim" type="password" value={dnMk} onChange={(e) => setDnMk(e.target.value)} placeholder="Mặc định thử: capitol-noi-bo-2026" required /></div>
+            {dnLoi && <div className="hop loi" style={{ marginTop: 6 }}>{dnLoi}</div>}
+            <div className="nut-hang" style={{ marginTop: 12 }}>
+              {!canDangNhap && <button type="button" className="nut" onClick={() => setMoDangNhap(false)}>Đóng</button>}
+              <button type="submit" className="nut chinh" disabled={dnDang}>{dnDang ? "Đang kiểm tra…" : "Đăng nhập"}</button>
+            </div>
+          </form>
+        </div>
+      )}
       {canMa && (
         <div className="man" role="alertdialog" aria-modal="true" aria-labelledby="can-ma-td">
           <div className="hop-xn">
@@ -509,7 +572,7 @@ export default function App() {
       {/* ===================== thanh trên ===================== */}
       <header className="tren">
         <BanDangDung />
-        {/* [ghi chú kỹ thuật] menu chéo 3 trang: trang này + 2 màn của trang KPI mekongai (cổng 5183). Tab mới, không gửi referrer, không kèm mã.
+        {/* [ghi chú] menu chéo 3 trang: trang này + 2 màn của trang KPI mekongai (cổng 5183). Tab mới, không gửi referrer, không kèm mã.
             GIỚI HẠN: trang KPI có mã mở riêng ⇒ trình duyệt chưa từng mở trang đó bằng đường có mã sẽ gặp màn nhắc nhập mã của họ. */}
         <nav className="menu" aria-label="Các trang">
           <span className="logo serif" aria-current="page"><i aria-hidden="true" />Xưởng <em>workflow</em></span>
@@ -534,8 +597,17 @@ export default function App() {
           title={cheDo === "dung" ? "Xem sản phẩm cuối của lượt: câu trả lời, bảng, file tải về" : "Quay lại sơ đồ khối"}
           onClick={() => setCheDo(cheDo === "ket_qua" ? "dung" : "ket_qua")}>
           {cheDo === "ket_qua" ? "← Về màn hình dựng" : "Kết quả lượt chạy"}</button>}
+        {ttNguoi?.user?.nguon === "dang_nhap" ? (
+          <span className="phu" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+            <b>{ttNguoi.user.display_name}</b>
+            <button className="nut nho" onClick={() => setMoDangNhap(true)} title="Đổi tài khoản">Đổi</button>
+            <button className="nut nho" onClick={bamDangXuat}>Thoát</button>
+          </span>
+        ) : (
+          <button className="nut nho" onClick={() => setMoDangNhap(true)} title="Đăng nhập tài khoản để tách lịch sử chat và quyền duyệt">Đăng nhập</button>
+        )}
         <button className="nut vuong" onClick={doiSangToi} aria-label={toi ? "Đổi sang nền sáng" : "Đổi sang nền tối"} title={toi ? "Đổi sang nền sáng" : "Đổi sang nền tối"}>{toi ? "☀" : "☾"}</button>
-        {/* [ghi chú kỹ thuật] ở trang Dữ liệu không hiện các nút dựng workflow (người dùng thường tưởng phải bấm "Lưu rồi chạy" sau khi tải file) */}
+        {/* [ghi chú] ở trang Dữ liệu không hiện các nút dựng workflow (người dùng thường tưởng phải bấm "Lưu rồi chạy" sau khi tải file) */}
         {trang !== "du_lieu" && <>
         <button className="nut" onClick={moi}>Mới</button>
         <button className="nut" onClick={kiemNgay} disabled={!nodes.length}>Kiểm</button>
@@ -544,7 +616,7 @@ export default function App() {
         </>}
       </header>
 
-      {trang === "du_lieu" && <DuLieu kyDangChay={kpi?.ky?.period} onVe={() => setTrang("xuong")}
+      {trang === "du_lieu" && <DuLieu kyDangChay={kpi?.ky?.period} nguoiMacDinh={ttNguoi?.user?.nguon === "dang_nhap" ? ttNguoi.user.display_name : undefined} onVe={() => setTrang("xuong")}
         onHoi={(cau) => window.dispatchEvent(new CustomEvent("tro-ly-dien-cau", { detail: cau }))}
         onHoiTaiLieu={(sha, ten) => window.dispatchEvent(new CustomEvent("tro-ly-mo-tai-lieu", { detail: { sha, ten } }))} />}
       <div className="giua" style={trang === "du_lieu" ? { display: "none" } : undefined}>
@@ -635,7 +707,7 @@ export default function App() {
                 <h4 style={{ marginTop: 14 }}>Workflow của tổ chức</h4>
               </div>
             )}
-            {/* [ghi chú kỹ thuật] mẫu "Hỏi dữ liệu bằng lời" nhóm kỹ thuật (workflow tên "Hỏi dữ liệu thử N — …"): nhóm RIÊNG, tách khỏi Mẫu KPI, ghi rõ dữ liệu thử */}
+            {/* [ghi chú] mẫu "Hỏi dữ liệu bằng lời" nhóm kỹ thuật (workflow tên "Hỏi dữ liệu thử N — …"): nhóm RIÊNG, tách khỏi Mẫu KPI, ghi rõ dữ liệu thử */}
             {tabTrai === "wf" && dsWf.some((w) => MAU_HOI_DL.test(w.ten)) && (
               <div className="nhom kpi-san thu">
                 <h4>Hỏi dữ liệu (thử) · {dsWf.filter((w) => MAU_HOI_DL.test(w.ten)).length} workflow làm sẵn</h4>
@@ -756,11 +828,13 @@ export default function App() {
             <div className="gantt">
               {[...nodes].sort((a, b) => (kq.st[a.id]?.bd ?? 9e15) - (kq.st[b.id]?.bd ?? 9e15)).map((n) => {
                 const x = kq.st[n.id]; const tong = Math.max(1000, mocCuoi - mocDau);
-                const l = x?.bd ? ((x.bd - mocDau) / tong) * 100 : 0, w = x?.bd ? (((x.kt ?? t) - x.bd) / tong) * 100 : 0;
+                const durMs = thoiLuongKhoi(x, t);
+                const l = x?.bd ? Math.max(0, ((x.bd - mocDau) / tong) * 100) : 0;
+                const w = durMs != null ? (durMs / tong) * 100 : 0;
                 return [
                   <div key={n.id + "a"} className="nh" onClick={() => setChon(n.id)} style={{ cursor: "pointer" }}><span className={"chip " + x?.s}>{x ? TT_VN[x.s].split(" —")[0] : ""}</span> {tenKhoiHien(n.data.label, luotCoTuDuyet(kq?.st))}</div>,
                   <div key={n.id + "b"} className="ray">{x?.bd && <div className={"thanh " + x.s} style={{ left: l + "%", width: Math.max(0.4, w) + "%" }} />}</div>,
-                  <div key={n.id + "c"} className="so">{x?.bd ? giay((x.kt ?? t) - x.bd) : ""}</div>,
+                  <div key={n.id + "c"} className="so">{durMs != null ? giay(durMs) : ""}</div>,
                   <div key={n.id + "d"} className="so">{tienKhoi[n.id] ? (tienKhoi[n.id].tien === null ? "không đo" : usd(tienKhoi[n.id].tien)) : ""}</div>,
                 ];
               })}
@@ -786,7 +860,7 @@ export default function App() {
   );
 }
 
-// ======================= "chạy lại từ khối này" (đối chiếu kỹ thuật) =======================
+// ======================= "chạy lại từ khối này" (C 16/11, hợp đồng API nhóm kỹ thuật) =======================
 // Bước 1 XEM TRƯỚC (0 đồng): máy chủ tính lại khoá từng khối trên bản đã lưu, báo khối nào chạy mới / dùng lại / đã sửa so với lượt cũ.
 // Bước 2 người bấm Chạy ⇒ máy chủ làm LẠI toàn bộ bước kiểm rồi mới chạy (không tin kết quả xem trước) ⇒ mở phiên MỚI như nút Chạy.
 function ChayLaiTuKhoi(p: { khoi: string; ten: (id: string) => string; wf: string; phien: string; mo: (s: string) => void }) {
@@ -828,16 +902,16 @@ function BangKhoi(p: {
   khoi: KhoiRF; b: BlockDef; x?: ReturnType<typeof tinh>["st"][string]; edges: Edge[]; nodes: KhoiRF[]; tien: Cost | null;
   sua: (id: string, f: (d: KhoiRF["data"]) => KhoiRF["data"]) => void; coLuot: boolean; raoChan?: boolean; dangChay: boolean;
   duyet: (node: string, q: "dong_y" | "tu_choi") => void; dur: number | null;
-  chayLai?: { wf: string; phien: string; mo: (s: string) => void } | null;   // [ghi chú kỹ thuật] lượt đang xem đã kết thúc + workflow đã lưu ⇒ hiện nút
-  preset?: KpiKhoi; kpi?: KpiDungSan | null;   // [ghi chú kỹ thuật] khối thuộc workflow KPI ⇒ chỉ hiện ô được sửa; ô khoá chỉ để xem
+  chayLai?: { wf: string; phien: string; mo: (s: string) => void } | null;   // [ghi chú] lượt đang xem đã kết thúc + workflow đã lưu ⇒ hiện nút
+  preset?: KpiKhoi; kpi?: KpiDungSan | null;   // [ghi chú] khối thuộc workflow KPI ⇒ chỉ hiện ô được sửa; ô khoá chỉ để xem
 }) {
   const { khoi, b, x } = p;
   const ps = p.preset;
-  // [ghi chú kỹ thuật] mô hình THẬT của loại khối này theo file mô hình khối (đọc lại mỗi lần mở một khối); null = khối chạy theo ô model của nó
+  // [ghi chú] mô hình THẬT của loại khối này theo file mô hình khối (đọc lại mỗi lần mở một khối); null = khối chạy theo ô model của nó
   const [mhk, setMhk] = useState<MoHinhKhoi | null>(null);
   useEffect(() => { let con = true; api.moHinhKhoi().then((d) => { if (con) setMhk(d); }).catch(() => { if (con) setMhk(null); }); return () => { con = false; }; }, [khoi.id]);
   const mhThat = mhk && mhk.khoi_doi_duoc.includes(b.type) ? (mhk.theo_khoi[b.type] || mhk.mac_dinh || null) : null;
-  // [ghi chú kỹ thuật] khối KPI dựng sẵn: đầu thẻ dùng mô tả của khối dựng sẵn; 3 câu ghi đè cho đúng hành vi thật [code]
+  // [ghi chú] khối KPI dựng sẵn: đầu thẻ dùng mô tả của khối dựng sẵn; 3 câu ghi đè cho đúng hành vi thật [code]
   const MO_TA_THE: Record<string, string> = {
     kpi_tro_ly: "AI đọc câu hỏi, gọi các công cụ tính thưởng của hệ thống rồi viết câu trả lời — không tự tính số. Trước khi trả, câu trả lời được kiểm số bằng code; sai thì AI được viết lại một lần.",
     kpi_kiem_so: "Kiểm số (AI kiểm, có đáp án): một AI kiểm được đưa nguyên kết quả công cụ của lượt này làm đáp án và so từng con số trong câu trả lời: đúng số, đúng người, đúng khoản. Không đạt hoặc không kiểm được ⇒ DỪNG cả lượt, khối sau không nhận gì. Bộ luật bằng code chạy kèm, chỉ ghi lại để đối chiếu. (Khối Trợ lý KPI đứng trước đã được viết lại một lần trước khi tới đây.)",
@@ -859,9 +933,38 @@ function BangKhoi(p: {
     const v = khoi.data.params[q.name];
     const kind = (q.kind || "").toLowerCase();
     let input: React.ReactNode;
-    if (b.type === "collections_node" && q.name === "datasets") {   // [ghi chú kỹ thuật] chọn dataset của tổ chức (máy chủ kiểm lại lúc Lưu / Chạy)
+    if (b.type === "collections_node" && q.name === "datasets") {   // [ghi chú] chọn dataset của tổ chức (máy chủ kiểm lại lúc Lưu / Chạy)
       input = <ChonDataset v={v} dat={(x) => datO(q.name, x)} />;
-    } else if (q.name === "rag_collections") {   // [ghi chú kỹ thuật] chọn kho của tổ chức thay cho gõ tên (máy chủ kiểm lại lúc chạy)
+    } else if (b.type === "agentic_deep_research_node" && q.name === "mcp_servers") {
+      const EXA = { url: "http://mcp-exa:8766/mcp", label: "exa_web_search", description: "Tra cứu web qua Exa (capitol-mcp-exa)", authentication: { type: "none" } };
+      const ds = (() => {
+        try {
+          const j = typeof v === "string" ? (v.trim() ? JSON.parse(v) : null) : v;
+          if (Array.isArray(j)) return j as Record<string, unknown>[];
+          if (j && typeof j === "object" && Array.isArray((j as { mcp_servers?: unknown }).mcp_servers)) return (j as { mcp_servers: Record<string, unknown>[] }).mcp_servers;
+        } catch { /* JSON chưa hợp lệ — giữ nguyên ô sửa tay */ }
+        return [] as Record<string, unknown>[];
+      })();
+      const coExa = ds.some((s) => /mcp-exa/i.test(String(s?.url || "")) || s?.label === "exa_web_search");
+      const batExa = (bat: boolean) => {
+        const conLai = ds.filter((s) => !/mcp-exa/i.test(String(s?.url || "")) && s?.label !== "exa_web_search");
+        const moi = bat ? [EXA, ...conLai] : conLai;
+        datO(q.name, moi.length ? { mcp_servers: moi } : "");
+      };
+      const chuJson = typeof v === "string" ? v : (v ? JSON.stringify(v, null, 2) : "");
+      input = (
+        <div>
+          <label style={{ fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+            <input type="checkbox" checked={coExa} onChange={(e) => batExa(e.target.checked)} />
+            Bật tra web Exa (<code>capitol-mcp-exa</code>)
+          </label>
+          <details style={{ marginTop: 4 }}>
+            <summary className="phu" style={{ cursor: "pointer" }}>Chỉnh JSON máy chủ MCP khác</summary>
+            <textarea value={chuJson} placeholder='{"mcp_servers": [...]}' onChange={(e) => datO(q.name, e.target.value)} />
+          </details>
+        </div>
+      );
+    } else if (q.name === "rag_collections") {   // [ghi chú] chọn kho của tổ chức thay cho gõ tên (máy chủ kiểm lại lúc chạy)
       input = <ChonKho v={String(v ?? "")} dat={(s) => datO(q.name, s)} />;
     } else if (q.choices?.length) {
       input = (
@@ -934,7 +1037,7 @@ function BangKhoi(p: {
               {(() => {
                 const cu = <div className="hop">{tomTatRao(x.ra) || dep(x.ra) || x.song || "—"}</div>;   // hành vi cũ — mọi khối ngoài bộ KPI
                 if (!ps || x.s === "chay") return cu;
-                // [ghi chú kỹ thuật] khối KPI dựng sẵn — chữ AI hiện qua bộ Markdown sẵn có (nút chữ React, không innerHTML)
+                // [ghi chú] khối KPI dựng sẵn — chữ AI hiện qua bộ Markdown sẵn có (nút chữ React, không innerHTML)
                 if (ps.ma === "kpi_duyet") return (
                   <>
                     <div className="hop">{x.s === "tc" ? "Lượt dừng ở bước duyệt (người duyệt bấm Từ chối hoặc lượt bị dừng từ ngoài) — không xuất file." : x.s === "xong" ? "Đã DUYỆT — file Excel (nếu có) tải ở “Kết quả lượt chạy”." : TT_VN[x.s]}{x.choMs > 0 ? ` Chờ người: ${giay(x.choMs)}.` : ""}</div>
@@ -1011,10 +1114,10 @@ function BangKhoi(p: {
               )}
               {xem.filter((f) => f !== "system_prompt" && f !== "tool_kpi").length > 0 && (
                 <details className="khoa"><summary>Xem cài đặt đã khoá ({xem.filter((f) => f !== "system_prompt" && f !== "tool_kpi").length})</summary>
-                  {/* [ghi chú kỹ thuật] nhãn TRÊN, giá trị DƯỚI (trước: lưới 2 cột, cột giá trị hẹp ⇒ chữ xuống dòng từng ký tự) */}
+                  {/* [ghi chú] nhãn TRÊN, giá trị DƯỚI (trước: lưới 2 cột, cột giá trị hẹp ⇒ chữ xuống dòng từng ký tự) */}
                   <div className="ds-khoa">{xem.filter((f) => f !== "system_prompt" && f !== "tool_kpi").map((f) => (
                     <div key={f} className="muc-khoa"><div className="nhan-khoa">{f === "max_tokens" ? "Giới hạn độ dài câu trả lời (max_tokens)" : (b.params.find((q) => q.name === f)?.label || f)}</div>
-                      <div className="gt-khoa">{f === "model" && mhThat ? `${tenMoHinh(mhThat)} (đặt trong file mô hình khối, áp cho mọi khối loại này)`   /* [ghi chú kỹ thuật] KHÔNG in lại giá trị cũ của ô (gpt-6-luna / 4000) lên mặt người dùng */
+                      <div className="gt-khoa">{f === "model" && mhThat ? `${tenMoHinh(mhThat)} (đặt trong file mô hình khối, áp cho mọi khối loại này)`   /* [ghi chú] KHÔNG in lại giá trị cũ của ô (gpt-6-luna / 4000) lên mặt người dùng */
                         : f === "max_tokens" && mhThat && /^claude-/.test(mhThat) ? "Không giới hạn riêng — luôn dùng mức tối đa của mô hình." 
                         : (ps.ghi_chu[f] || hien(f))}</div></div>))}</div>
                   {mhk?.loi && xem.includes("model") && <div className="phu" style={{ color: "var(--loi)" }}>{mhk.loi}</div>}</details>
@@ -1031,10 +1134,10 @@ function BangKhoi(p: {
 }
 
 // ======================= bảng phải: tiền cả lượt =======================
-// [ghi chú kỹ thuật] không có lời gọi nào đo được mà sổ của phiên có tiền (khối Chạy code / làm file) ⇒ lấy số của SỔ thay vì 0
+// [ghi chú] không có lời gọi nào đo được mà sổ của phiên có tiền (khối Chạy code / làm file) ⇒ lấy số của SỔ thay vì 0
 function tongTien(tien: Cost): number {
   const t = tien.total.main + tien.total.side + (tien.total.tool ?? 0);
-  return tien.calls.length === 0 && tien.so ? tien.so.usd_tinh_tran + tien.so.usd_bedrock_tham_khao : t;   // [ghi chú kỹ thuật] CỘNG cả hai — cùng nghĩa với lượt thường (tổng đã gồm tiền Claude, Claude chỉ ghi chú là tham khảo)
+  return tien.calls.length === 0 && tien.so ? tien.so.usd_tinh_tran + tien.so.usd_bedrock_tham_khao : t;   // [ghi chú] CỘNG cả hai — cùng nghĩa với lượt thường (tổng đã gồm tiền Claude, Claude chỉ ghi chú là tham khảo)
 }
 
 function BangTien({ tien, nodes, loi }: { tien: Cost | null; nodes: KhoiRF[]; loi?: boolean }) {
@@ -1067,7 +1170,7 @@ function BangTien({ tien, nodes, loi }: { tien: Cost | null; nodes: KhoiRF[]; lo
   );
 }
 
-// ======================= màn hình "Kết quả lượt chạy" — cho người dùng cuối (người dùng yêu cầu 04/11) =======================
+// ======================= màn hình "Kết quả lượt chạy" — cho người dùng cuối (User yêu cầu 04/11) =======================
 // Chỉ hiện SẢN PHẨM của lượt: nội dung các khối "Xuất…" (nhóm Đầu ra), theo thứ tự xong. JSON có cấu trúc ⇒ bảng; chữ ⇒ đoạn văn.
 // Capitol không có màn hình này trong bộ code (giao diện thật của họ không nằm trong image) — đây là bản của mình.
 const TEN_TRUONG: Record<string, string> = {
@@ -1082,9 +1185,9 @@ function GiaTri({ v }: { v: unknown }) {
   if (Array.isArray(v)) return v.length ? <ul style={{ margin: 0, paddingLeft: 18 }}>{v.map((x, i) => <li key={i}><GiaTri v={x} /></li>)}</ul> : <span className="phu">— (trống)</span>;
   if (typeof v === "object") return <BangJson d={v as Record<string, unknown>} />;
   const s = String(v);
-  // [ghi chú kỹ thuật] link kho nội bộ (minio:9000) không mở được từ máy ⇒ không hiện thành link; file tải bằng mục "File tải về" của màn kết quả
+  // [ghi chú] link kho nội bộ (minio:9000) không mở được từ máy ⇒ không hiện thành link; file tải bằng mục "File tải về" của màn kết quả
   if (/^https?:\/\/minio:9000\//.test(s)) return <span className="phu">(file trong kho nội bộ — tải bằng nút “Tải về” ở màn kết quả)</span>;
-  // [ghi chú kỹ thuật] giá trị này có thể do AI / công cụ viết ⇒ KHÔNG tạo liên kết ngoài để bấm (cùng luật với khung chat): hiện là chữ, chọn rồi chép được
+  // [ghi chú] giá trị này có thể do AI / công cụ viết ⇒ KHÔNG tạo liên kết ngoài để bấm (cùng luật với khung chat): hiện là chữ, chọn rồi chép được
   if (/^https?:\/\//.test(s)) return <span className="so" style={{ wordBreak: "break-all", userSelect: "all" }} title="Địa chỉ do lượt chạy trả về — trang không mở liên kết ngoài; chép nếu cần">{s}</span>;
   return <span style={{ whiteSpace: "pre-wrap" }}>{GIA_TRI_VN[s] ?? s}</span>;
 }
@@ -1097,13 +1200,13 @@ function BangJson({ d }: { d: Record<string, unknown> }) {
 }
 function NoiDung({ s }: { s: string | null }) {
   if (!s) return <span className="phu">— (chưa có nội dung)</span>;
-  // [ghi chú kỹ thuật] link ký sẵn của kho nội bộ (minio:9000 — có mã khoá truy cập + chữ ký trong URL) không mở được từ máy ⇒ không in nguyên link
+  // [ghi chú] link ký sẵn của kho nội bộ (minio:9000 — có mã khoá truy cập + chữ ký trong URL) không mở được từ máy ⇒ không in nguyên link
   if (/^\s*https?:\/\/minio:9000\/\S*\s*$/.test(s)) return <span className="phu">Khối này tạo ra một file — tải ở mục “File tải về” phía trên.</span>;
   try { const j = JSON.parse(s); if (j && typeof j === "object" && !Array.isArray(j)) return <BangJson d={j} />; } catch { /* chữ thường */ }
   return <div style={{ whiteSpace: "pre-wrap", fontSize: 15, lineHeight: 1.6 }}>{s}</div>;
 }
 
-// [ghi chú kỹ thuật] kết quả dễ đọc. Chữ AI hiện bằng phần tử React (KHÔNG innerHTML / HTML thô):
+// [ghi chú] kết quả dễ đọc. Chữ AI hiện bằng phần tử React (KHÔNG innerHTML / HTML thô):
 // markdown tối giản — **đậm**, dòng "- " / "* " / "1. " thành danh sách, dòng "#" thành tiêu đề nhỏ, còn lại giữ xuống dòng.
 function ChuDam({ s }: { s: string }) {
   return <>{s.split(/(\*\*[^*\n]+\*\*)/g).map((x, i) => (x.startsWith("**") && x.endsWith("**") && x.length > 4 ? <b key={i}>{x.slice(2, -2)}</b> : <span key={i}>{x}</span>))}</>;
@@ -1135,16 +1238,16 @@ function DuLieuGoc({ v }: { v: unknown }) {
     </details>
   );
 }
-// [ghi chú kỹ thuật] câu trả lời to (chữ có chân, bảng markdown thành bảng thật), 3 ô số, bảng thưởng gập
+// [ghi chú] câu trả lời to (chữ có chân, bảng markdown thành bảng thật), 3 ô số, bảng thưởng gập
 // (nhân viên × KPI, số canh phải, chữ số đều cột), nhãn "tạm tính, chưa duyệt" / "giám sát đã duyệt lượt này".
 const soVn = (x: unknown) => (typeof x === "number" ? x.toLocaleString("vi-VN") : "—");
 const khongMo = () => { /* màn kết quả không mở workflow từ câu trả lời */ };
 
-// ======================= [ghi chú kỹ thuật] tải file từ màn kết quả =======================
+// ======================= [ghi chú] tải file từ màn kết quả =======================
 function luuVeMay(b: Blob, ten: string) {
   const u = URL.createObjectURL(b), a = document.createElement("a");
   a.href = u; a.download = ten; a.style.display = "none"; document.body.appendChild(a); a.click();
-  setTimeout(() => { a.remove(); URL.revokeObjectURL(u); }, 10_000);   // [ghi chú kỹ thuật] giữ thẻ tải trong trang vài giây rồi mới gỡ (gỡ ngay ⇒ có trình duyệt không kịp bắt đầu tải)
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(u); }, 10_000);   // [ghi chú] giữ thẻ tải trong trang vài giây rồi mới gỡ (gỡ ngay ⇒ có trình duyệt không kịp bắt đầu tải)
 }
 /** Bản Excel của một file .csv / .tsv của lượt: máy chủ dựng (GET …&dang=xlsx). Không dựng được ⇒ hiện lý do máy chủ trả, KHÔNG tải file lỗi về máy. */
 async function taiBanExcel(phien: string, f: TepLuot, baoLoi: (s: string | null) => void) {
@@ -1174,7 +1277,7 @@ function KetQuaMd({ chu, ten }: { chu: string; ten: string }) {
     </>
   );
 }
-// [ghi chú kỹ thuật] thanh trên: đang tính trên bản nào (mặc định = bản lúc bật máy chủ KPI, không hiện gì)
+// [ghi chú] thanh trên: đang tính trên bản nào (mặc định = bản lúc bật máy chủ KPI, không hiện gì)
 function BanDangDung() {
   const b = useBanDuLieu();
   if (!b) return null;
@@ -1186,7 +1289,7 @@ function BanDangDung() {
   );
 }
 function KetQuaKpi({ g, phien }: { g: GoiKpi; phien?: string }) {
-  const gui = useDaGui(phien || "");   // [ghi chú kỹ thuật] bản trang đã gửi khi bấm chạy lượt này (undefined = không biết)
+  const gui = useDaGui(phien || "");   // [ghi chú] bản trang đã gửi khi bấm chạy lượt này (undefined = không biết)
   const lech = typeof gui === "string" && g.data_version !== gui;
   const bt = g.bang_thuong ?? {};
   const ls = Array.isArray(bt.lines) ? bt.lines : [];
@@ -1269,7 +1372,7 @@ function KetQuaDep({ k, phien }: { k: KetQuaKhoi; phien?: string }) {
   return <><NoiDung s={typeof k.v === "string" ? k.v : null} /><NguonTaiLieu chu={typeof k.v === "string" ? k.v : null} /></>;
 }
 
-// [ghi chú kỹ thuật] "Dấu vết lượt chạy": gập sẵn, chỉ gọi máy chủ khi mở. Mô hình / token / tiền lấy TỪ BẢN GHI
+// [ghi chú] "Dấu vết lượt chạy": gập sẵn, chỉ gọi máy chủ khi mở. Mô hình / token / tiền lấy TỪ BẢN GHI
 // lần gọi (không từ cấu hình khối); mô hình ≠ gpt-6-luna ⇒ cờ đỏ. Mức suy nghĩ: bản ghi không có ⇒ ghi rõ, kèm cấu hình trong mã.
 function DauVetLuot({ phien }: { phien: string }) {
   const [d, setD] = useState<DauVet | null>(null);
@@ -1331,7 +1434,7 @@ function DauVetLuot({ phien }: { phien: string }) {
   );
 }
 
-// [ghi chú kỹ thuật] workflow "Hỏi dữ liệu bằng lời": mọi câu SQL lượt đã gọi (chữ đơn cách, chỉ đọc) + bảng kết quả công cụ trả về.
+// [ghi chú] workflow "Hỏi dữ liệu bằng lời": mọi câu SQL lượt đã gọi (chữ đơn cách, chỉ đọc) + bảng kết quả công cụ trả về.
 // Dữ liệu lấy từ bản ghi lần gọi công cụ — trang KHÔNG chạy lại câu nào. Ô bảng là chữ thường của React (không HTML).
 function TruyVanLuot({ d, tenKhoi }: { d: TruyVan; tenKhoi: (id: string) => string }) {
   return (
@@ -1373,25 +1476,25 @@ function ManKetQua(p: {
   luot: RunDetail; kq: ReturnType<typeof tinh>; nodes: KhoiRF[]; edges: Edge[]; theoLoai: Record<string, BlockDef>; tien: Cost | null;
   tongLuot: number | null; tongCho: number; xemKhoi: (id: string) => void;
 }) {
-  // undefined = ĐANG TẢI (chưa có câu trả lời của máy chủ) · null = tải lỗi · object = đã có. [người dùng 12/11] không in gói thô trong lúc chờ.
+  // undefined = ĐANG TẢI (chưa có câu trả lời của máy chủ) · null = tải lỗi · object = đã có. [người vận hành] không in gói thô trong lúc chờ.
   const [ketQua, setKetQua] = useState<Record<string, KetQuaKhoi> | null | undefined>(undefined);
   const phien = p.luot.luot.phien, ttLuot = p.luot.luot.tt;
   // lấy khi lượt mở / đổi trạng thái (xong, chờ duyệt…); lỗi ⇒ giữ cách hiện cũ (NoiDung) — không chặn màn hình
   useEffect(() => { api.ketQua(phien).then(setKetQua).catch(() => setKetQua(null)); }, [phien, ttLuot]);
   const [truyVan, setTruyVan] = useState<TruyVan | null>(null);
-  // [ghi chú kỹ thuật] chỉ hỏi máy chủ khi workflow có khối Agent bật công cụ hỏi dữ liệu bằng SQL
+  // [D minor lần gắn 6] chỉ hỏi máy chủ khi workflow có khối Agent bật công cụ hỏi dữ liệu bằng SQL
   const coSql = p.nodes.some((n) => n.data.loai === "agent_node" && [true, "true", "True", 1].includes(n.data.params.tool_sql_query as never));
   useEffect(() => { setTruyVan(null); if (coSql) api.truyVan(phien).then(setTruyVan).catch(() => setTruyVan(null)); }, [phien, ttLuot, coSql]);
   const [tep, setTep] = useState<TepLuot[]>([]);
   useEffect(() => { api.tepLuot(phien).then(setTep).catch(() => setTep([])); }, [phien, ttLuot]);
-  const [loiTep, setLoiTep] = useState<string | null>(null);   // [ghi chú kỹ thuật] lý do không dựng được bản Excel (file quá lớn…) — hiện cạnh danh sách file
+  const [loiTep, setLoiTep] = useState<string | null>(null);   // [ghi chú] lý do không dựng được bản Excel (file quá lớn…) — hiện cạnh danh sách file
   const ra = p.nodes.filter((n) => p.theoLoai[n.data.loai]?.group_key === "output")
     .sort((a, b) => (p.kq.st[a.id]?.kt ?? 9e15) - (p.kq.st[b.id]?.kt ?? 9e15));
   const tt = p.luot.luot.tt;
   const tongTien = p.tien ? p.tien.total.main + p.tien.total.side + (p.tien.total.tool ?? 0) : null;
   const khongNguon = p.tien?.checks ? Object.values(p.tien.checks).reduce((s, c) => s + c.khong_nguon, 0) : 0;
   const duyet = p.nodes.filter((n) => n.data.loai === "human_intervention_node");
-  // [ghi chú kỹ thuật] STOPPED KHÔNG có nghĩa "người duyệt từ chối": Capitol ghi "Workflow was stopped by user" cho MỌI lượt dừng
+  // [ghi chú] STOPPED KHÔNG có nghĩa "người duyệt từ chối": Capitol ghi "Workflow was stopped by user" cho MỌI lượt dừng
   // (persist_results.py:314-316), kể cả khi khối duyệt bị từ chối. Dấu thật duy nhất trang có: khối duyệt đã có awaiting_intervention mà sau đó
   // không có sự kiện xong / lỗi của chính khối đó ⇒ lượt dừng Ở bước duyệt (từ chối hoặc dừng từ ngoài — không phân biệt được).
   const dungODuyet = (() => {
@@ -1403,14 +1506,14 @@ function ManKetQua(p: {
     }
     return null;
   })();
-  // [ghi chú kỹ thuật] NHÃN "do AI viết" ở tầng THẺ KẾT QUẢ: thẻ nào có khối Agent đứng TRƯỚC (theo dây của workflow — cấu hình, không
+  // [ghi chú] NHÃN "do AI viết" ở tầng THẺ KẾT QUẢ: thẻ nào có khối Agent đứng TRƯỚC (theo dây của workflow — cấu hình, không
   // phải dữ liệu lượt) thì MỌI cách hiện nội dung (gói KPI, bảng, chữ thô khi không lấy được /ket-qua) đều mang nhãn; lượt đã duyệt vẫn mang nhãn.
   const bat = (v: unknown) => v === true || v === 1 || (typeof v === "string" && ["true", "1", "yes", "on"].includes(v.trim().toLowerCase()));
   const nhanAi = (id: string, laGoiKpi: boolean): string | null => {
     const da = new Set<string>(), hang = [id];
     while (hang.length) { const k = hang.pop()!; for (const e of p.edges) if (e.target === k && !da.has(e.source)) { da.add(e.source); hang.push(e.source); } }
     const ag = p.nodes.filter((n) => da.has(n.id) && n.data.loai === "agent_node");
-    // [ghi chú kỹ thuật] không xác định được khối đứng trước (thẻ không có dây vào trong sơ đồ đang mở — vd workflow bị sửa sau lượt) ⇒ MẶC ĐỊNH CÓ nhãn chung
+    // [D minor] không xác định được khối đứng trước (thẻ không có dây vào trong sơ đồ đang mở — vd workflow bị sửa sau lượt) ⇒ MẶC ĐỊNH CÓ nhãn chung
     if (!da.size && !laGoiKpi) return "Câu trả lời có thể do AI viết — chưa có người đọc duyệt.";
     if (laGoiKpi || ag.some((n) => bat(n.data.params.tool_kpi))) return "Lời giải thích của AI — chưa có người đọc duyệt; số chính thức là bảng dưới.";
     if (ag.some((n) => bat(n.data.params.tool_sql_query))) return "Câu trả lời do AI viết — chưa có người đọc duyệt; số lấy từ câu truy vấn bên dưới.";
@@ -1438,7 +1541,7 @@ function ManKetQua(p: {
         {khongNguon > 0 && <div className="canh-bao" style={{ marginTop: 12 }}>Có {khongNguon} ý trong câu trả lời của AI KHÔNG tìm thấy nguồn (bộ đối chiếu bằng code) — kiểm trước khi dùng.</div>}
         {duyet.map((n) => p.kq.st[n.id]?.s === "duyet" && <div key={n.id} className="canh-bao" style={{ marginTop: 12 }}>Đang chờ duyệt ở “{n.data.label}” — <a href="#" onClick={(e) => { e.preventDefault(); p.xemKhoi(n.id); }}>mở để Duyệt / Từ chối</a>.</div>)}
         {tep.length > 0 && (() => {
-          // [ghi chú kỹ thuật] tách file ĐẦU VÀO (khối Nhận file) khỏi file KẾT QUẢ — trước: gộp chung dưới "File tải về" ⇒ tưởng file đưa vào là kết quả
+          // [ghi chú] tách file ĐẦU VÀO (khối Nhận file) khỏi file KẾT QUẢ — trước: gộp chung dưới "File tải về" ⇒ tưởng file đưa vào là kết quả
           const khoiCua = (f: TepLuot) => p.nodes.find((n) => n.id === f.node);
           const laVao = (f: TepLuot) => khoiCua(f)?.data.loai === "file_input_node";
           const kq = tep.filter((f) => !laVao(f)), vao = tep.filter(laVao);
@@ -1485,7 +1588,7 @@ function ManKetQua(p: {
                 : x?.s === "loi" ? <div className="hop loi">{x.loi}</div>
                 : x?.s === "chay" || x?.s === "cho" ? <div className="phu">Đang làm…</div>
                 : ketQua === undefined ? <div className="phu">Đang tải kết quả…</div>
-                : n.data.loai === "markdown_output_node" && chuMdCua(ketQua?.[n.id], x?.ra) ? <KetQuaMd chu={chuMdCua(ketQua?.[n.id], x?.ra)!} ten={n.data.label} />   /* [ghi chú kỹ thuật] dựng Markdown + nút tải .md */
+                : n.data.loai === "markdown_output_node" && chuMdCua(ketQua?.[n.id], x?.ra) ? <KetQuaMd chu={chuMdCua(ketQua?.[n.id], x?.ra)!} ten={n.data.label} />   /* [ghi chú] dựng Markdown + nút tải .md */
                 : ketQua?.[n.id] ? <KetQuaDep k={ketQua[n.id]} phien={phien} />
                 : /^\s*\{\s*['"]cau_tra_loi['"]/.test(x?.ra ?? "") ? <div className="phu">Chưa đọc được kết quả đã xử lý của khối này — bấm lại lượt này trong danh sách.</div>
                 : <NoiDung s={x?.ra ?? null} />}

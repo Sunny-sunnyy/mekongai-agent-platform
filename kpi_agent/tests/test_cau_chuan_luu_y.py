@@ -30,7 +30,7 @@ def test_sentence_shape():
 
 def test_verbatim_sentences_pass_and_need_the_mask(monkeypatch):
     result = check(ALL)
-    assert result["dat"] is True and result["phien_ban"] == "kiem_so@30", result
+    assert result["dat"] is True and result["phien_ban"] == "kiem_so@31", result
     # Vì sao phải che (đỏ trên @26): số trong LỜI lưu ý ("80 %") đứng cạnh mã người ⇒ luật số-của-ai chặn oan câu code viết
     monkeypatch.setattr(oc, "issue_sentences", lambda tool_results: [])
     assert "so_sai_nguoi" in [problem["loai"] for problem in check(ALL)["loi"]]

@@ -334,18 +334,17 @@ class ModelResolutionMixin:
                 if model == registry_model.value:
                     return registry_model
 
-        # Model not found - determine provider and use default
-        # Check if the model string suggests a specific provider
+        # Model not found - mọi fallback mặc định về gpt-6-luna (Chặng 2: 100% gpt-6-luna, bỏ Claude/GPT-5.2/Gemini fallback)
         if model.startswith("claude") or "anthropic" in model.lower():
-            default_model = AnthropicModels.CLAUDE_SONNET_4_6
+            default_model = OpenAIModels.GPT_6_LUNA
             await self.emit_progress(
-                f"Model '{model}' not found in Anthropic models. "
+                f"Model '{model}' not available in 100% Luna mode. "
                 f"Defaulting to {default_model.value}."
             )
             return default_model
 
         if model.startswith("gpt") or model.startswith("o3") or model.startswith("o4"):
-            default_model = OpenAIModels.GPT_5_2
+            default_model = OpenAIModels.GPT_6_LUNA
             await self.emit_progress(
                 f"Model '{model}' not found in OpenAI models. "
                 f"Defaulting to {default_model.value}."
@@ -353,18 +352,18 @@ class ModelResolutionMixin:
             return default_model
 
         if "/" in model:  # OpenRouter models use provider/model format
-            default_model = OpenRouterModels.GOOGLE_GEMINI_3_1_PRO_PREVIEW
+            default_model = OpenAIModels.GPT_6_LUNA
             await self.emit_progress(
-                f"Model '{model}' not found in OpenRouter models. "
+                f"Model '{model}' not available in 100% Luna mode. "
                 f"Defaulting to {default_model.value}."
             )
             return default_model
 
-        # If we can't determine the provider, default to Anthropic Sonnet 4.6
-        default_model = AnthropicModels.CLAUDE_SONNET_4_6
+        # Unrecognized model defaults to gpt-6-luna (previously Anthropic Claude Sonnet 4.6)
+        default_model = OpenAIModels.GPT_6_LUNA
         await self.emit_progress(
             f"Model '{model}' not recognized. "
-            f"Defaulting to Anthropic {default_model.value}."
+            f"Defaulting to {default_model.value}."
         )
         return default_model
 

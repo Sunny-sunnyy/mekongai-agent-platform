@@ -85,6 +85,26 @@ def test_refusal_says_what_is_wrong_without_file_text(tmp_path, rows, must_say, 
     assert refusal.code == code
 
 
+def test_xlsb_workbook_is_refused_with_how_to_fix_it_not_package_jargon():
+    """Sổ gốc đội gửi là .xlsb (Excel nhị phân) — trước 20/11 người tải nhận "gói thiếu xl/workbook.xml", không biết phải làm gì. Nhận biết bằng NỘI
+    DUNG gói (có xl/workbook.bin), không theo đuôi tên; lời nói cách sửa + mã cố định để màn bên Capitol nói cùng lời."""
+    import zipfile
+    small = io.BytesIO()
+    with zipfile.ZipFile(small, "w") as archive:                       # gói .xlsb tối thiểu — chạy được cả trên máy không có dữ liệu thật
+        archive.writestr("[Content_Types].xml", "<Types/>")
+        archive.writestr("xl/workbook.bin", b"\x00")
+    bodies = [small.getvalue()]
+    real = ROOT / "sample_data/thang_10/Tracking.xlsb"                  # sổ thật của đội (6 MB), có thì thử luôn
+    if real.exists():
+        bodies.append(real.read_bytes())
+    for body in bodies:
+        with pytest.raises(upload.UploadRefused) as refused:
+            upload.check_package(body)
+        assert refused.value.code == "xlsb_can_luu_xlsx" and refused.value.status == 422
+        assert ".xlsb" in refused.value.reason and "Lưu thành" in refused.value.reason and ".xlsx" in refused.value.reason
+        assert "workbook" not in refused.value.reason and "gói" not in refused.value.reason      # không chữ kỹ thuật
+
+
 def test_good_file_still_passes(tmp_path):
     path = tmp_path / "raw.xlsx"
     path.write_bytes(workbook([*GOOD, total(1500, 1400, 100)]))
@@ -101,7 +121,7 @@ def test_unknown_loader_error_stays_generic(tmp_path):
 
 
 def test_reconcile_messages_only_the_two_total_ones_come_back_verbatim():
-    # Người kiểm 18/11: bản đầu trả nguyên MỌI lời bắt đầu bằng tiền tố cổng đối soát. Lời "bị loại … %" của loader có thể mang mã NV + doanh số riêng
+    # 18/11: bản đầu trả nguyên MỌI lời bắt đầu bằng tiền tố cổng đối soát. Lời "bị loại … %" của loader có thể mang mã NV + doanh số riêng
     # ⇒ phải về câu chung; chỉ hai lời lệch tổng (toàn chữ số) được trả nguyên.
     tail = " — file thiếu / thừa dòng hoặc ô tiền đọc sai; kiểm lại file"
     after = "cổng đối soát RAW chặn: tổng doanh số SAU chiết khấu các dòng đọc được 1.400 đ ≠ dòng 'Total' của file 1.300 đ" + tail

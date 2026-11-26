@@ -590,6 +590,14 @@ async def _composio_connection_gate(
     }
 
 
+def _judge_model_id(settings_obj) -> str:
+    """[ghi chú] Ép bộ chấm bám việc (task-alignment judge) dùng gpt-6-luna, chặn fallback Claude Haiku."""
+    v = str(getattr(settings_obj, "A2A_TASK_ALIGNMENT_JUDGE_MODEL", "") or "").strip()
+    if not v or v.lower().startswith("claude") or "anthropic" in v.lower():
+        return "gpt-6-luna"
+    return v
+
+
 async def _persona_block_rejection(
     *, blocked: Any, workflow_purpose: Optional[str]
 ) -> Dict[str, Any]:
@@ -617,7 +625,7 @@ async def _persona_block_rejection(
     scores = await ta.score_task_relevance(
         amended_tasks=[task for task, _ in blocked],
         workflow_purpose=workflow_purpose,
-        model_id=settings.A2A_TASK_ALIGNMENT_JUDGE_MODEL,
+        model_id=_judge_model_id(settings),
         timeout_s=settings.A2A_TASK_ALIGNMENT_TIMEOUT_S,
         retries=settings.A2A_TASK_ALIGNMENT_JUDGE_RETRIES,
     )
@@ -715,7 +723,7 @@ async def _task_alignment_gate(
         scores = await ta.score_task_relevance(
             amended_tasks=amended,
             workflow_purpose=purpose,
-            model_id=settings.A2A_TASK_ALIGNMENT_JUDGE_MODEL,
+            model_id=_judge_model_id(settings),
             timeout_s=settings.A2A_TASK_ALIGNMENT_TIMEOUT_S,
             retries=settings.A2A_TASK_ALIGNMENT_JUDGE_RETRIES,
         )

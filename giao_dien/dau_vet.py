@@ -1,4 +1,4 @@
-"""Dấu vết một lượt chạy — C 11/11/2026 (nhóm phát triển xác nhận, bảng hướng phát triển bậc 1). Chỉ ĐỌC dữ liệu Capitol đã có của lượt (PostgreSQL + sự kiện khối),
+"""Dấu vết một lượt chạy — C 11/11/2026 (đã giao, bảng hướng phát triển bậc 1). Chỉ ĐỌC dữ liệu Capitol đã có của lượt (PostgreSQL + sự kiện khối),
 không gọi AI, 0 đồng. Gom theo khối: thời gian · lần gọi mô hình (tên mô hình + token + tiền LẤY TỪ BẢN GHI LẦN GỌI — message_history, qua
 may_chu.chi_phi) · công cụ đã gọi + tham số + tóm kết quả (cắt ngắn, may_chu.cong_cu_da_goi) · Rào chắn (lần đầu / lần cuối đạt hay không + lý do)
 · Người duyệt (chờ từ, quyết lúc, chờ bao lâu, qua đâu).
@@ -6,14 +6,14 @@ may_chu.chi_phi) · công cụ đã gọi + tham số + tóm kết quả (cắt 
 Vì sao "từ bản ghi lần gọi", không từ cấu hình khối (bài học "kiểm từ nguồn sự thật"): cấu hình ghi gpt-6-luna nhưng lần gọi thật có thể khác
 (đường dự phòng, khối gọi mô hình mặc định). Cấu hình vẫn hiện bên cạnh để so; khác nhau ⇒ cờ đỏ.
 Mức suy nghĩ: bản ghi lần gọi KHÔNG có (pydantic-ai bỏ trường reasoning của OpenAI) ⇒ ghi rõ "không có trong bản ghi" + cấu hình trong mã
-(nhóm phát triển xác nhận 11/11, phương án a). Bằng chứng gián tiếp có thật: reasoning_tokens trong usage.
+(đã chốt 11/11, phương án a). Bằng chứng gián tiếp có thật: reasoning_tokens trong usage.
 """
 import json
 import re
 from datetime import datetime
 
-MO_HINH_DUNG = "gpt-6-luna"   # luật người dùng 04/11: mọi khối AI dùng gpt-6-luna — [ghi chú kỹ thuật] từ 18/11 người dùng chuyển sang Claude qua Bedrock ⇒ chỉ còn là mặc định khi chưa nối
-# [ghi chú kỹ thuật] may_chu gán lại hai hàm dưới (một nguồn: bảng cổng AI + file mô hình khối). Mặc định = hành vi cũ (chỉ luna hợp lệ) để module tự chạy được.
+MO_HINH_DUNG = "gpt-6-luna"   # luật người vận hành: mọi khối AI dùng gpt-6-luna — [ghi chú] từ 18/11 User chuyển sang Claude qua Bedrock ⇒ chỉ còn là mặc định khi chưa nối
+# [ghi chú] may_chu gán lại hai hàm dưới (một nguồn: bảng cổng AI + file mô hình khối). Mặc định = hành vi cũ (chỉ luna hợp lệ) để module tự chạy được.
 MO_HINH_HOP_LE = lambda m: m == MO_HINH_DUNG   # noqa: E731 — mô hình có trong bảng cổng AI không
 CAU_HINH_FILE = lambda: {}                      # noqa: E731 — {"mac_dinh", "theo_khoi", "khoi_doi_duoc", "loi"} của file mô hình khối LÚC XEM
 _MUC = ("low", "medium", "high", "xhigh", "max")
@@ -54,11 +54,39 @@ def _giay(a, b):
     return round((tb - ta).total_seconds(), 1) if ta and tb else None
 
 
-DAU_HIEU_DUNG = "KHÔNG LÀM ĐƯỢC"   # [ghi chú kỹ thuật] chuỗi cố định của lời dặn dùng chung (va_chan_luong/loi_dan_chung.py)
+def _giay_khoi(es: list[dict]) -> float | None:
+    """Tính thời lượng một khối chịu được lệch giờ lùi trên WSL:
+    nếu begin.ts > end.ts hoặc chênh timestamp âm, lùi về created_at (DB) rồi kẹp >= 0.0."""
+    if not es:
+        return None
+    tss = [_ts(e.get("ts")) for e in es]
+    valid_ts = [x for x in tss if x is not None]
+    if valid_ts:
+        g_ts = round((valid_ts[-1] - valid_ts[0]).total_seconds(), 1)
+        g_span = round((max(valid_ts) - min(valid_ts)).total_seconds(), 1)
+    else:
+        g_ts, g_span = None, None
+    cs = [_ts(e.get("c")) for e in es]
+    valid_c = [x for x in cs if x is not None]
+    g_c = round((valid_c[-1] - valid_c[0]).total_seconds(), 1) if len(valid_c) >= 2 else None
+    if g_ts is not None and g_ts >= 0:
+        # Nếu sự kiện đầu/cuối trùng ts (vd begin bị kẹp về end) mà created_at hoặc dải ts rộng hơn ⇒ lấy dải đáng tin
+        if g_ts == 0.0:
+            if g_c is not None and g_c > 0:
+                return g_c
+            if g_span is not None and g_span > 0:
+                return g_span
+        return g_ts
+    if g_c is not None and g_c >= 0:
+        return g_c
+    return max(0.0, g_span) if g_span is not None else None
+
+
+DAU_HIEU_DUNG = "KHÔNG LÀM ĐƯỢC"   # [ghi chú] chuỗi cố định của lời dặn dùng chung (va_chan_luong/loi_dan_chung.py)
 
 
 def _cong_cu_loi(ket_qua, thu_lai: bool) -> bool:
-    """[ghi chú kỹ thuật] một lần gọi công cụ là LỖI khi: pydantic-ai bắt thử lại (retry-prompt) hoặc kết quả là {\"ok\": false, …} (khuôn lỗi chung
+    """[ghi chú] một lần gọi công cụ là LỖI khi: pydantic-ai bắt thử lại (retry-prompt) hoặc kết quả là {\"ok\": false, …} (khuôn lỗi chung
     của công cụ bộ mình — native_tools.py). {\"refused\": …} của công cụ KPI là TỪ CHỐI ĐÚNG LUẬT, không tính lỗi."""
     if thu_lai:
         return True
@@ -92,7 +120,7 @@ def _rao_tu_gia_tri(v: str):
 
 def _duyet_tu_nhat_ky(nhat_ky_path, phien: str, node: str):
     """Dòng 'DUYỆT / TỪ CHỐI phiên <s> khối <node>' do may_chu ghi khi người dùng bấm trên trang 18400 ⇒ (quyết, giờ) hoặc None."""
-    try:   # [ghi chú kỹ thuật] chỉ đọc ≤ 2 MB CUỐI file (nay 66 KB) — file lớn dần không làm chậm / tốn RAM mỗi lần mở; dòng cũ hơn ⇒ "không có trong nhật ký"
+    try:   # [D minor 11/11] chỉ đọc ≤ 2 MB CUỐI file (nay 66 KB) — file lớn dần không làm chậm / tốn RAM mỗi lần mở; dòng cũ hơn ⇒ "không có trong nhật ký"
         with open(nhat_ky_path, "rb") as f:
             f.seek(0, 2)
             n = f.tell()
@@ -122,11 +150,11 @@ def dau_vet(xem, phien: str, chi_phi, cong_cu_da_goi, nhat_ky_path) -> dict | No
     do_thi = xem.do_thi(r.get("payload") or {})
     # sự kiện gọn của lượt: thời gian từng khối + sự kiện của Rào / Người duyệt (giá trị cắt TRAN_GIA_TRI ký tự)
     ev = xem.sql(f"""select coalesce(json_agg(json_build_object('n', coalesce(e.node_instance_id::text, e.event_data->'data'->>'node_id'),
-            't', e.event_type, 'ts', e.timestamp,
+            't', e.event_type, 'ts', e.timestamp, 'c', e.created_at,
             'v', case when e.event_type='node_result' then left(e.event_data->'data'->>'value', {TRAN_GIA_TRI}) end,
             'loi', case when e.event_type='execution_failed' then left(e.event_data->'data'->>'error', 500) end,
             'res', case when e.event_type='lifecycle' then e.event_data->'data'->>'resolution' end,
-            'han', case when e.event_type='awaiting_intervention' then e.event_data->'data'->>'timeout' end) order by e.timestamp), '[]')
+            'han', case when e.event_type='awaiting_intervention' then e.event_data->'data'->>'timeout' end) order by e.created_at, e.timestamp, e.id), '[]')
         from workflow_event e where e.run_id='{rid}' and e.event_type in
             ('begin', 'end', 'node_result', 'execution_failed', 'execution_successful', 'awaiting_intervention', 'lifecycle')""") or []
     theo_khoi: dict = {}
@@ -148,11 +176,11 @@ def dau_vet(xem, phien: str, chi_phi, cong_cu_da_goi, nhat_ky_path) -> dict | No
         tt = next((e["t"] for e in reversed(es) if e["t"] in ("execution_successful", "execution_failed")), None)
         muc = {"id": nid, "ten": k.get("ten"), "loai": loai, "loai_goc": k.get("loai_goc"),
                "trang_thai": {"execution_successful": "xong", "execution_failed": "lỗi"}.get(tt, "chưa chạy / bỏ qua" if not es else "dở"),
-               "giay": _giay(es[0]["ts"], es[-1]["ts"]) if es else None}
+               "giay": _giay_khoi(es)}
         lan = goi.get(nid, [])
         if lan or k.get("mo_hinh"):
             mh = sorted({x.get("model") for x in lan if x.get("model")})
-            # [ghi chú kỹ thuật] cờ đỏ CHỈ khi mô hình trong bản ghi lần gọi KHÔNG có trong bảng cổng AI (tên lạ). Trong bảng nhưng khác file hiện tại ⇒ ghi chú thường.
+            # [ghi chú] cờ đỏ CHỈ khi mô hình trong bản ghi lần gọi KHÔNG có trong bảng cổng AI (tên lạ). Trong bảng nhưng khác file hiện tại ⇒ ghi chú thường.
             do = [m for m in mh if not MO_HINH_HOP_LE(m)]
             mh_file = _mo_hinh_file(loai)
             o_la = bool(k.get("mo_hinh")) and not MO_HINH_HOP_LE(str(k.get("mo_hinh")).rsplit(":", 1)[-1].strip()) and not mh and not mh_file
@@ -180,11 +208,11 @@ def dau_vet(xem, phien: str, chi_phi, cong_cu_da_goi, nhat_ky_path) -> dict | No
             muc["cong_cu"] = [{"ten": x.get("tool"), "tham_so": _cat(x.get("args"), TRAN_THAM_SO), "ket_qua": _cat(x.get("result"), TRAN_KET_QUA),
                                "thu_lai": bool(x.get("retry")), "giay": _giay(x.get("at"), x.get("returned_at"))} for x in t[:TRAN_CONG_CU]]
             muc["so_cong_cu"] = len(t)
-            muc["so_cong_cu_loi"] = sum(_cong_cu_loi(x.get("result"), bool(x.get("retry"))) for x in t)   # [ghi chú kỹ thuật] đếm trên MỌI lần, không chỉ phần hiện
+            muc["so_cong_cu_loi"] = sum(_cong_cu_loi(x.get("result"), bool(x.get("retry"))) for x in t)   # [ghi chú] đếm trên MỌI lần, không chỉ phần hiện
             for x, c in zip(t, muc["cong_cu"]):
                 c["loi"] = _cong_cu_loi(x.get("result"), bool(x.get("retry")))
         if any(e["t"] == "node_result" and DAU_HIEU_DUNG in str(e.get("v") or "")[:400] for e in es):
-            muc["tu_bao_khong_lam_duoc"] = True   # [ghi chú kỹ thuật] khối tự báo hỏng theo lời dặn dùng chung
+            muc["tu_bao_khong_lam_duoc"] = True   # [ghi chú] khối tự báo hỏng theo lời dặn dùng chung
         if loai == "guardrails_node":
             lan_kiem = []
             for e in es:
@@ -210,5 +238,5 @@ def dau_vet(xem, phien: str, chi_phi, cong_cu_da_goi, nhat_ky_path) -> dict | No
             "so_lan_goi": sum((m.get("ai") or {}).get("so_lan_goi") or 0 for m in ra),
             "co_do": [m["ten"] for m in ra if (m.get("ai") or {}).get("co_do")],
             "khong_do_duoc": cp.get("total", {}).get("unmeasured_calls", 0),
-            "hong_mem": [m["ten"] for m in ra if m.get("so_cong_cu_loi") or m.get("tu_bao_khong_lam_duoc")]}   # [ghi chú kỹ thuật] xanh mà rỗng
+            "hong_mem": [m["ten"] for m in ra if m.get("so_cong_cu_loi") or m.get("tu_bao_khong_lam_duoc")]}   # [ghi chú] xanh mà rỗng
     return {"luot": {"phien": phien, "tt": r.get("tt"), "tao": r.get("tao"), "ten": do_thi.get("ten")}, "khoi": ra, "tong": tong}

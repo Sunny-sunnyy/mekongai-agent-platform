@@ -72,7 +72,7 @@ def test_tool_is_wired_for_the_model_and_guard_version_moved():
     assert len(schemas) == 17 and "KHÁCH HÀNG" in schemas["get_spice_loyalty"]["description"]
     assert "get_spice_loyalty" in schemas["get_extra_bonus"]["description"]                 # chỉ đường: "gia vị" không rơi vào 9 khoản Thưởng thêm
     assert ALL_TOOL_PARAMS["get_spice_loyalty"] == {"employee_id", "period"}
-    assert kiem_so.VERSION == "kiem_so@30"
+    assert kiem_so.VERSION == "kiem_so@31"
 
 
 @pytest.mark.skipif(not all(path.exists() for path in NEEDED), reason="không có dữ liệu thật trên máy này")

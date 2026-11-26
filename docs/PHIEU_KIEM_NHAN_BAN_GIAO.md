@@ -25,7 +25,7 @@
   - Có đủ: mã nguồn RAG, `compose.yaml`, `Dockerfile`, `pyproject.toml`, `uv.lock`, `.env.example`, `.env.qdrant.example`, dữ liệu mẫu nhẹ (`sample_data/`), tài liệu hướng dẫn cài & sử dụng.
   - Đảm bảo **không có** file `.env` thật hay khoá sẵn trong lịch sử git.
 - [ ] **Kho 2 (`mekongai-agent-platform`):** đã clone từ `https://github.com/hieumekongai/mekongai-agent-platform`
-  - Có đủ: mã nguồn nền tảng điều phối/giao diện, cấu hình compose sạch, các `.env.example`, `Dockerfile` + lockfile cho các service tự dựng (`kpi-backend`, `sandbox-py`, `mcp-exa`), thư mục `kpi_agent/` tự đứng (bản đóng băng `252dc30a`) kèm 7 file dữ liệu đầu vào tháng 10 (`sample_data/thang_10/`), và bộ tài liệu hướng dẫn trong `docs/`.
+  - Có đủ: mã nguồn nền tảng điều phối/giao diện, cấu hình compose sạch, các `.env.example`, `Dockerfile` + lockfile cho các service tự dựng (`kpi-backend`, `sandbox-py`, `mcp-exa`), thư mục `kpi_agent/` tự đứng (bản `c1b4111a`) kèm 7 file dữ liệu đầu vào tháng 10 (`sample_data/thang_10/`), và bộ tài liệu hướng dẫn trong `docs/`.
 - [ ] **Google Drive công ty (7 file `.tar` gốc Capitol, ~6,57 GiB):**
   - Đã tải đủ 7 file `.tar` + `SHA256SUMS` vào cùng thư mục.
   - Chạy kiểm checksum tại thư mục chứa file:
@@ -55,7 +55,7 @@
 - [ ] Kiểm tra 3 file cấu hình nóng mặc định cho `gpt-6-luna`:
   - `cau_hinh_mo_hinh/mo_hinh_khoi.txt` (dòng `mac_dinh = claude-...` đã comment `#`)
   - `cau_hinh_mo_hinh/mo_hinh_operator.txt` (dòng `claude-...` đã comment `#`)
-  - `cau_hinh_mo_hinh/kiem_so_kpi.txt` (`quyet_dinh = code`)
+  - `cau_hinh_mo_hinh/kiem_so_kpi.txt` (`quyet_dinh = ai`, `luat_code_chan = khong` — AI kiểm số `vong_4` chạy `gpt-6-luna`)
 - [ ] Kiểm tra `git status` ở cả 2 kho đều không có file bí mật nào bị theo dõi (`.gitignore` đã chặn `.env` / `*.khoa.env`).
 
 ---
@@ -86,14 +86,15 @@
 - [ ] Khởi động cụm Docker Compose của nền tảng và tiến trình giao diện / cổng RAG (`:19453`, nối sang `mekongai-rag` `:1945`).
 - [ ] Kiểm tra các điểm chạm cốt lõi:
   - Toàn bộ container đều ở trạng thái `Up` / `healthy`.
-  - Trang giao diện web (`http://127.0.0.1:18400`) trả HTTP `200`, đăng nhập / mở trang bằng mã phiên thành công.
-  - Thử 1 câu hỏi KPI tháng 10 trên khung chat → trả số khớp bảng tính (`152.360.000 đ` tổng lương KPI nhóm 14 NV theo dữ liệu mẫu tháng 10).
-  - Thử kéo 1 file mẫu vào khung chat để hỏi qua cổng RAG → trả lời có dẫn nguồn.
+  - Trang giao diện web (`http://127.0.0.1:18400`) trả HTTP `200`, đăng nhập 3 vai trò (`nhan_vien`, `nguoi_duyet`, `quan_tri`) hoặc mở trang bằng mã phiên thành công; tải lại trang giữ nguyên lịch sử chat SQLite.
+  - Thử 1 câu hỏi KPI tháng 10 trên khung chat → trả số khớp bảng tính (`152.360.000 đ` tổng lương KPI nhóm 14 NV theo dữ liệu mẫu tháng 10) kèm nút **Tải Excel** nháp.
+  - Trên Trang Dữ liệu kỳ trống: kiểm thử nạp đủ 4 loại file (`raw`, `chi_tieu`, `so_tracking`, `trang_chi_tieu` `.html`), màn **Ghép cột kỳ trống**, và tự cấp mã nhân viên mới (`NV15…`).
+  - Thử kéo 1 file mẫu vào khung chat để hỏi qua cổng RAG → trả lời có dẫn nguồn (hỗ trợ liệt kê đủ danh sách, ảnh biểu đồ an toàn và câu hỏi nối tiếp).
 
 ---
 
 ## 5. Lưu ý giới hạn đã biết (không phải lỗi cài đặt)
 
-- **Bản lõi KPI đóng băng:** Kho bàn giao dùng bản **`252dc30a`** (đã kiểm 112 ô KPI và lương 14 nhân viên trong hệ thống). Nhánh phát triển có bản mới hơn hỗ trợ khởi tạo kỳ trống, hiện chưa nối vào giao diện bản 1.
-- **Trạng thái diễn tập máy trống:** Bản xuất kho bàn giao bản 1 đã được kiểm tĩnh toàn bộ (an toàn bí mật = 0, không mang harness/đường dẫn máy cục bộ, kiểm cú pháp Python và liên kết tài liệu), chưa diễn tập dựng lại Docker đầu–cuối từ máy trống trong đợt đóng gói này.
+- **Bản lõi KPI `c1b4111a`:** Đã tích hợp kỳ trống, ghép cột qua UI và tự cấp mã nhân viên mới (`NV15…`), giữ nguyên kiểm tra 112 ô (`152.360.000 đ`) và lương 14 nhân viên tháng 10.
+- **Trạng thái diễn tập máy trống:** Bản xuất kho đã được kiểm tĩnh toàn bộ (an toàn bí mật = 0, không mang đường dẫn máy cục bộ, kiểm cú pháp Python/TypeScript và liên kết tài liệu) và kiểm thử tích hợp E2E trên hệ thống chạy thật, chưa diễn tập dựng lại Docker đầu–cuối từ máy trống hoàn toàn trong đợt đóng gói này.
 - **Dữ liệu nguồn R2 (~97 GB):** Không đóng gói vào GitHub hay Google Drive; khi cần dữ liệu gốc bổ sung, lấy trực tiếp từ Cloudflare R2 (bucket `capitol2`, thông tin xác thực trao đổi riêng qua kênh nội bộ công ty).

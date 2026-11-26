@@ -1,0 +1,12 @@
+# [ghi chú] Cho 3 hộp ab-* VÀO THÊM mạng nội bộ kpi_noi_bo (internal: true) để tới kpi-backend; GIỮ mạng default (cần ra OpenAI).
+# Phải liệt kê CẢ default: khai networks ở file chồng thay mạng ngầm định của service. Thêm file này vào DC (_chung.sh) cùng compose.rao_code.yaml.
+services:
+  ab-api:
+    networks: [default, kpi_noi_bo]
+  ab-worker:
+    networks: [default, kpi_noi_bo]
+  ab-worker-temporal:
+    networks: [default, kpi_noi_bo]
+networks:
+  kpi_noi_bo:
+    internal: true

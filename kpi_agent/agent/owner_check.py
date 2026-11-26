@@ -215,14 +215,15 @@ HYPOTHETICAL_KEY = ("if_", "gain", "tier", "gap", "next", "need", "missing", "ta
 # (`over_target_bonus`), "NV03 đang được 800.000 đồng" (`gaps[…].amount_now`) từng bị coi là không phải tiền của chính người đó
 # kiem_so@17 (12/11) — LÙI phần nới của @15: ô `target` (CHỈ TIÊU) KHÔNG nằm trong tiền thật của người đó (như @14).
 # @15 đưa "target" vào đây để hết chặn oan câu "NV04 — Turnover: chỉ tiêu 1.314.914.524 đ" (M3 Capitol câu 03) ⇒ lọt "NV04 được 23.800.000 đ" (thật là
-# chỉ tiêu Kokomi của NV04). @16 thử chỉ mở trong "ngữ cảnh chỉ tiêu" bằng dò chữ ⇒ người kiểm độc lập tìm 14 câu lọt mới ngoài bộ ghi trước ⇒ bỏ theo điểm
+# chỉ tiêu Kokomi của NV04). @16 thử chỉ mở trong "ngữ cảnh chỉ tiêu" bằng dò chữ ⇒ tìm 14 câu lọt mới ngoài bộ ghi trước ⇒ bỏ theo điểm
 # dừng một vòng (hồ sơ: nhánh `b-rao-16`). Cái giá đã biết của bản này: câu chỉ tiêu đúng viết kèm "đ" bị chặn oan — lớp sau là bước làm lại + Người duyệt.
 REAL_MONEY_KEYS = ("over_target_bonus", "amount_now")
 
 
 def actual_money_by_employee(tool_results: list) -> dict[str, set[Decimal]]:
     """{mã NV: các ô SỐ (không lấy số trong chữ) là tiền / số THẬT của NV đó} — bỏ cây con giả định / mốc ("amount_if_reached", "amount_gain", "tiers",
-    "gaps", "next_…", "target"): bản cuối 3, C B5 — 1.500.000 là "nếu lên mốc" của NV05 nên luật 1 cho "NV05 được 1.500.000 đ" qua."""
+    "gaps", "next_…", "target"): bản cuối 3, C — 1.500.000 là "nếu lên mốc" của NV05 nên luật 1 cho "NV05 được 1.500.000 đ" qua.
+    """
     found: dict[str, set[Decimal]] = {}
 
     def walk(value, owner, real_only=False):
@@ -433,7 +434,6 @@ def _clause_start(text: str, position: int) -> int:
     """Đầu vế câu chứa vị trí (sau dấu phẩy / chấm / chấm phẩy / hai chấm / xuống dòng gần nhất) — "mốc thấp nhất là Đạt 100 %" là tên mốc
     (phát lại 140 câu thật 04/11 vòng 2: 2 cờ nhầm khi chỉ xét 16 ký tự trước số)."""
     return max((m.end() for m in re.finditer(r"[,.;:\n]", text[:position])), default=0)
-
 # Cuối câu cho `_owners_of_number`: ". " / "!" / "?" / xuống dòng — dấu chấm trong số ("104.34", "mục 6.2") không phải cuối câu
 # ";" KHÔNG là cuối câu ở đây (kiem_so@10, @9 điểm 2 — e0b câu 7 "- PC_ON: 2 dòng … mục 6.2 — mã được liệt kê là NV08" ⇒ số 2 bị gán NV14 dòng trên)
 OWNER_SENTENCE_END = re.compile(r"[!?\n]|\.(?=\s|$)")
@@ -561,7 +561,7 @@ TIER_NAME_WORDS = re.compile(r"\b(?:mốc|mức)\b", re.IGNORECASE)
 NEXT_TIER_LEAD = re.compile(r"\bmốc\s+(?:kế\s+tiếp|tiếp\s+theo|kế|sau|cao\s+hơn)|\b(?:còn\s+thiếu|cần\s+thêm)\b|\bđể\s+(?:đạt|lên|chạm)\b"
                             r"|\blên\s+(?:các\s+|những\s+)?mốc\b|\b(?:nếu|khi)\s+đạt\b", re.IGNORECASE)
 ASSERT_NOW = re.compile(r"\b(?:hiện|đang|đã)\b|\bđược\s+nhận\b", re.IGNORECASE)
-# Bản cuối 3b ( _3, major HỒI QUY ca cũ L-C5: "NV05 đã lên mốc, được 1.500.000 đ PC_ON." khi NV05 0 đ — a1329678 chặn, _3 qua vì dấu phẩy cắt vế
+# Bản cuối 3b ( _3, major HỒI QUY ca cũ L-: "NV05 đã lên mốc, được 1.500.000 đ PC_ON." khi NV05 0 đ — a1329678 chặn, _3 qua vì dấu phẩy cắt vế
 # nên "đã" ngoài vế, còn "mốc" mở ô mốc): câu nói người đó ĐÃ / ĐANG ở mốc ⇒ chữ mốc không mở ô mốc. Hẹp có chủ đích — xét "đã / đang / hiện" trên cả
 # câu thì phát lại 942 chữ thật chặn oan thêm 9 ("hiện ghi nhận 151/335 đơn …, mốc thấp nhất … 2.200.000 đồng")
 REACHED_TIER = re.compile(r"\b(?:đã|đang|hiện)\s+(?:(?:được|có)\s+)?(?:lên|đạt|chạm|ở|tới|vượt|nằm\s+ở)\s+(?:(?:được|tới)\s+)?(?:các\s+)?(?:mốc|mức)\b", re.IGNORECASE)
@@ -717,7 +717,7 @@ def _money_passes(answer: str, masked: str, match, options, multiplier, owners: 
     if all(sourced(mine(code)) for code in owners) if every else sourced(set().union(*(mine(code) for code in owners))):
         # kiem_so@22: báo ĐƯỜNG đã qua cho lớp "đúng khoản" — chỉ số qua đường tiền của chính người đó mới xét khoản (tổng nhóm / số cấp đội / chênh
         # lệch / số còn thiếu không phải ô của một khoản); câu mốc / điều kiện xét theo bảng mốc
-        # "thêm" của tên khoản "thưởng thêm" không phải chữ còn thiếu / cần thêm (ca C9 "NV04 được thưởng thêm 2.000.000 đ" khi Thưởng thêm 1.558.000)
+        # "thêm" của tên khoản "thưởng thêm" không phải chữ còn thiếu / cần thêm (ca "NV04 được thưởng thêm 2.000.000 đ" khi Thưởng thêm 1.558.000)
         unnamed = EXTRA_BONUS_NAME.sub(lambda m: " " * len(m.group(0)), answer)
         item_gap = GAP_WORDS.search(unnamed, after_code, match.start()) is not None or \
             GAP_WORDS.search(EXTRA_BONUS_NAME.sub(lambda m: " " * len(m.group(0)), table)) is not None
@@ -806,14 +806,15 @@ def _tier_listing_numbers(answer: str, position: int, tier_lists: list[list[tupl
 
     Vì sao: câu hỏi "KPI này có những mốc nào, mỗi mốc bao nhiêu tiền" — mô hình liệt kê đúng ô `tiers` dưới tiêu đề người được tra
     ("NV05 – KPI Turnover" ⏎ "- Đạt 95%: 3.920.000 đ" ⏎ "- Đạt 100%: 5.600.000 đ") ⇒ luật "tiền sau mã NV phải là tiền của chính người đó" + luật
-    "đạt X % phải bằng % đạt" chặn câu ĐÚNG; mô hình viết lại và BỎ mốc 95 % (người kiểm độc lập đo 13/11: đủ hai mốc 6 / 8 ⇒ 1 / 8 lượt).
+    "đạt X % phải bằng % đạt" chặn câu ĐÚNG; mô hình viết lại và BỎ mốc 95 % (đo 13/11: đủ hai mốc 6 / 8 ⇒ 1 / 8 lượt).
     So bằng DỮ LIỆU công cụ, không dò chữ tự do. Một dòng là dòng mô tả mốc khi đủ BA điều:
     1. dòng có đúng CẶP (ngưỡng, tiền) của CÙNG một mốc trong `tiers` của người đó — nhãn ghép sai tiền ("Đạt 95%: 5.600.000 đ") không tính;
     2. cùng khối (các dòng liền nhau, không cách dòng trống) có ≥ 2 mốc KHÁC NHAU của cùng danh sách mốc được ghép đúng như thế — MỘT cặp lẻ
        ("NV05 – Turnover: Đạt 95%: 3.920.000 đ") đọc lên như "NV05 đạt mốc 95 %, được 3.920.000 đ" ⇒ giữ luật cũ (KPI chỉ có một mốc: phải có chữ
        "mốc" như cơ chế sẵn có);
     3. dòng không có chữ khẳng định tiền hiện có ("được", "nhận", "đã", "đang", "hiện").
-    Trả tập rỗng nếu dòng không phải dòng mô tả mốc."""
+    Trả tập rỗng nếu dòng không phải dòng mô tả mốc.
+    """
     lines = answer.split("\n")
     at = answer.count("\n", 0, position)
     first, last = at, at
@@ -828,12 +829,12 @@ def _tier_listing_numbers(answer: str, position: int, tier_lists: list[list[tupl
     def paired(line: str, tiers: list[tuple[Decimal, Decimal]]) -> list[tuple[Decimal, Decimal]]:
         values = numbers(line)
         return [] if SAYS_MONEY_NOW.search(line) else [tier for tier in tiers if tier[0] in values and tier[1] in values]
-
     for tiers in tier_lists:
         here = paired(lines[at], tiers)
         if here and len({tier for line in lines[first:last + 1] for tier in paired(line, tiers)}) >= 2:
             return {number for tier in here for number in tier}
     return set()
+
 
 # ---------- kiem_so@22 (13/11): lớp "đúng KHOẢN" — số tiền đứng cạnh tên một khoản phải bằng ô của ĐÚNG khoản đó của đúng người ----------
 # Lỗ có từ trước (C tìm 10:04, lại 14:21 trên @21, RAW 31/10): NV04 thưởng vượt 0, LPPC 2.000.000 ⇒ "NV04 được thưởng vượt 2.000.000 đ" QUA
@@ -863,7 +864,7 @@ REPEATED_GLUE_AFTER = re.compile(r"\s*(?:đồng|đ|vnđ|vnd)?[\s*_()]*(?:(?:là
 # Tên đứng SÁT số ("chưa cộng thưởng thêm E đ") thì vẫn là tên của chính số đó.
 EXCLUDED_BEFORE = re.compile(r"\b(?:(?:không|chưa)\s+(?:tính|gồm|bao\s+gồm|kể|cộng|có)|trừ|ngoài|bỏ)(?:\s+(?:cả|tới|đến|đi|ra|phần|khoản|tiền))*\s*$",
                              re.IGNORECASE)
-# Vòng 3 (M2 người kiểm): lời loại trừ BỊ PHỦ ĐỊNH ("không bỏ / chưa trừ thưởng thêm", "không phải là chưa tính …") nghĩa là CÓ gồm khoản đó
+# Vòng 3 (M2): lời loại trừ BỊ PHỦ ĐỊNH ("không bỏ / chưa trừ thưởng thêm", "không phải là chưa tính …") nghĩa là CÓ gồm khoản đó
 NEGATED_EXCLUSION = re.compile(r"(?:\b(?:không|chưa|chẳng|chả|đừng|khỏi)|\bđâu\s+(?:có|phải))(?:\s+(?:hề|phải|là|cần|được|có))*\s*$", re.IGNORECASE)
 NAME_RIGHT_BEFORE_NUMBER = re.compile(r"[\s:*_(]*(?:(?:là|=)\s*)?")
 OTHER_SIDE = {"extra_bonus": "business_salary", "business_salary": "extra_bonus"}
@@ -880,6 +881,7 @@ ITEM_SENTENCE_END = re.compile(r"[;!?]|\.(?!\d)")
 # hai câu đúng đó bị chặn oan vì bản trước chỉ nhận khoảng trắng).
 NEGATION_RIGHT_BEFORE = re.compile(r"\b(?:không|chưa|chẳng|chả)(?:[\s*_]+(?:được|có|nhận|phải)){0,2}[\s*_]+$", re.IGNORECASE)
 
+
 # ---------- kiem_so@24 (18/11): khoản "TỔNG 8 KPI + THƯỞNG THÊM" có ô thật `total_8_kpi_and_extra` (công cụ get_extra_bonus) ----------
 # Lỗi thật (Capitol, phiếu NV03, 2 lượt 18/11): câu đúng "Tổng thưởng thêm: 990.000 đ. Tổng 8 KPI cộng thưởng thêm: 9.930.000 đ" bị chặn "9.930.000 không phải
 # tiền thưởng thêm" — chữ số "8" của "8 KPI" bị coi là con số đứng trước nên chữ "tổng" nằm ngoài đoạn xét, "8 KPI" không phải tên khoản ⇒ còn một tên
@@ -892,13 +894,13 @@ THIRD_SIDE = re.compile(r"\bgia\s+vị\b|\bhội\s+viên\b", re.IGNORECASE)     
 TOTAL_MARK = re.compile(r"\btổng\b|\bcộng\b|\+|\btính\s+cả\b|\bgộp\b", re.IGNORECASE)
 EACH_IN_TURN = re.compile(r"\blần\s+lượt\b", re.IGNORECASE)                   # "… và thưởng thêm lần lượt là A và B" — liệt kê, không phải tổng
 EQUALS_BEFORE = re.compile(r"=[\s*_]*$")
-# kiem_so@29 (19/11, ca Capitol + người kiểm độc lập, làm lại sau vòng kiểm 1): số tiền đứng sau một NHÃN KIỂU TỔNG mà nhãn KHÔNG nêu tên khoản nào
+# kiem_so@29 (19/11, ca Capitol +, làm lại sau vòng kiểm 1): số tiền đứng sau một NHÃN KIỂU TỔNG mà nhãn KHÔNG nêu tên khoản nào
 # ("- Tổng cộng: …", "Cộng hai phần: …", "Tổng cả hai khoản: …", "Tổng gộp: …", hàng bảng "| Tổng cộng | … |", câu riêng "… Tổng gộp: …"), khi phần
 # câu trả lời đứng TRƯỚC nó đã nêu TIỀN của cả hai phía (8 KPI và thưởng thêm) ⇒ số đó phải là ô tổng gộp. Trước @29 chữ "tổng cộng" làm lớp khoản coi
 # số là "không xác định" ⇒ ghi nhầm tổng 8 KPI (hoặc tổng thưởng thêm) vào dòng tổng gộp vẫn QUA — sai tiền người đọc thấy. Bản đầu của @29 liệt kê
 # từng nhãn và đòi tiền đứng sát tên phía đó ⇒ lọt nhãn lạ + dòng tổng viết thành câu riêng; nay ĐẢO CHIỀU: mọi nhãn có chữ tổng / cộng / gộp / cả hai
 # / tất cả / thực nhận đều tính, chỉ cho qua khi nhãn NÊU RÕ khoản ("tổng 8 KPI", "tổng thưởng thêm", "Thưởng 03").
-# Cả chữ "tổng" đứng MỘT MÌNH ("- Tổng: …", "…, tổng … đ") cũng tính — người kiểm đo: "- Tổng: <số 8 KPI>" sau hai dòng 8 KPI + thưởng thêm lọt 2 / 2.
+# Cả chữ "tổng" đứng MỘT MÌNH ("- Tổng: …", "…, tổng … đ") cũng tính — đo: "- Tổng: <số 8 KPI>" sau hai dòng 8 KPI + thưởng thêm lọt 2 / 2.
 # Giới hạn (sai về phía chặn): tổng RIÊNG của một nhóm dòng mà nhãn không nêu tên khoản, đứng sau khi đã có tiền của cả hai phía, bị đòi bằng tổng gộp.
 SUM_LABEL = re.compile(r"\btổng\b|\bcộng\b|\bgộp\b|\bcả\s+hai\b|\btất\s+cả\b|\bthực\s+(?:nhận|lĩnh|lãnh)\b", re.IGNORECASE)
 MONEY_FIGURE = re.compile(r"\d{1,3}(?:\.\d{3})+")
@@ -952,7 +954,8 @@ def _is_total_of_both(answer: str, masked: str, line_start: int, start: int, end
         sum_to = stop.start() if stop else line_end
         return "+" in answer[equals.end():sum_to] and _names_both_sides_only(answer, equals.end(), sum_to)   # "T = A lương kinh doanh + B thưởng thêm"
     return False
-# ---------- kiem_so@25 (18/11): ba lỗ có từ trước người kiểm tìm khi dò @24 — câu SAI mà @23 lẫn @24 cho qua ----------
+
+# kiem_so@25 (18/11): ba lỗ có từ trước tìm khi dò @24 — câu SAI mà @23 lẫn @24 cho qua ----------
 # (a) BẢNG: "| NV | 8 KPI | Thưởng thêm | Tổng |" + dòng "| NV03 | K | T | T |" qua vì lớp khoản chỉ đọc tên khoản trên DÒNG của số ⇒ nay đọc ô TIÊU ĐỀ
 #     của đúng cột trước; ô tiêu đề không nói khoản nào ("Tiền", "Khoản") ⇒ về luật theo dòng như cũ.
 # (b) CẤP ĐỘI: "Tổng 8 KPI và thưởng thêm của cả đội là <tổng của một người>" qua vì câu không có mã NV ⇒ không lớp nào so ⇒ nay so với ô
@@ -1153,7 +1156,6 @@ def _item_of_number(answer: str, masked: str, start: int, end: int) -> str | Non
         return header_item
     if _is_total_of_both(answer, masked, line_start, start, end, line_end):
         return TOTAL_ITEM
-
     def mentions(text_from: int, text_to: int) -> list[tuple[int, str]]:
         spans = []
         for pattern, item in ITEM_NAMES:
@@ -1161,6 +1163,7 @@ def _item_of_number(answer: str, masked: str, start: int, end: int) -> str | Non
                 if not any(s <= found.start() < e for s, e, _ in spans):   # "LPPC_Meat" đã nhận thì "LPPC" trong đó bỏ
                     spans.append((found.start(), found.end(), item))
         return sorted((s, item) for s, _, item in spans)
+
     # (1) Tên đứng SÁT sau số, chỉ cách bởi đơn vị / ngoặc / chữ nối "tiền, khoản, ở, cho, của" ("2.200.000 đ PC_BT", "2.000.000 đ tiền Turnover").
     # Phát lại 2.038 chữ (vòng 1): cho phép mọi chữ trong 30 ký tự ⇒ "800.000 đ VÀ LPPC_Meat 400.000 đ" ghép nhầm tên của số kế tiếp ⇒ 14 câu đúng bị chặn
     glued = ITEM_GLUE_AFTER.match(answer, end, clause_end)
@@ -1187,8 +1190,6 @@ def _item_of_number(answer: str, masked: str, start: int, end: int) -> str | Non
         return before[-1][1]
     after = mentions(end, clause_end)
     return after[0][1] if after else None
-
-
 def _wrong_item(answer: str, masked: str, match, options, multiplier, owners: list[str], sources: dict, exempt: set, condition: bool,
                 every: bool) -> str:
     """"" = đúng khoản hoặc không xác định được; lời lỗi = số đứng cạnh tên khoản không bằng ô của khoản đó. Nhiều chủ số: như luật đúng người —
@@ -1233,7 +1234,7 @@ def _wrong_item(answer: str, masked: str, match, options, multiplier, owners: li
     return (f"số {match.group(0).strip()} không phải tiền {label} của {', '.join(wrong)} trong công cụ"
             + (" (không có trong bảng mốc của KPI đó)" if condition else "") + " — số tiền cạnh tên một khoản phải là tiền của ĐÚNG khoản đó")
 # ---------- kiem_so@30 (19/11): MỘT KHOẢN LẺ nhắc lại dưới nhãn KHÔNG nêu tên khoản đó ----------
-# Lỗ (người kiểm độc lập dò @29): câu trả lời đã nêu tiền 8 KPI (K) và thưởng thêm của một người, rồi "- Thành tiền: K đ", "⇒ Cả thảy NV07 nhận K đ.",
+# Lỗ (dò @29): câu trả lời đã nêu tiền 8 KPI (K) và thưởng thêm của một người, rồi "- Thành tiền: K đ", "⇒ Cả thảy NV07 nhận K đ.",
 # "Số tiền nhận cuối cùng: K đ." QUA — @29 chỉ xét nhãn có chữ tổng / cộng / gộp, nhãn khác thì vô số cách nói. Nay xét theo SỐ, không theo chữ của nhãn:
 # số bằng đúng K hoặc E của người đó, nhãn / vế của nó không nêu tên khoản có ô bằng số đó ⇒ chặn (người đọc hiểu như số tổng / một khoản khác).
 # Cùng chỗ đó, số bằng ô tổng gộp mà nhãn không nêu khoản nào ⇒ là tổng, cho qua — không mượn tên khoản đứng trước trong câu
@@ -1243,8 +1244,6 @@ def _wrong_item(answer: str, masked: str, match, options, multiplier, owners: li
 # "tháng 15.490.000 đ": chữ ngày / tháng / năm của number_check che mất số tiền đứng ngay sau (đọc như "tháng 10") ⇒ cả hai lớp không xét số đó.
 # Số có nhóm nghìn không bao giờ là ngày / tháng / năm ⇒ lớp này mở lại.
 DATE_WORD_MONEY = re.compile(r"\b(?:ngày|tháng|năm)\s+(\d{1,3}(?:\.\d{3})+)(?![\d.,]*\d)", re.IGNORECASE)
-
-
 def _segment_items(answer: str, masked: str, start: int, end: int) -> set[str]:
     """Các khoản mà nhãn / vế của số ở [start, end) nêu tên (xem chú thích kiem_so@30); "Thưởng 03" tính là thưởng thêm, tiêu đề cột của ô bảng cũng tính."""
     line_start = answer.rfind("\n", 0, start) + 1
@@ -1303,6 +1302,7 @@ def _repeated_part(answer: str, masked: str, match, options, multiplier, mine: d
     salary, extra, total = mine.get("business_salary", set()), mine.get("extra_bonus_total", set()), mine.get(TOTAL_ITEM, set())
     if not salary or not extra:
         return ""
+
     def equals(values, opts=options, mult=multiplier) -> bool:
         return nc._sourced(opts, mult, False, values, set(), True)
 
@@ -1310,7 +1310,7 @@ def _repeated_part(answer: str, masked: str, match, options, multiplier, mine: d
     if not kind or _negated_right_before(answer, match.start()):   # "… không phải K đ mà là T đ"
         return ""
     items = _segment_items(answer, masked, match.start(), match.end())
-    # Vòng 2 (20/11, hồi quy người kiểm tìm): nhãn / vế nêu CẢ HAI phía ("- 8 KPI và thưởng thêm: K đ") ⇒ người đọc hiểu là tổng hai khoản ⇒ số phải là
+    # Vòng 2 (20/11, hồi quy tìm): nhãn / vế nêu CẢ HAI phía ("- 8 KPI và thưởng thêm: K đ") ⇒ người đọc hiểu là tổng hai khoản ⇒ số phải là
     # ô tổng gộp; bằng đúng một khoản lẻ ⇒ chặn, không cần hai phía đã được nêu riêng ở phía trước
     if {"business_salary", "extra_bonus"} <= items and "in_turn" not in items:
         return "total" if equals(total) else kind
@@ -1393,6 +1393,7 @@ def check_owners(answer: str, tool_results: list, question: str = "", context: l
         """Số này nằm trên một DÒNG MÔ TẢ MỐC của chính (các) chủ số — xem `_tier_listing_numbers`."""
         listed = _tier_listing_numbers(answer, match.start(), [tiers for code in owners for tiers in tier_lists.get(code, [])])
         return bool(listed) and any(value in listed for value, _ in nc.readings(match.group(1)))
+
     # Luật 1 — số thuộc đúng NV (số người: luật 2 xét)
     for match in nc.NUMBER.finditer(mask_people_counts(masked)):
         unit = (match.group(2) or "").strip().lower()

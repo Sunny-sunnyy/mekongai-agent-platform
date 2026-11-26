@@ -1,4 +1,4 @@
-// [ghi chú kỹ thuật] MÀN GHÉP CỘT của tab "Dữ liệu KPI": file RAW có bố cục khác mẫu đã biết ⇒ người chỉ cho máy "trường chuẩn nào nằm ở cột nào"
+// [ghi chú] MÀN GHÉP CỘT của tab "Dữ liệu KPI": file RAW có bố cục khác mẫu đã biết ⇒ người chỉ cho máy "trường chuẩn nào nằm ở cột nào"
 // MỘT lần; lõi KPI (mekongai) ghép thử, kiểm nghĩa, hỏi một câu kiểm rồi mới lưu cách ghép. Sau đó file cùng bố cục tải lên như thường.
 // Đường đi: trang ⇒ /api/kpi/ghep/{khuon,bo-cuc,thu,xac-nhan} (máy chủ trang, ghep_kpi.py) ⇒ hộp 18402 ⇒ kpi-backend.
 // Luật của màn: (1) KHÔNG có AI — 0 đồng; (2) trang KHÔNG đọc file, KHÔNG có đáp án câu kiểm — mọi số / lời chặn / cảnh báo là chữ do code lõi viết,
@@ -48,7 +48,10 @@ function dongDoiSoat(v: unknown, dau = ""): string[] {
   return Object.entries(v as Record<string, unknown>).flatMap(([k, x]) => dongDoiSoat(x, dau ? `${dau} › ${NHAN_DOI_SOAT[k] ?? k}` : (NHAN_DOI_SOAT[k] ?? k)));
 }
 
-export function GhepCot({ tep, ky, ngayChot, onLuu, onDong }: { tep: File; ky: string; ngayChot: string; onLuu: () => void; onDong: () => void }) {
+export function GhepCot({ tep, ky, ngayChot, dataVersion, kyTrong, nguoiMacDinh, onLuu, onDong }: {
+  tep: File; ky: string; ngayChot: string; dataVersion?: string | null; kyTrong?: boolean; nguoiMacDinh?: string;
+  onLuu: (kq?: Record<string, unknown>) => void; onDong: () => void;
+}) {
   const [truong, setTruong] = useState<Truong[]>([]);
   const [bc, setBc] = useState<BoCuc | null>(null);
   const [chon, setChon] = useState<Record<string, number>>({});
@@ -56,7 +59,7 @@ export function GhepCot({ tep, ky, ngayChot, onLuu, onDong }: { tep: File; ky: s
   const [canChiDong, setCanChiDong] = useState(false);
   const [khongSauCk, setKhongSauCk] = useState(false);
   const [thu, setThu] = useState<KetQuaThu | null>(null);
-  const [traLoi, setTraLoi] = useState(""); const [nguoi, setNguoi] = useState(""); const [ghiChu, setGhiChu] = useState("");
+  const [traLoi, setTraLoi] = useState(""); const [nguoi, setNguoi] = useState(() => nguoiMacDinh || ""); const [ghiChu, setGhiChu] = useState("");
   const [choQua, setChoQua] = useState<Record<string, boolean>>({});
   const [loi, setLoi] = useState(""); const [dang, setDang] = useState("");
 
@@ -100,6 +103,7 @@ export function GhepCot({ tep, ky, ngayChot, onLuu, onDong }: { tep: File; ky: s
     const x = await goi("/api/kpi/ghep/thu", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sha_file: bc.sha_file, ghep: { sheet: bc.sheet_number, header_row: bc.header_row, columns: chon }, ky, ngay_chot: ngayChot,
+                             ...(dataVersion ? { data_version: dataVersion } : {}),
                              ...(khongSauCk ? { khong_co_cot_sau_ck: true } : {}) }),
     });
     setDang("");
@@ -121,7 +125,7 @@ export function GhepCot({ tep, ky, ngayChot, onLuu, onDong }: { tep: File; ky: s
                              ...(daTick.length ? { cho_qua: daTick } : {}) }),
     });
     setDang("");
-    if (x.ma === 200) return onLuu();
+    if (x.ma === 200) return onLuu(x.d);
     setLoi(loiCua(x));
     if (x.ma === 409) setThu(null);   // lõi đã bỏ câu kiểm (mỗi câu trả lời MỘT lần) ⇒ phải ghép thử lại
   };
@@ -131,6 +135,7 @@ export function GhepCot({ tep, ky, ngayChot, onLuu, onDong }: { tep: File; ky: s
       <div className="h"><b>Ghép cột cho file này</b>{" "}<button className="nut" onClick={onDong}>Đóng</button></div>
       <div className="phu">File có bố cục khác mẫu đã biết. Chỉ cho máy mỗi thông tin nằm ở cột nào — làm một lần, lần sau file cùng bố cục tải lên như thường.
         Máy chỉ ghép thử, chưa tính thưởng và chưa lưu gì cho tới khi bạn trả lời đúng câu kiểm. Không có AI ở bước này.</div>
+      {kyTrong && <div className="canh-bao" style={{ marginTop: 4 }}>Kỳ {ky} đang chờ đủ file: sau khi xác nhận ghép cột, hệ thống sẽ giữ file đơn hàng và báo tiếp các file còn thiếu (nếu có).</div>}
       {bc && <div className="phu so">Sheet {bc.sheet ?? `thứ ${bc.sheet_number} (tên lạ — đã che)`} · dòng tiêu đề {bc.header_row} · {bc.columns.length} cột · kỳ {ky} · ngày chốt {ngayChot}</div>}
       {canChiDong && (
         <div className="canh-bao">

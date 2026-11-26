@@ -5,9 +5,9 @@
    "ma": "kpi_hoi_nhanh",
    "ten_tim": "KPI hỏi nhanh",
    "ten_wf": "KPI hỏi nhanh — lương kinh doanh, thưởng KPI (không duyệt, không xuất file)",
-   "lam_gi": "Trả lời nhanh một câu về lương kinh doanh / thưởng KPI của đội hoặc một nhân viên trong kỳ đang chạy (số tạm tính, đã qua khối kiểm số bằng code).",
-   "khi_nao_dung": "Hỏi một nhân viên được bao nhiêu, cả đội bao nhiêu, tổng tiền thưởng của MỘT KPI (Turnover, PC_BT, LPPC…) của cả đội là bao nhiêu, vì sao chưa có tiền, còn thiếu bao nhiêu để lên mốc, so hai người, thưởng thêm, hỏi tiến độ / đã đạt bao nhiêu phần trăm chỉ tiêu.",
-   "khong_dung_khi": "Cần bảng chính thức có người duyệt hoặc file Excel (⇒ KPI mẫu 6 / 15); cần phiếu đầy đủ từng KPI của một nhân viên (⇒ phiếu một nhân viên); câu không về lương / thưởng.",
+   "lam_gi": "Trả lời nhanh câu hỏi về lương kinh doanh / thưởng KPI của một nhân viên hoặc cả đội (số tạm tính, đã qua kiểm số, kèm nút Tải Excel nháp).",
+   "khi_nao_dung": "Mọi câu hỏi tra cứu lương / thưởng KPI thông thường: một nhân viên được bao nhiêu, cả đội bao nhiêu, tổng hợp / xem bảng lương / bảng thưởng của từng nhân viên trong đội, tổng tiền thưởng một KPI, thưởng thêm, 1% gia vị, vì sao chưa có tiền, còn thiếu bao nhiêu để lên mốc, so hai người, % chỉ tiêu.",
+   "khong_dung_khi": "CHỈ khi người hỏi nói rõ muốn gửi duyệt hoặc xuất bảng thưởng chính thức (có người phụ trách duyệt) (⇒ kpi_bang_excel); câu không về lương / thưởng.",
    "vi_du": [
     "Tháng 10 NV05 được bao nhiêu, ở những KPI nào?",
     "Vì sao NV07 không có tiền PC_BT?",
@@ -26,10 +26,10 @@
    "ma": "kpi_bang_excel",
    "ten_tim": "KPI mẫu 6 — Bảng thưởng cả đội và xuất Excel",
    "ten_wf": "KPI mẫu 6 (khung chat) — Bảng thưởng cả đội, tạm tính",
-   "lam_hien": "Bảng thưởng cả đội — mỗi nhân viên được bao nhiêu — kèm file Excel bản nháp tải ngay (số tạm tính, chưa có người duyệt)",
-   "lam_gi": "Dựng bảng thưởng cả đội, dừng cho người phụ trách duyệt; duyệt xong hệ thống xuất file Excel.",
-   "khi_nao_dung": "Cần bảng thưởng chính thức của cả đội, cần file Excel để gửi.",
-   "khong_dung_khi": "Chỉ hỏi nhanh một con số; chỉ muốn XEM số / tổng, chưa cần bảng chính thức hay file (⇒ KPI hỏi nhanh); vừa muốn xem số ngay vừa cần bảng chính thức (⇒ KPI mẫu 15).",
+   "lam_hien": "Gửi duyệt bảng thưởng chính thức",
+   "lam_gi": "Dựng bảng thưởng cả đội, dừng cho người phụ trách duyệt; duyệt xong hệ thống xuất file Excel chính thức.",
+   "khi_nao_dung": "CHỈ dùng khi người hỏi nói rõ muốn gửi duyệt hoặc xuất bảng thưởng CHÍNH THỨC (có người phụ trách duyệt).",
+   "khong_dung_khi": "Xem / tổng hợp bảng thưởng cả đội, hỏi số KPI hay xuất nháp trong chat (⇒ kpi_hoi_nhanh).",
    "vi_du": [
     "Cho tôi bảng thưởng cả đội tháng 10: mỗi nhân viên được bao nhiêu?"
    ],
@@ -128,7 +128,7 @@
    "gui_thay_nguoi_dung": false,
    "can_ma_nv": false,
    "gui_buoc_chon": false,
-   "ly_do_khong_gui": "Workflow của thẻ ghi cứng một kho tài liệu không có trong sổ kho của tổ chức."
+   "ly_do_khong_gui": "workflow của thẻ ghi cứng một kho tài liệu không có trong sổ kho của tổ chức ⇒ đường Chạy từ chối (ca thật 12:08). Mở lại khi đường tài liệu trong khung chat gắn xong / chọn lại kho."
   },
   {
    "ma": "kpi_ngoai_pham_vi",

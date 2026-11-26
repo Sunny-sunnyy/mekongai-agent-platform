@@ -1,5 +1,5 @@
 """Cách B — luật thưởng trong một file Excel giám sát tự sửa (mục 3), đọc ra ĐÚNG khuôn dict của cách A
-rồi kiểm bằng cùng `validate_rules` ⇒ hai cách so được trên cùng tiêu chí (cùng tiền, cùng chặn lỗi gõ).
+rồi kiểm bằng cùng `validate_rules` ⇒ hai cách so được trên cùng.
 
 File có 3 sheet:
 - `moc_thuong`: mỗi hàng một mốc — kpi · amount_100 · weight_pct · measure · lppc_region · min · pay_ratio · printed_amount · label

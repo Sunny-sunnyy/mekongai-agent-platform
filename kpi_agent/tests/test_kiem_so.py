@@ -38,7 +38,7 @@ def real(tmp_path_factory):
         team = client.get("/api/team-bonus").json()
         team_results = [team] + [client.get("/api/team-kpi", params={"kpi": kpi}).json() for kpi in meta["kpis"]]
         calls = {code: client.get(f"/api/employees/{code}").json() for code in ("NV05", "NV04", "NV02")}
-        issues = client.get("/api/data-issues").json()   # cờ theo người (A6) — nguồn cho luật "cờ gán nhầm người"
+        issues = client.get("/api/data-issues").json()   # cờ theo người — nguồn cho luật "cờ gán nhầm người"
         # Từ khối xuất (develop ed773c7, bỏ tải nháp): chưa soát ⇒ 409 không có file ⇒ soát bản đang dùng trước khi lấy file mẫu
         assert client.post(f"/api/runs/{meta['current_run_id']}/review", json={"reviewer": "test kiem_so"}).status_code == 200
         export = client.get("/api/export/xlsx")
@@ -354,7 +354,7 @@ def _aso_focus_summary(real) -> dict:
 def test_product_name_number_passes_without_question(real):
     # G1: đúng câu thật bị chặn nhầm — không có câu hỏi (như Rào Capitol gửi), chỉ kết quả get_team_kpi_summary(ASO_Focus)
     result = kiem_so({"answer": M3_Q8_ANSWER, "tool_results": [_aso_focus_summary(real)]})
-    assert result["dat"] is True and result["phien_ban"] == "kiem_so@30", result
+    assert result["dat"] is True and result["phien_ban"] == "kiem_so@31", result
     # G2: các tên sản phẩm có số khác (Thưởng thêm sắp làm), không có câu hỏi
     for name in ("Homey Jeju 2,9 kg", "Homey 2.9kg", "Mì Kokomi Đại 90", "Kokomi 90", "TEA365", "Trà Búp Non Tea 365"):
         assert kiem_so({"answer": f"Sản phẩm {name}: xem bảng.", "tool_results": []})["dat"] is True, name
@@ -519,7 +519,7 @@ def _mcp_owner_sets(real) -> tuple[set, list[set]]:
 
 
 def test_true_statement_about_one_owner_passes_even_when_another_flag_has_other_owners():
-    # Người kiểm độc lập 13/11 (ca 17, 18): xét từng cờ riêng thì câu ĐÚNG về một chủ cờ bị chặn vì "không giao" với cờ cùng dấu của người khác.
+    # 13/11 (ca 17, 18): xét từng cờ riêng thì câu ĐÚNG về một chủ cờ bị chặn vì "không giao" với cờ cùng dấu của người khác.
     # Cờ tự dựng theo đúng hình `get_data_issues` trên RAW 31/10 (dữ liệu của file test này chỉ có MỘT cờ "không thuộc MCP").
     sources = [{"issues": [{"level": "info", "message": "ASO_ALL: cửa hàng không thuộc MCP của chính NV (đã loại)", "employee_ids": ["NV04", "NV08", "NV14"]},
                            {"level": "info", "message": "PC_ON: đơn ở cửa hàng không thuộc MCP của chính NV (đã loại)", "employee_ids": ["NV08"]},
@@ -564,7 +564,7 @@ def test_question_code_applies_to_items_that_name_nobody_but_not_to_items_naming
     assert "co_sai_nguoi" not in [p["loai"] for p in extra["loi"]], extra
 
 
-# ---------- kiem_so@18 vòng 3 (13/11): luật CHA–CON — người kiểm độc lập viết 17 ca lách sau khi đọc bản vòng 2, 5 ca LỌT mà @17 đang chặn ----------
+# kiem_so@18 vòng 3 (13/11): luật CHA–CON — viết 17 ca lách sau khi đọc bản vòng 2, 5 ca LỌT mà @17 đang chặn ----------
 # Cờ tự dựng theo đúng hình `get_data_issues` trên RAW 31/10: "ngoài MCP" của NV04 / NV08 / NV14; "lệch … MCP" của NV06 / NV09.
 PARENT_CHILD_SOURCES = [{"issues": [
     {"level": "info", "message": "ASO_ALL: cửa hàng không thuộc MCP của chính NV (đã loại)", "employee_ids": ["NV04", "NV08", "NV14"]},
@@ -623,7 +623,7 @@ def test_parent_child_child_code_wins_over_lead_code_when_question_names_someone
 
 
 # ---------- kiem_so@18 hoàn tất vòng 3 (13/11): cha–con theo THỤT LỀ + dấu cờ lệch nhận chữ "danh sách tuyến" ----------
-# Hình câu NHÁP THẬT của mô hình sáng 13/11 (người kiểm độc lập, ca T1–T7): gạch cấp 1 kết thúc ":" nói "ngoài MCP", các gạch con thụt lề đúng chủ,
+# Hình câu NHÁP THẬT của mô hình sáng 13/11 (ca T1–T7): gạch cấp 1 kết thúc ":" nói "ngoài MCP", các gạch con thụt lề đúng chủ,
 # rồi một gạch CÙNG CẤP nói NV06, NV09 lệch chỉ tiêu "theo danh sách tuyến" ⇒ bản trước coi gạch cùng cấp là con của gạch kết thúc ":" ⇒ chặn oan.
 INDENT_LEAD = "- Cửa hàng không thuộc MCP của nhân viên đã bị loại khỏi tính thưởng:\n  - ASO_ALL và Turnover: NV04, NV08, NV14.\n  - PC_ON: NV08.\n"
 SIBLING = "- Chỉ tiêu ASO_ALL tính lại theo danh sách tuyến bị lệch ở NV06 và NV09; các nhân viên khác khớp."
@@ -701,12 +701,12 @@ def _nv04_items(real) -> dict:
 
 
 @pytest.mark.parametrize("template, ok", [
-    ("NV04 được thưởng vượt {a} đ.", False),                       # C1 — lỗ thật: tiền một KPI gọi là thưởng vượt (thưởng vượt NV04 = 0)
-    ("NV04 có tổng lương kinh doanh {a} đ.", False),               # C2
-    ("NV04: {A} {b} đ.", False),                                   # C3 — tiền của KPI B gán cho A
-    ("{a} đ là tiền {B} của NV04.", False),                        # C4 — tên khoản đứng sau số
-    ("NV04: {A} {b} đ, {B} {a} đ.", False),                        # C7 — đổi chỗ cùng dòng
-    ("NV04 được {a} đ tiền {B}.", False),                          # C8 — tên ngay sau số
+    ("NV04 được thưởng vượt {a} đ.", False),                       # lỗ thật: tiền một KPI gọi là thưởng vượt (thưởng vượt NV04 = 0)
+    ("NV04 có tổng lương kinh doanh {a} đ.", False),
+    ("NV04: {A} {b} đ.", False),                                   # tiền của KPI B gán cho A
+    ("{a} đ là tiền {B} của NV04.", False),                        # tên khoản đứng sau số
+    ("NV04: {A} {b} đ, {B} {a} đ.", False),                        # đổi chỗ cùng dòng
+    ("NV04 được {a} đ tiền {B}.", False),                          # tên ngay sau số
     ("NV04 được {A} {a} đ.", True),                                # Q1
     ("NV04 có tổng lương kinh doanh {salary} đ.", True),           # Q2
     ("Thưởng vượt của NV04: {over} đ.", True),                     # Q3

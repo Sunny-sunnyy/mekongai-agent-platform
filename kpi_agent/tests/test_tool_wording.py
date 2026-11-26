@@ -48,7 +48,7 @@ def test_wording_round_2_keeps_its_five_instructions():
 
 def test_simulate_is_only_for_stated_assumptions_and_x_over_y_is_not_a_percent():
     # 12/11 chiều: câu "… vừa đúng 72 / 72, có được trọn tiền không?" có lượt bị hiểu thành "đạt 72 %" ⇒ gọi công cụ giả định ⇒ trả lời sai tiền mà rào
-    # không chặn (số có thật trong kết quả kịch bản). Giữ ý chỉ đường; tần suất thật do người kiểm đo bằng bộ câu.
+    # không chặn (số có thật trong kết quả kịch bản). Giữ ý chỉ đường; tần suất thật do đo bằng bộ câu.
     assert "GIẢ ĐỊNH" in TOOLS["simulate_kpi_change"] and "HIỆN TẠI" in TOOLS["simulate_kpi_change"]
     assert "'X / Y' là thực hiện / chỉ tiêu, không phải X %" in TOOLS["simulate_kpi_change"]
     assert "get_employee_result" in TOOLS["simulate_kpi_change"] and "explain_kpi" in TOOLS["simulate_kpi_change"]

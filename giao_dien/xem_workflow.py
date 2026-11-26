@@ -1,9 +1,9 @@
-"""Trang xem workflow Capitol chạy trên máy — CHỈ ĐỌC. Viết 04/11/2026 (nhóm phát triển, người dùng yêu cầu: "trực quan, sinh động,
+"""Trang xem workflow Capitol chạy trên máy — CHỈ ĐỌC. Viết 04/11/2026 (nhóm kỹ thuật, User yêu cầu: "trực quan, sinh động,
 khi chạy thì workflow cũng phải chạy theo").
 
 Chạy:   python3 -I chay_thu/giao_dien/xem_workflow.py        rồi mở  http://127.0.0.1:18400
 Dữ liệu: đọc PostgreSQL của bộ chạy thử (hộp capitol-postgres) bằng `docker exec … psql` — chỉ câu SELECT.
-         Danh mục khối: chay_thu/runtime/b4_list_nodes.json (bản chụp danh mục thật lúc bước 4).
+         Danh mục khối: chay_thu/ket_qua/b4_list_nodes.json (bản chụp danh mục thật lúc bước 4).
 Không gọi API của Capitol, không gọi AI, không ghi gì. Chỉ nghe 127.0.0.1 (không mở ra mạng ngoài).
 
 Vì sao đọc PostgreSQL mà không đọc API: bảng `workflow_event` ghi MỌI mốc của từng khối (bắt đầu, chữ AI đang viết,
@@ -80,7 +80,7 @@ NGAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")             # lọc theo ngày giờ V
 
 
 def _loc(ngay: str | None, so: int | None, mac_dinh: int) -> tuple[str, int]:
-    """[10/11, A — người dùng: "bỏ giới hạn cứng, thêm xem thêm và lọc theo ngày"] ⇒ (điều kiện ngày, số dòng 1–2000)."""
+    """[10/11, A — User: "bỏ giới hạn cứng, thêm xem thêm và lọc theo ngày"] ⇒ (điều kiện ngày, số dòng 1–2000)."""
     if ngay and not NGAY.match(ngay):
         raise ValueError("ngày phải dạng YYYY-MM-DD")
     dk = f"(x_tao at time zone 'Asia/Ho_Chi_Minh')::date = date '{ngay}'" if ngay else "true"
@@ -97,7 +97,7 @@ def ds_luot(ngay: str | None = None, so: int | None = None):
 
 
 def _loc_org(org: str | None) -> str:
-    """[ghi chú kỹ thuật] Mỗi lần WSL khởi động lại, tổ chức thử được tạo mới; workflow của tổ chức cũ còn trong PostgreSQL nhưng thuộc tổ chức
+    """[ghi chú] Mỗi lần WSL khởi động lại, tổ chức thử được tạo mới; workflow của tổ chức cũ còn trong PostgreSQL nhưng thuộc tổ chức
     cũ (lượt chạy đi theo tổ chức hiện tại) ⇒ danh sách mặc định chỉ hiện workflow của tổ chức hiện tại (12/11: 276 cái lẫn cũ / mới, cùng tên). org=None ⇒ mọi tổ chức."""
     if org is None:
         return "true"
@@ -140,9 +140,9 @@ def mot_luot(phien: str, sau: str | None):
                       when e.event_type='input_issue' then left(coalesce(e.event_data->>'issue_kind','') || ' · ' || coalesce(e.event_data->>'message',''), 1000)
                       when jsonb_typeof(e.event_data->'data')='string' then left(e.event_data->>'data', 4000)
                       else left(coalesce(e.event_data->>'message', ''), 1000) end
-        ) order by e.timestamp),'[]') from workflow_event e where e.run_id='{r["id"]}' {dk}""")
+        ) order by e.created_at, e.timestamp, e.id),'[]') from workflow_event e where e.run_id='{r["id"]}' {dk}""")
     out = {"luot": {k: v for k, v in r.items() if k != "payload"}, "su_kien": ev}
-    try:   # [ghi chú kỹ thuật] chữ lỗi lớp chặn "chan" ⇒ lời dễ hiểu (chỉ hiển thị); lỗi ở đây KHÔNG làm hỏng trang
+    try:   # [ghi chú] chữ lỗi lớp chặn "chan" ⇒ lời dễ hiểu (chỉ hiển thị); lỗi ở đây KHÔNG làm hỏng trang
         import loi_de_hieu
         loi_de_hieu.ap_dung(out)
     except Exception:  # noqa: BLE001

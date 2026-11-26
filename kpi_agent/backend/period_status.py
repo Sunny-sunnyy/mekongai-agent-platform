@@ -14,8 +14,6 @@ from kpi_agent.workflow import runner
 PERIOD = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])")     # chỉ [0-9]: `\d` nhận cả chữ số Unicode
 REQUIRED = ("raw", "chi_tieu", "tuyen", "luat_chinh")  # bốn mục quyết `ready`; luật phụ thiếu chỉ liệt kê (khoản đó tự báo lỗi ở đường của nó)
 MISSING_FILE = "không có file"                         # chuỗi `main._sha256_or_missing` ghi thay mã băm
-# Bản tải lên chỉ nằm trong bộ nhớ: backend bật lại là mất khỏi `versions` (file + bản tính vẫn còn trên đĩa) — trang phải nói thật với người dùng.
-UPLOADS_SURVIVE_RESTART = False
 EXTRA_PARTS = (("thuong_them", "extra_bonus_"), ("gia_vi_1pct", "gia_vi_1pct_"), ("hoi_vien", "hoi_vien_"))
 NEXT_STEP = {
     ("raw", "thieu"): "tải file đơn hàng của kỳ này lên (loại raw)",
@@ -60,11 +58,14 @@ def _data_item(boot, state, period: str, shown_path) -> dict:
     if state is None:
         return _item("raw", "thieu", f"chưa có {kind} của kỳ {period}")
     shown, sha = _file_of(state, block, "path", shown_path)
-    uploaded = state is not boot
+    uploads_only = getattr(boot, "uploads_only", False)
+    uploaded = (state is not boot) or uploads_only
+    uploaded_at = (getattr(state, "uploaded_at", None) if state is not boot
+                   else (getattr(boot, "pending_uploaded_at", {}) or {}).get("raw") or getattr(boot, "uploaded_at", None))
     detail = f"{kind} đã tải lên và qua kiểm" if uploaded else f"{kind} backend nạp lúc bật"
     # checked: True = đã đi qua cửa tải lên của kỳ này · None = bản lúc bật (qua kiểm của bộ chạy khi bật, không qua cửa tải lên)
     return _item("raw", "co", detail, checked=True if uploaded else None, file=shown, sha256_8=sha, from_upload=uploaded,
-                 uploaded_at=getattr(state, "uploaded_at", None) if uploaded else None,
+                 uploaded_at=uploaded_at if uploaded else None,
                  cutoff=state.ctx.cutoff.isoformat(), data_version=state.data_version)
 
 
@@ -81,6 +82,10 @@ def _fixed_item(key: str, what: str, block_type: str, param: str, boot, state, p
     if period == boot.ctx.period:
         if sha is None:
             return _item(key, "thieu", f"{what} của kỳ {period} không đọc được", file=shown)
+        if getattr(boot, "uploads_only", False):
+            uploaded_at = (getattr(boot, "pending_uploaded_at", {}) or {}).get(key) or getattr(boot, "uploaded_at", None)
+            return _item(key, "co", f"{what} đã tải lên và qua kiểm", checked=True, file=shown, sha256_8=sha, from_upload=True,
+                         uploaded_at=uploaded_at)
         return _item(key, "co", f"{what} backend nạp lúc bật", file=shown, sha256_8=sha)
     return _item(key, "dung_cua_ky_khac", f"chưa có {what} của kỳ {period} — backend chỉ có file của kỳ {boot.ctx.period}", file=shown, sha256_8=sha)
 
@@ -133,7 +138,9 @@ def period_status(boot, period: str, *, rules_file_for_period, extra_files_sha25
     states = {item["key"]: item["state"] for item in items}
     return {"period": period, "base_period": boot.ctx.period,
             "data_source": "raw" if runner.data_block_type(boot.workflow) == "read_raw" else "tracking",
-            "ready": all(states[key] == "co" for key in REQUIRED), "uploads_survive_restart": UPLOADS_SURVIVE_RESTART,
+            "ready": all(states[key] == "co" for key in REQUIRED), # 2j: backend bật lại có tự dựng lại các bản đã tải không (`main._restore_uploaded_versions`; KPI_RESTORE_UPLOADS=0 ⇒ false) — trang đọc ô
+            # này để nói thật với người dùng; bản nào bị bỏ qua và vì sao nằm ở `restored_uploads` của GET /api/system/ky
+            "uploads_survive_restart": boot.restore_report["enabled"],
             "missing": [key for key, value in states.items() if value != "co"], "items": items}
 
 

@@ -1,5 +1,5 @@
 """Nhóm A bậc mức tra cứu: A1 get_team_kpi_summary,
-A2 % + mốc trong get_team_bonus_table, A3 compare_employees, A6 get_data_issues (+ mã NV trong cờ của `core/check_data.py`), mô tả `period`.
+A2 % + mốc trong get_team_bonus_table, A3 compare_employees, get_data_issues (+ mã NV trong cờ của `core/check_data.py`), mô tả `period`.
 
 Đường gọi như `test_agent_new_tools.py`: `call_tool` của agent ⇒ backend thật qua TestClient (dữ liệu thật tháng 10, bảng lưu tạm) — chỉ bỏ cổng
 mạng, không giả lập kết quả. Số mong đợi lấy từ CÔNG CỤ KHÁC đã có (bảng đội, get_employee_result) — so chéo hai đường, không so với chính nó."""
@@ -185,7 +185,7 @@ def test_3a_p5_each_data_issue_has_a_code_written_sentence_with_exactly_its_peop
 
 
 def test_issue_sentence_is_added_at_the_exit_not_in_queries(backend, ctx):
-    # Người kiểm độc lập 19/11 (đọc diff P5): ô `sentence` từng gắn trong backend/queries.py — file thuộc dấu vân tay bản tính ⇒ sửa chữ câu chuẩn là mất
+    # 19/11 (đọc diff P5): ô `sentence` từng gắn trong backend/queries.py — file thuộc dấu vân tay bản tính ⇒ sửa chữ câu chuẩn là mất
     # "Đã soát" dù không số nào đổi. Gắn ở cửa ra như `team_sentences`: đường cho mô hình (/api/tool, call_tool) có ô; truy vấn gốc thì không.
     assert all("sentence" not in issue for issue in backend.get("/api/data-issues").json()["issues"])
     via_tool = backend.post("/api/tool/get_data_issues", json={"args": {}}).json()["issues"]

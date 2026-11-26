@@ -10,7 +10,7 @@ _EMPLOYEE = {"type": "string", "description": "mã nhân viên dạng NV01…NV1
 _EMPLOYEE_WITH_NAMES = {"type": "string", "description": "mã nhân viên NV01…NV14, hoặc họ tên đủ / 2 chữ cuối của tên / mã SM — đúng như người hỏi gõ"}
 # Nhóm A (09/11): người vận hành A5 (giữ tham số kỳ — backend dùng nó để TỪ CHỐI kỳ khác, queries.py _check_period), chỉ sửa mô tả
 _PERIOD = {"type": "string", "description": "kỳ YYYY-MM: điền kỳ người hỏi nói; bỏ trống nếu không nói; số luôn theo kỳ đang có"}
-# mức tra cứu vòng 2 (09/11, đã chọn F2 — tài liệu nội bộ): chỉ đường "một người" ở mô tả A1 / A3 phải đủ HAI nhánh. Bản e66def9 chỉ trỏ
+# mức tra cứu vòng 2 (09/11, đã chọn F2 — tài liệu nội bộ): chỉ đường "một người" ở mô tả A1 phải đủ HAI nhánh. Bản e66def9 chỉ trỏ
 # get_employee_result ⇒ câu "vì sao không có tiền KPI X" của một người chuyển khỏi explain_kpi (T4 câu 13 ×2; câu "vì sao" 5/5 ⇒ 2/5 explain_kpi)
 _ONE_EMPLOYEE_ROUTE = ("Câu về MỘT nhân viên: dùng get_employee_result; câu vì sao một nhân viên được / không được tiền ở MỘT KPI: "
                        "dùng explain_kpi.")

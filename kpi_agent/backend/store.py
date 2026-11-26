@@ -7,13 +7,15 @@ bản luật nào, dữ liệu chụp lúc nào, ai đã soát". Sửa sai = th�
 - Mã NV trong file này là mã che NV01–NV14 (như mọi thứ ngoài `core/`); file nằm trong `kpi_agent/data/` (Git bỏ qua)."""
 import hashlib
 import json
+import re
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 TABLES = ("rule_version", "data_snapshot", "bonus_run", "bonus_line", "approval_event", "workflow_version", "workflow_run", "workflow_trial_run",
-          "capitol_approval", "run_refresh", "column_mapping")
+          "capitol_approval", "run_refresh", "column_mapping", "uploaded_version", "pending_upload", "auto_employee_mask")
+VN_TZ = timezone(timedelta(hours=7))
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS rule_version (
     id INTEGER PRIMARY KEY, file_name TEXT NOT NULL, sha256 TEXT NOT NULL UNIQUE, content TEXT NOT NULL, created_at TEXT NOT NULL);
@@ -59,6 +61,20 @@ CREATE TABLE IF NOT EXISTS column_mapping (
     confirmed_by TEXT NOT NULL, note TEXT NOT NULL, created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS run_refresh (
     id INTEGER PRIMARY KEY, run_id INTEGER NOT NULL UNIQUE REFERENCES bonus_run(id), refreshed_at TEXT, created_at TEXT NOT NULL);
+-- 20/11 (2j): mỗi bản dữ liệu MỚI nhận qua cửa tải lên = một dòng, đủ để backend bật lại dựng lại đúng bản đó bằng chính đường tải lên:
+-- loại file, kỳ, ngày chốt người tải gửi (có thể trống), bản làm nền (trống = bản lúc bật), mã băm file (= tên file trong thư mục tải lên).
+-- `data_version` = mã bản LÚC TẢI (để đối chiếu; lúc nạp lại mã được tính lại từ nội dung). `mapping_sha` = cách ghép cột của bản (có thể trống).
+-- Chỉ dùng trong kho bản tải lên (<kho>_uploads.sqlite); bảng mới, không đổi bảng cũ.
+CREATE TABLE IF NOT EXISTS uploaded_version (
+    id INTEGER PRIMARY KEY, data_version TEXT NOT NULL, kind TEXT NOT NULL, period TEXT NOT NULL, wanted_cutoff TEXT, base_data_version TEXT,
+    file_sha256 TEXT NOT NULL, mapping_sha TEXT, created_at TEXT NOT NULL);
+-- 20/11 (kỳ trống): file đã nhận qua cửa tải lên khi kỳ CHƯA có bản nào — "bộ chờ". Mỗi lần nhận một dòng; mỗi loại lấy dòng mới nhất.
+-- Đủ ba loại (đơn hàng, chỉ tiêu, sổ theo dõi) thì backend dựng bản đầu của kỳ; bật lại đọc lại bảng này. Chỉ dùng trong kho bản tải lên.
+CREATE TABLE IF NOT EXISTS pending_upload (
+    id INTEGER PRIMARY KEY, kind TEXT NOT NULL, period TEXT NOT NULL, wanted_cutoff TEXT, file_sha256 TEXT NOT NULL, created_at TEXT NOT NULL);
+-- 26/11 (K1): mã che tự cấp nối tiếp (NV15…) cho nhân viên mới từ file chỉ tiêu — chỉ thêm, bền qua restart, không sửa ma_che_ten.json.
+CREATE TABLE IF NOT EXISTS auto_employee_mask (
+    id INTEGER PRIMARY KEY, masked_code TEXT NOT NULL UNIQUE, real_code TEXT NOT NULL UNIQUE, full_name TEXT NOT NULL, created_at TEXT NOT NULL);
 """ + "".join(
     f"CREATE TRIGGER IF NOT EXISTS {table}_no_{verb.lower()} BEFORE {verb} ON {table} "
     f"BEGIN SELECT RAISE(ABORT, 'chỉ thêm: không sửa / xoá {table}'); END;\n"
@@ -94,8 +110,8 @@ def connect(path: Path):
 
 
 def _now() -> str:
-    # Giờ ghi sự kiện = giờ máy (khác ngày chốt số — ngày chốt vẫn là tham số)
-    return datetime.now().isoformat(timespec="seconds")
+    # Giờ ghi sự kiện = giờ Việt Nam UTC+7 (khác ngày chốt số — ngày chốt vẫn là tham số)
+    return datetime.now(VN_TZ).isoformat(timespec="seconds")
 
 
 def code_fingerprint(files: list[Path], root: Path) -> tuple[str, list[str]]:
@@ -119,10 +135,15 @@ def _insert_or_get(conn, table: str, unique: dict, extra: dict) -> int:
 
 
 def record_run(conn, *, period: str, cutoff: str, rule_file: Path, data_files: dict[str, str], refreshed_at: str | None,
-               code_sha: str, code_files: list[str], lines: list[dict]) -> int:
+               code_sha: str, code_files: list[str], lines: list[dict], reuse_any: bool = False) -> int:
     """Ghi một lần tính; cùng (bản luật, dữ liệu, code) với bản mới nhất của kỳ ⇒ dùng lại bản đó (bật lại server không đẻ bản trùng).
 
+    `reuse_any` (2j vòng 2, 20/11/2026 — chỉ lúc backend NẠP LẠI bản đã tải): tìm bản trùng trong MỌI bản tính của kỳ, không chỉ bản mới nhất.
+    Kho bản tải lên giữ nhiều bản cùng kỳ ⇒ khi nạp lại, bản không phải mới nhất từng bị ghi thành lượt tính MỚI ở mỗi lần bật ( đo:
+    224 ⇒ 448 ⇒ 672 dòng) và lượt mới không mang dấu "Đã soát" / lời duyệt gắn với lượt cũ.
+
     `lines`: [{employee_id (mã che), kpi, pct, reached_tier, amount, reason}] — đầu ra lõi `core/`, ghi nguyên.
+    
     """
     content = rule_file.read_text(encoding="utf-8")
     rule_id = _insert_or_get(conn, "rule_version", {"sha256": hashlib.sha256(content.encode("utf-8")).hexdigest()},
@@ -130,11 +151,13 @@ def record_run(conn, *, period: str, cutoff: str, rule_file: Path, data_files: d
     snapshot_id = _insert_or_get(conn, "data_snapshot",
                                  {"period": period, "cutoff": cutoff, "files": json.dumps(data_files, sort_keys=True, ensure_ascii=False)},
                                  {"refreshed_at": refreshed_at})
-    latest = conn.execute("SELECT * FROM bonus_run WHERE period = ? ORDER BY id DESC LIMIT 1", (period,)).fetchone()
+    runs = conn.execute("SELECT * FROM bonus_run WHERE period = ? ORDER BY id DESC" + ("" if reuse_any else " LIMIT 1"), (period,)).fetchall()
+    latest = runs[0] if runs else None
     # "lúc chụp" là một phần của bản tính (nhãn nguồn trên bảng / file Excel): khác ⇒ bản mới thay bản cũ (đã chọn 17/11)
-    if latest and (latest["rule_version_id"], latest["data_snapshot_id"], latest["code_sha256"]) == (rule_id, snapshot_id, code_sha) \
-            and _run_refreshed_at(conn, latest) == refreshed_at:
-        return latest["id"]
+    for run in runs:
+        if (run["rule_version_id"], run["data_snapshot_id"], run["code_sha256"]) == (rule_id, snapshot_id, code_sha) \
+                and _run_refreshed_at(conn, run) == refreshed_at:
+            return run["id"]
     run_id = conn.execute(
         "INSERT INTO bonus_run (period, rule_version_id, data_snapshot_id, code_sha256, code_files, team_total, replaces, created_at)"
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -285,7 +308,7 @@ def exported_formats(conn, run_id: int) -> list[str]:
     """Định dạng được tải của một bản tính: từ lượt workflow MỚI NHẤT của bản đó có khối xuất `ok` (bước 3 phần 2). Không có ⇒ [] (không file). Chỉ đọc.
 
     Đọc `steps` (bước `export_files` = ok) + ô `formats` trong ĐÚNG phiên bản workflow của lượt đó — không đọc file workflow hiện tại.
-    ĐIỀU KIỆN ĐẦU: bản tính phải ĐÃ SOÁT — 10/11 (B3, major): workflow bỏ cổng (dây bonus ⇒ xuat) qua bộ kiểm file hợp lệ ⇒ bước xuất `ok` mà chưa ai
+    ĐIỀU KIỆN ĐẦU: bản tính phải ĐÃ SOÁT — 10/11: workflow bỏ cổng (dây bonus ⇒ xuat) qua bộ kiểm file hợp lệ ⇒ bước xuất `ok` mà chưa ai
     soát ⇒ tải được. Sàn "chưa soát ⇒ không file" không được phụ thuộc file workflow có cổng hay không.
     """
     import yaml   # nạp muộn: store không cần yaml ở đường khác
@@ -353,3 +376,67 @@ def latest_mapping(conn, table: str, fingerprint: str) -> dict | None:
                        (table, fingerprint)).fetchone()
     return None if row is None else {"id": row["id"], "mapping": json.loads(row["mapping"]), "mapping_sha": row["mapping_sha"],
                                      "confirmed_by": row["confirmed_by"], "created_at": row["created_at"]}
+
+
+def record_uploaded_version(conn, *, data_version: str, kind: str, period: str, wanted_cutoff: str | None, base_data_version: str | None,
+                            file_sha256: str, mapping_sha: str | None) -> str:
+    """Ghi một bản dữ liệu vừa nhận qua cửa tải lên (2j) ⇒ trả giờ ghi (= giờ tải, trang Dữ liệu hiện)."""
+    at = _now()
+    conn.execute("INSERT INTO uploaded_version (data_version, kind, period, wanted_cutoff, base_data_version, file_sha256, mapping_sha, created_at)"
+                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (data_version, kind, period, wanted_cutoff, base_data_version, file_sha256, mapping_sha, at))
+    return at
+
+
+def record_pending_upload(conn, *, kind: str, period: str, wanted_cutoff: str | None, file_sha256: str) -> None:
+    """Ghi một file vừa nhận vào bộ chờ của kỳ trống."""
+    conn.execute("INSERT INTO pending_upload (kind, period, wanted_cutoff, file_sha256, created_at) VALUES (?, ?, ?, ?, ?)",
+                 (kind, period, wanted_cutoff, file_sha256, _now()))
+
+
+def pending_uploads(conn, period: str) -> dict[str, dict]:
+    """{loại file: dòng MỚI NHẤT của loại đó} trong bộ chờ của `period`."""
+    return {row["kind"]: dict(row) for row in conn.execute("SELECT * FROM pending_upload WHERE period = ? ORDER BY id", (period,))}
+
+
+def uploaded_versions(conn, limit: int) -> list[dict]:
+    """`limit` bản tải lên MỚI NHẤT, theo thứ tự tải (cũ trước) — thứ tự backend nạp lại lúc bật (bản nền luôn được tải trước bản chồng lên nó)."""
+    rows = conn.execute("SELECT * FROM uploaded_version ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+    return [dict(row) for row in reversed(rows)]
+
+
+def auto_employee_masks(conn) -> dict[str, str]:
+    """{NVxx: mã thật} đã tự cấp trong `auto_employee_mask` (theo thứ tự thêm)."""
+    rows = conn.execute("SELECT masked_code, real_code FROM auto_employee_mask ORDER BY id").fetchall()
+    return {row["masked_code"]: row["real_code"] for row in rows}
+
+
+def plan_auto_employee_masks(base_map: dict[str, str], existing_auto_map: dict[str, str],
+                               new_employees: dict[str, str]) -> list[dict[str, str]]:
+    """Tính mã che kế tiếp (NV15…) theo `sorted(new_employees)` mà chưa ghi DB — dùng chung cho xem trước và ghi thật."""
+    known_real = {str(v) for v in base_map.values()} | {str(v) for v in existing_auto_map.values()}
+    used_masked = set(base_map) | set(existing_auto_map)
+    next_num = max((int(code[2:]) for code in used_masked if re.fullmatch(r"NV\d+", code)), default=0) + 1
+    planned = []
+    for real_code in sorted(new_employees):
+        if str(real_code) in known_real:
+            continue
+        while f"NV{next_num:02d}" in used_masked:
+            next_num += 1
+        masked = f"NV{next_num:02d}"
+        used_masked.add(masked)
+        known_real.add(str(real_code))
+        planned.append({"masked_code": masked, "real_code": str(real_code), "full_name": str(new_employees[real_code] or "").strip()})
+        next_num += 1
+    return planned
+
+
+def record_auto_employee_masks(conn, base_map: dict[str, str], new_employees: dict[str, str]) -> list[dict[str, str]]:
+    """Cấp và lưu nối tiếp mã che mới (NV15…) vào `auto_employee_mask`; trả danh sách chỉ gồm mã che + họ tên (không mã thật)."""
+    planned = plan_auto_employee_masks(base_map, auto_employee_masks(conn), new_employees)
+    now = _now()
+    for entry in planned:
+        conn.execute(
+            "INSERT INTO auto_employee_mask (masked_code, real_code, full_name, created_at) VALUES (?, ?, ?, ?)",
+            (entry["masked_code"], entry["real_code"], entry["full_name"], now),
+        )
+    return [{"masked_code": entry["masked_code"], "full_name": entry["full_name"]} for entry in planned]

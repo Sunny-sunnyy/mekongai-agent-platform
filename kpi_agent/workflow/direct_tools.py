@@ -31,7 +31,7 @@ def _run_tool(kpi_ctx: queries.KpiContext, name: str, args: dict) -> dict:
         # A-ii-1: "nếu thêm N" (extra) hoặc "nếu đạt X %" (target_pct) — như backend_client: ô trống không gửi, có thì gửi dạng chữ
         return what_if.simulate_kpi_change(kpi_ctx, employee_id=_text(args["employee_id"]), kpi=_text(args["kpi"]),
                                            extra=_text(args.get("extra")), target_pct=_text(args.get("target_pct")), period=period)
-    # Nhóm A bậc mức tra cứu (A1, A3, A6): như `backend_client.call_tool` — mọi tham số đi qua truy vấn dạng chữ, tham số trống không gửi
+    # Nhóm A bậc mức tra cứu (A1, A3): như `backend_client.call_tool` — mọi tham số đi qua truy vấn dạng chữ, tham số trống không gửi
     if name == "get_team_kpi_summary":
         return queries.get_team_kpi_summary(kpi_ctx, kpi=_text(args.get("kpi")), period=period)
     if name == "compare_employees":

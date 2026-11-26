@@ -240,7 +240,7 @@ def test_run_id_unknown_other_run_other_org_fail(client, monkeypatch):
     assert "refused" not in nv04
     other_run = _kiem(client, {"answer": f"NV04 hiện có {_money(salary04)} đồng.", "run_id": "luot-A", "org_id": "org-thu"}).json()
     assert other_run["dat"] is False                                                         # số của lượt khác ⇒ trượt
-    # ĐỔI TIÊU CHÍ (10/11 theo 4bd59dd, major): mã lạ ⇒ nguồn RỖNG (không trượt sẵn) ⇒ câu có số trượt, câu không số qua
+    # ĐỔI: mã lạ ⇒ nguồn RỖNG (không trượt sẵn) ⇒ câu có số trượt, câu không số qua
     assert _kiem(client, {"answer": "NV05 được 5.040.000 đồng.", "run_id": "luot-la", "org_id": "org-thu"}).json()["dat"] is False
     assert _kiem(client, {"answer": "Chưa có dữ liệu lương cơ bản.", "run_id": "luot-la", "org_id": "org-thu"}).json()["dat"] is True
     for body in ({"answer": "Không có số.", "run_id": "luot-A", "org_id": "org-khac"},      # cùng mã, tổ chức khác ⇒ trượt sẵn

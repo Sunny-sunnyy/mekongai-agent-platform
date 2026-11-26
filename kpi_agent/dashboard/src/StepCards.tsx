@@ -54,7 +54,7 @@ const isMoney = (column: string) => column.split(".").some((part) => MONEY_KEY.t
 const isPercent = (column: string) => column.split(".").some((part) => part === "pct" || part === "kpi_pct" || part === "target_pct");
 
 // Nhân viên trong bảng / tham số: "Tên · NVxx" khi trang đang bật tên (cùng nguồn tên `/api/names` với các màn khác), không thì NVxx
-// Khi trang đang hiện tên (ô nhân viên đã là "Tên · NVxx"), ô / cột / nhãn `name` và `sm_code` mà công cụ trả kèm là LẶP ⇒ ẩn (người kiểm 12/11)
+// Khi trang đang hiện tên (ô nhân viên đã là "Tên · NVxx"), ô / cột / nhãn `name` và `sm_code` mà công cụ trả kèm là LẶP ⇒ ẩn
 function useShowsNames() {
   const { mode, names } = useContext(NamesContext);
   return mode !== "ma" && names !== null;
@@ -249,7 +249,7 @@ function GuardCard({ reply, trace, toolLabels, onRetry, focus, onPick }: {
   const problems = [...problemText(trace.number_check_final), ...problemText(trace.owner_check_final)];
   const first = [...problemText(trace.number_check_first), ...problemText(trace.owner_check_first)];
   // Bảng "số ⇒ nguồn" chỉ liệt kê số CHƯA truy được và số có ô cùng giá trị trong kết quả công cụ. Mảnh ngày / kỳ / số thứ tự ("2026", "10", "30") có
-  // nguồn nhưng không phải số đo ⇒ không liệt kê (người kiểm 12/11) — chỉ đổi cách HIỆN, rào kiểm số vẫn xét mọi số như cũ.
+  // nguồn nhưng không phải số đo ⇒ không liệt kê — chỉ đổi cách HIỆN, rào kiểm số vẫn xét mọi số như cũ.
   const cells = trace.tool_calls.flatMap((call) => (call.view ? [...call.view.facts.map((fact) => fact.value), ...call.view.tables.flatMap((table) => table.rows.flat())] : []));
   const listed = reply.number_sources.filter((source) => source.sources.length === 0 || cells.some((cell) => sameValue(cell, numberValues(source.number))));
   const skipped = reply.number_sources.length - listed.length;
@@ -314,7 +314,7 @@ export function Answer({ reply, focus, onPick }: { reply: ChatReply; focus: Focu
     const core = numberCore(item.number);
     return core !== null && ownerProblems.some((problem) => problem.startsWith("số ") && numberCore(problem.slice(3)) === core);
   };
-  // Khi rào chặn, máy chủ trợ lý ĐÃ gắn "⚠ Lưu ý: …" vào cuối câu trả lời ⇒ không hiện lại hai cảnh báo cùng nội dung ở dưới (người kiểm 12/11: lặp hai
+  // Khi rào chặn, máy chủ trợ lý ĐÃ gắn "⚠ Lưu ý: …" vào cuối câu trả lời ⇒ không hiện lại hai cảnh báo cùng nội dung ở dưới ( 12/11: lặp hai
   // lần). Cảnh báo loại khác (không trả lời trọn, bỏ link, không lấy được nguồn số) vẫn hiện.
   const inAnswer = reply.answer.includes("⚠ Lưu ý:");
   const warnings = reply.warnings.filter((warning) => !(inAnswer && typeof warning === "string" && REPEATED_WARNINGS.some((start) => warning.startsWith(start))));

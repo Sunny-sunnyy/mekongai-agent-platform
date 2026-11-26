@@ -1,4 +1,4 @@
-"""Tính Thưởng thêm 01–06 × mọi NV từ RAW DATA bằng `core/compute_extra_bonus` ⇒ JSON mã che NV01–NV14 cho người kiểm so mù với đáp án của mình.
+"""Tính Thưởng thêm 01–06 × mọi NV từ RAW DATA bằng `core/compute_extra_bonus` ⇒ JSON mã che NV01–NV14 cho so mù với đáp án của mình.
 Không gọi AI, 0 USD. In thêm số ASO 03 / 04 theo cả 4 cách đếm × có / không lọc tuyến (để A đưa — luật ghi ở file luật mục (d)).
 
 Chạy từ gốc repo:

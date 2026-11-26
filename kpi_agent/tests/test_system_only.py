@@ -102,6 +102,7 @@ def test_real_raw_3110_system_routes(start, monkeypatch):
         assert board["team_total"] == 152_360_000 and len(board["employees"]) == 14
         spice = on.get("/api/system/spice-loyalty", headers=KEY).json()
         assert spice["team_reward"] == 11_868_854 and spice["team_customers"] == 1351
-        # bản dữ liệu khác bản lúc bật ⇒ từ chối, không trả nhầm số bản lúc bật
+        # mã bản KHÔNG có ⇒ 404 như mọi đường hệ thống, không trả nhầm số bản lúc bật (2a-2 nấc 1: bản tải lên nay có số gia vị của chính nó nên
+        # lời cũ 409 "chỉ có cho bản dữ liệu lúc bật" không còn đúng; ca "bản tải lên trả số của nó" ở test_gia_vi_ban_tai_len.py)
         other = on.get("/api/system/spice-loyalty", headers=KEY, params={"data_version": "a" * 64})
-        assert other.status_code == 409 and "bản dữ liệu lúc bật" in other.json()["refused"]
+        assert other.status_code == 404 and "team_reward" not in other.json()

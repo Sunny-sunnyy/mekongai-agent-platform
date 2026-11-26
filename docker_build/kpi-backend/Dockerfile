@@ -1,6 +1,6 @@
-# Image tu dung cho kpi-backend (moc dong bang 252dc30a)
+# Image tu dung cho kpi-backend (moc dong bang c1b4111a)
 # Dung tu thu muc goc kho ban giao:
-#   docker build -t capitol-local/kpi-backend:252dc30a -f docker_build/kpi-backend/Dockerfile docker_build/kpi-backend
+#   docker build -t capitol-local/kpi-backend:c1b4111a -f docker_build/kpi-backend/Dockerfile docker_build/kpi-backend
 FROM python:3.12-slim@sha256:e695ab189fa2d082b1c61c69a6b888a5adeca61ceeccad107b1ed2a125721a9e
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.5 /uv /usr/local/bin/uv

@@ -1,4 +1,4 @@
-"""CHAT OPERATOR trên trang 18400 — C 12/11/2026 (yêu cầu vận hành đưa chat lên trang; nhóm phát triển xác nhận phương án). may_chu.py gọi gui() ở đường POST /api/chat.
+"""CHAT OPERATOR trên trang 18400 — C 12/11/2026 (người vận hành đưa chat lên trang; đã chốt phương án). may_chu.py gọi gui() ở đường POST /api/chat.
 
 Chiều dữ liệu: trang gửi {cau, conv?} ⇒ may_chu (rào Host + Origin + JSON sẵn có) ⇒ module này ⇒ agentic-backend qua hộp gác 127.0.0.1:18300
 (POST /api/v1/orgs/<org>/agents/<id>/runs, chờ trả lời) ⇒ trả {tra_loi, số lần gọi công cụ, tiền, workflow mới / đổi}.
@@ -31,7 +31,7 @@ import muc_toi_da
 
 
 def _nap_ksg():
-    """[ghi chú kỹ thuật] TOM_TAT_LUAT lấy từ CHÍNH kiem_sau_ghep.py (một nguồn luật) — tìm thư mục va_kiem_sau_ghep/ ở các thư mục cha; nạp theo đường file."""
+    """[ghi chú] TOM_TAT_LUAT lấy từ CHÍNH kiem_sau_ghep.py (một nguồn luật) — tìm thư mục va_kiem_sau_ghep/ ở các thư mục cha; nạp theo đường file."""
     import importlib.util as _iu
     from pathlib import Path as _P
     for d in _P(__file__).resolve().parents:
@@ -45,7 +45,7 @@ KSG = _nap_ksg()
 
 GIAY_CHO = 500                      # chat TẠO workflow đo được tới ~400 giây (HUONG_DAN_TU_CHAY.md mục chat)
 KHONG_CHAY_HO = ("Trợ lý có đề nghị chạy một workflow, nhưng đường chat dựng này không chạy hộ. Bạn hỏi câu đó ở khung chat chính, "
-                 "hoặc mở workflow trên khung vẽ rồi bấm Chạy.")   # [ghi chú kỹ thuật]
+                 "hoặc mở workflow trên khung vẽ rồi bấm Chạy.")   # [ghi chú]
 HOP_API = "capitol-ab-api"
 _MA = re.compile(r"[0-9a-f-]{36}")
 _CONV = re.compile(r"[0-9a-f]{32}|[0-9a-f-]{36}")
@@ -55,16 +55,16 @@ CAM_CHAY_TRANG = ("start_workflow", "rerun_from_node", "recover_failed_run", "re
                   "submit_intervention_response", "submit_clarification_response", "submit_input_decision",
                   "approve_node_output", "send_node_feedback", "pause_workflow", "stop_workflow", "update_workflow_prompt")
 CAM_WB = ("edit_workflow", "update_workflow_node", "build_workflow_from_image", "register_workflow_node",
-          "submit_tool_feedback", "list_workflows", "get_workflow")   # [ghi chú kỹ thuật] + 3 tên tốn lượt gọi (NGUON_NGOAI_C mục 6) — khớp CHAY_THU_CAM_WB   # [ghi chú kỹ thuật] + 2 tên: AI riêng ngoài sổ / đổi danh mục khối
+          "submit_tool_feedback", "list_workflows", "get_workflow")   # [ghi chú] + 3 tên tốn lượt gọi (NGUON_NGOAI_C mục 6) — khớp CHAY_THU_CAM_WB   # [ghi chú] + 2 tên: AI riêng ngoài sổ / đổi danh mục khối
 CAM_PHAI_CO = CAM_CHAY_TRANG + (
                "get_workflow_output", "get_node_output", "get_eval_report", "get_workflow_events", "get_workflow_chain_of_thought",
                "read_uploaded_file", "resolve_uploaded_file", "invoke_run_tool", "load_run_tools", "load_run_context")
 KHOA = {"ly_do": None}
 _luot_conv: dict[str, int] = {}     # mã cuộc trò chuyện ⇒ số lượt đã gửi (trong tiến trình này)              # khác None ⇒ đường chat bị khoá (không xác nhận được danh sách công cụ đã bỏ)
 
-# ================================================================ [ghi chú kỹ thuật] NHÁNH CLAUDE của trợ lý dựng
+# ================================================================ [ghi chú] NHÁNH CLAUDE của trợ lý dựng
 FILE_MO_HINH_OPERATOR = __import__("pathlib").Path(__file__).resolve().parents[1] / "cau_hinh_mo_hinh" / "mo_hinh_operator.txt"
-MUC_OPERATOR_DUOC = ("low", "medium", "high", "xhigh", "max")   # [ghi chú kỹ thuật] = hậu tố tuyến của bảng cổng AI
+MUC_OPERATOR_DUOC = ("low", "medium", "high", "xhigh", "max")   # [ghi chú] = hậu tố tuyến của bảng cổng AI
 MO_HINH_OPERATOR_DUOC = ("claude-sonnet-5-5", "claude-opus-5-5")   # tên TRẦN (danh mục Anthropic của Capitol); mức suy luận đặt ở cổng AI cho tên trần
 
 
@@ -85,7 +85,7 @@ def mo_hinh_operator(p=None):
     ten, muc = ten.strip(), muc.strip()
     if ten not in MO_HINH_OPERATOR_DUOC or (co_muc and muc not in MUC_OPERATOR_DUOC):
         raise ValueError("file mô hình trợ lý dựng sai: dòng phải là <" + " | ".join(MO_HINH_OPERATOR_DUOC) + "> hoặc thêm ' / <" + " | ".join(MUC_OPERATOR_DUOC) + ">'")
-    return (ten, muc or None)   # [ghi chú kỹ thuật] (tên trần, mức suy luận | None = mức mặc định của cổng)
+    return (ten, muc or None)   # [ghi chú] (tên trần, mức suy luận | None = mức mặc định của cổng)
 
 
 LOI_DAN_CLAUDE = r'''
@@ -129,7 +129,7 @@ lại của cuộc trò chuyện, và danh sách workflow trang chạy hộ đư
    Không ghi địa chỉ trang (http…): trang tự hiện nút mở workflow theo mã.
 - Mã workflow chỉ lấy từ Grounded context hoặc từ kết quả công cụ, chép nguyên văn. Lý do: mã tự nghĩ ra nhìn giống thật nhưng mở không được.
 - Ví dụ SAI: "Đã tạo workflow `kpi-turnover-team` cho bạn." (mã tự đặt, không có trong kết quả công cụ)
-- Ví dụ ĐÚNG: "Đã lưu workflow “KPI — chỉ tiêu Turnover từng người” (mã 76b4131f-ae5f-4d5c-9506-4461aa84fd08): ô nhập câu hỏi ⇒ Trợ lý KPI ⇒ Kiểm số bằng code ⇒ Kết quả."
+- Ví dụ ĐÚNG: "Đã lưu workflow “KPI — chỉ tiêu Turnover từng người” (mã 76b4131f-ae5f-4d5c-9506-4461aa84fd08): ô nhập câu hỏi ⇒ Trợ lý KPI ⇒ Kiểm số KPI ⇒ Kết quả."
 
 # Luật của bộ chạy thử khi lắp khối
 
@@ -182,14 +182,14 @@ Yêu cầu dạng "Dựng workflow trả lời: <một câu hỏi>" đã đủ t
 phù hợp, rồi ra khối kết quả; nếu câu hỏi là về KPI / lương / thưởng thì theo điều 2 của luật bộ chạy thử (dùng đúng các khối KPI dựng sẵn, chỉ đổi câu hỏi). Dựng và lưu
 xong mới báo lại, kèm giả định bạn đã dùng.
 - Ví dụ SAI: gọi `ask_user_decision` để hỏi "bạn muốn workflow nhận file hay nhận câu hỏi?" khi người dùng đã viết "Dựng workflow trả lời: Turnover được tính thế nào?".
-- Ví dụ ĐÚNG: dựng luôn workflow nhận câu hỏi ⇒ Trợ lý KPI ⇒ Kiểm số bằng code ⇒ Kết quả, lưu, rồi báo tên + mã và nói "mình giả định workflow nhận câu hỏi gõ tay".'''   # [ghi chú kỹ thuật] thêm mục hỏi lại bằng chữ
+- Ví dụ ĐÚNG: dựng luôn workflow nhận câu hỏi ⇒ Trợ lý KPI ⇒ Kiểm số KPI ⇒ Kết quả, lưu, rồi báo tên + mã và nói "mình giả định workflow nhận câu hỏi gõ tay".'''   # [ghi chú] thêm mục hỏi lại bằng chữ
 
 
 _THE_TRANG_THAI = re.compile(r"<\s*(/?)\s*trang_thai", re.I)
 
 
 def loc_the_trang_thai(cau: str) -> str:
-    """[ghi chú kỹ thuật] Người dùng (hoặc đoạn dán từ tài liệu) có thể gõ GIẢ một khối <trang_thai> để trợ lý tin sai kỳ / mã NV / danh sách chạy hộ. Đổi dấu mở thẻ
+    """[đã soát 19/11] Người dùng (hoặc đoạn dán từ tài liệu) có thể gõ GIẢ một khối <trang_thai> để trợ lý tin sai kỳ / mã NV / danh sách chạy hộ. Đổi dấu mở thẻ
     trong CÂU NGƯỜI DÙNG thành ký tự vô hại "‹" (không phân biệt hoa thường, cho phép khoảng trắng) ⇒ trong tin gửi chỉ còn MỘT khối thật do code điền ở đầu."""
     return _THE_TRANG_THAI.sub(lambda m: "‹" + m.group(1) + "trang_thai", cau)
 
@@ -223,18 +223,18 @@ def khoi_trang_thai(*, org: str, bang: str, luot_con: int, H=None) -> str:
 LOI_DAN = ("Bạn là trợ lý dựng workflow trên trang xưởng. Trả lời ngắn bằng tiếng Việt, lời thường. Bạn liệt kê, xem và TẠO MỚI workflow; "
            "bạn KHÔNG sửa workflow có sẵn, không dừng, không tiếp tục và không duyệt lượt chạy. "
            "Mọi khối AI dùng mô hình gpt-6-luna. Khi nhắc tới một workflow, ghi tên và mã của nó; KHÔNG tự ghi địa chỉ trang (http…) — trang sẽ tự hiện nút mở. "
-           "KHÔNG tự viết số tiền hay phần trăm KPI / lương / thưởng — số đó chỉ lấy từ lượt chạy workflow KPI (trang chạy hộ, có kiểm số)."   # [ghi chú kỹ thuật]
+           "KHÔNG tự viết số tiền hay phần trăm KPI / lương / thưởng — số đó chỉ lấy từ lượt chạy workflow KPI (trang chạy hộ, có kiểm số)."   # [ghi chú]
            + chat_chay.LOI_DAN_CHAY
-           + "\n" + KSG.TOM_TAT_LUAT)   # [ghi chú kỹ thuật] luật bộ chạy thử — để mô hình dựng đúng ngay lần đầu (bước kiểm sau ghép là lưới thứ hai)   # [va_chat_chay C 12/11] Trợ lý ĐỀ NGHỊ, trang tự chạy
+           + "\n" + KSG.TOM_TAT_LUAT)   # [ghi chú] luật bộ chạy thử — để mô hình dựng đúng ngay lần đầu (bước kiểm sau ghép là lưới thứ hai)   # [va_chat_chay C 12/11] Trợ lý ĐỀ NGHỊ, trang tự chạy
 
 
-# [ghi chú kỹ thuật] chữ CỦA CHÍNH trợ lý Operator không qua khối kiểm số nào ⇒ nếu có số tiền / % (trợ lý
+# [ghi chú] chữ CỦA CHÍNH trợ lý Operator không qua khối kiểm số nào ⇒ nếu có số tiền / % (trợ lý
 # KHÔNG có nguồn số KPI — số đã kiểm chỉ đến qua lượt chạy workflow, ở ket_chay) thì thay cả câu bằng câu cố định. Không chặn: mã NV, năm, ngày, giờ,
 # mã workflow, số khối / phiên bản, số trần (vd "100 KB"), phiên bản "4.10.0". Chỉ áp cho `tra_loi` của trợ lý, KHÔNG áp cho ket_chay.tra_loi (đã qua Rào).
 _SO_TIEN = re.compile(r"(?<![\w.,])\d{1,3}(?:[.,]\d{3})+(?![.,]?\d)"          # 1.000 / 8.940.000 / 1,500,000 (nhóm nghìn)
                       r"|\d+(?:[.,]\d+)?\s*(?:đ\b|đồng|vnđ|vnd|triệu|tỷ|nghìn|ngàn|k\b)"   # 500 đồng, 3,5 triệu, 200k
                       r"|\d+(?:[.,]\d+)?\s*%"                                  # 3,1 %
-                      # [ghi chú kỹ thuật] viết tắt "tr" (5tr74, 5.74 tr) · "phần trăm" / "phan tram" · số trơn ≥ 5 chữ số không đơn vị
+                      # [đã soát 17/11 — 4 mẫu lọt] viết tắt "tr" (5tr74, 5.74 tr) · "phần trăm" / "phan tram" · số trơn ≥ 5 chữ số không đơn vị
                       # (≥ 5 để không đụng năm; không dính chữ / dấu ⇒ không đụng mã UUID, phiên bản) · nhóm nghìn bằng dấu cách (5 740 000)
                       r"|\d+(?:[.,]\d+)?\s*tr(?:\d+|\b)"
                       r"|\d+(?:[.,]\d+)?\s*(?:phần|phan)\s*(?:trăm|tram)"
@@ -253,7 +253,7 @@ def chan_so_kpi(chu: str) -> tuple[str, bool]:
 
 def ho_so(org: str, ma_luot: str, bang: str = "", mo_hinh=None) -> dict:
     """Hồ sơ d1 (buoc9_operator_chat.py, đã soát 06/11) + quyền dựng workflow + 2 khoá của bản vá chat trên trang.
-    [ghi chú kỹ thuật] mo_hinh = tên Claude ⇒ hồ sơ nhánh claude: lời dặn LOI_DAN_CLAUDE (CỐ ĐỊNH — bảng chạy hộ nằm ở khối trạng thái của tin nhắn),
+    [ghi chú] mo_hinh = tên Claude ⇒ hồ sơ nhánh claude: lời dặn LOI_DAN_CLAUDE (CỐ ĐỊNH — bảng chạy hộ nằm ở khối trạng thái của tin nhắn),
     không max_tokens, khoá chay_thu_ban_loi_dan. mo_hinh None ⇒ y như cũ."""
     agent_id = str(uuid.uuid4())
     if mo_hinh:
@@ -276,7 +276,7 @@ def ho_so(org: str, ma_luot: str, bang: str = "", mo_hinh=None) -> dict:
     }
 
 
-# [ghi chú kỹ thuật] KIỂM TRƯỚC lượt, 0 AI: dựng danh sách công cụ bằng CODE ĐANG GẮN trong hộp với đúng hồ sơ của trang; còn tên cấm / hộp chưa
+# [đã soát 12/11] KIỂM TRƯỚC lượt, 0 AI: dựng danh sách công cụ bằng CODE ĐANG GẮN trong hộp với đúng hồ sơ của trang; còn tên cấm / hộp chưa
 # có bản vá ⇒ không gửi lượt nào. Nhớ kết quả theo lần khởi động của hộp (tạo lại hộp ⇒ dò lại). Kiểm SAU lượt (dòng log) vẫn giữ.
 _DO = r"""
 import json, sys
@@ -322,7 +322,7 @@ def do_truoc(org: str) -> str | None:
                 loi = "trần lượt chat trong hộp khác số của trang (mức tiền tối đa không còn đúng)"
             else:
                 loi = None
-            if loi is None and d.get("tom_tat_lich_su") is not False:   # [ghi chú kỹ thuật] bước tóm tắt lịch sử bằng AI (ngoài trần, ngoài sổ) phải TẮT
+            if loi is None and d.get("tom_tat_lich_su") is not False:   # [D — M2] bước tóm tắt lịch sử bằng AI (ngoài trần, ngoài sổ) phải TẮT
                 loi = "hộp chưa tắt bước tóm tắt lịch sử bằng AI (A2A_HISTORY_TIERED_ENABLED)"
         _do_nho.update(hop=bat, loi=loi)
         return loi
@@ -350,13 +350,13 @@ def _doc_log(tu: float, ma_luot: str) -> dict:
                 ra["usage"] = {k: int(kv.get(k) or 0) for k in ("requests", "input", "output", "cache_read", "cham_tran")}
             except ValueError:
                 pass
-            # [ghi chú kỹ thuật] mã workflow do CHÍNH lượt này lưu (hộp đọc từ kết quả công cụ dựng). Thiếu ô / "?" / có mã sai dạng ⇒ None ⇒ trang giữ cách cũ
+            # [ghi chú] mã workflow do CHÍNH lượt này lưu (hộp đọc từ kết quả công cụ dựng). Thiếu ô / "?" / có mã sai dạng ⇒ None ⇒ trang giữ cách cũ
             wl = kv.get("wf_luu")
             if wl == "-":
                 ra["wf_luu"] = []
             elif wl and wl != "?" and all(re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", x) for x in wl.split(",")):
                 ra["wf_luu"] = wl.split(",")[:20]
-            wc = kv.get("wf_cham")   # [ghi chú kỹ thuật] danh sách RỘNG để khoá; thiếu / "?" / sai dạng ⇒ None ⇒ khoá như cách cũ
+            wc = kv.get("wf_cham")   # [E K1] danh sách RỘNG để khoá; thiếu / "?" / sai dạng ⇒ None ⇒ khoá như cách cũ
             if wc == "-":
                 ra["wf_cham"] = []
             elif wc and wc != "?" and all(re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", x) for x in wc.split(",")):
@@ -366,7 +366,7 @@ def _doc_log(tu: float, ma_luot: str) -> dict:
     return ra
 
 
-# [ghi chú kỹ thuật] trợ lý dựng nhờ TRANG tạo workflow KPI: dòng cuối `TAO_KPI: <câu hỏi>` + câu NGƯỜI DÙNG có ý dựng (hai khoá)
+# [ghi chú] trợ lý dựng nhờ TRANG tạo workflow KPI: dòng cuối `TAO_KPI: <câu hỏi>` + câu NGƯỜI DÙNG có ý dựng (hai khoá)
 _DONG_TAO_KPI = re.compile(r"TAO_KPI:[ \t]*(.*)")
 _Y_DUNG = re.compile(r"(?<![\w])(dựng|tạo|lập|xây|làm|thiết kế|soạn|build|create|make)(?![\w])[^.?!\n]{0,80}?(?<![\w])(workflow|quy trình|luồng)(?![\w])", re.I)
 _Y_PHU_DINH = re.compile(r"(?<![\w])(không|đừng|chưa|khỏi|chẳng)(?![\w])", re.I)
@@ -375,9 +375,9 @@ CHUA_TAO_KHONG_NHO = ("Mình chưa tạo workflow nào: câu của bạn ở lư
                       "“dựng workflow KPI cho câu …”.")
 
 
-# [ghi chú kỹ thuật] siết: bỏ chữ trong ngoặc kép / khối trích; "đã / vừa / làm sao / cách / ai…" ngay trước động từ ⇒ không phải lời nhờ;
+# [đã soát 19/11 — 4 câu HỞ, 2 câu CHẶT] siết: bỏ chữ trong ngoặc kép / khối trích; "đã / vừa / làm sao / cách / ai…" ngay trước động từ ⇒ không phải lời nhờ;
 # phủ định chỉ tính trong CÙNG vế câu (tách cả dấu phẩy); câu gõ KHÔNG DẤU được nhận với bộ từ không dấu (không gồm "dung" — trùng "dùng / đừng").
-_Y_NGOAC = re.compile("```.*?```|“[^”]*”|\"[^\"]*\"|«[^»]*»|`[^`]*`|‘[^’]*’|(?<![\\w])'[^'\\n]{3,}'(?![\\w])", re.S)   # [ghi chú kỹ thuật] thêm ngoặc đơn ‘…’ / '…'
+_Y_NGOAC = re.compile("```.*?```|“[^”]*”|\"[^\"]*\"|«[^»]*»|`[^`]*`|‘[^’]*’|(?<![\\w])'[^'\\n]{3,}'(?![\\w])", re.S)   # [E vòng 3] thêm ngoặc đơn ‘…’ / '…'
 _Y_NEU = re.compile(r"(?<![\w])(nếu|giả sử|neu|gia su)(?![\w])(?!.*(?<![\w])(thì|thi)(?![\w]))", re.I | re.S)   # "nếu … <động từ>" mà CHƯA tới chữ "thì" ⇒ câu giả định
 _Y_KHONG_NHO = re.compile(r"(?<![\w])(đã|vừa|từng|làm sao|cách|ai|khi nào|tại sao|vì sao)\s+(để\s+|mà\s+|nào\s+)?$", re.I)
 # "làm sao" là từ để hỏi, không phải động từ "làm" ⇒ loại khỏi bộ động từ (ghi đè _Y_DUNG ở trên)
@@ -453,7 +453,7 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
     if conv is not None and not (isinstance(conv, str) and _CONV.fullmatch(conv)):
         return 400, {"loi": "Mã cuộc trò chuyện không hợp lệ."}
     if not _MA.fullmatch(org or ""):
-        return 503, {"loi": "Chưa có tổ chức thử (runtime/org_id.txt)."}
+        return 503, {"loi": "Chưa có tổ chức thử (ket_qua/org_id.txt)."}
     if not _mot_luot.acquire(blocking=False):
         return 429, {"loi": "Đang có một lượt chat chạy — chờ lượt đó xong (mỗi lúc một lượt)."}
     try:
@@ -462,7 +462,7 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
             ghi(f"CHAT không gửi — kiểm trước lượt không đạt: {ly_do}")
             return 503, {"loi": "Chưa gửi được: " + ly_do + ". Báo người bật máy chủ."}
         try:
-            mh_cl = mo_hinh_operator()   # [ghi chú kỹ thuật] None = luna như cũ
+            mh_cl = mo_hinh_operator()   # [ghi chú] None = luna như cũ
             mh_cl, muc_cl = mh_cl if mh_cl else (None, None)   # [v4] tên trần + mức
         except ValueError as e:
             ghi(f"CHAT không gửi — {e}")
@@ -472,18 +472,18 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
             return 503, {"loi": "Chưa gửi được: máy chủ chưa gắn bản trợ lý dựng dành cho Claude. Báo người bật máy chủ."}
         ma_giu, tong = (None, 0.0) if mh_cl else H.giu_cho(muc_toi_da.CHAT_TOI_DA)   # Claude qua Bedrock không tính trần ⇒ không giữ chỗ trần
         if ma_giu is None and not mh_cl:
-            if H.giu_cho_ly_do() == "so_ban":   # [ghi chú kỹ thuật] không lấy được khoá sổ ≠ hết trần — chỉ đổi CHỮ báo, vẫn không gửi
+            if H.giu_cho_ly_do() == "so_ban":   # [ghi chú] không lấy được khoá sổ ≠ hết trần — chỉ đổi CHỮ báo, vẫn không gửi
                 return 503, {"loi": "Sổ tiền AI đang bận ghi (một lượt khác vừa chạy xong) — chưa gửi gì, gửi lại sau vài giây."}
             return 402, {"loi": f"Sắp vượt trần tiền AI hôm nay: đã tiêu + đang giữ {tong:.4f} + giữ chỗ tối đa một lượt chat "
                                 f"{muc_toi_da.CHAT_TOI_DA:.4f} > trần {H.TRAN} USD — không gửi."}
         ma_luot, t0 = str(uuid.uuid4()), time.time()
         truoc = ds_wf()
         # [va_chat_chay C 12/11] bảng workflow ĐỦ ĐIỀU KIỆN chạy từ chat do CODE sinh mỗi lượt (chay_ho = None ⇒ như cũ: không đề nghị chạy được)
-        # [ghi chú kỹ thuật] đường chat dựng KHÔNG chạy hộ nữa: bảng LUÔN trống (lời dặn: "danh sách trống ⇒ không viết dòng CHAY").
+        # [ghi chú] đường chat dựng KHÔNG chạy hộ nữa: bảng LUÔN trống (lời dặn: "danh sách trống ⇒ không viết dòng CHAY").
         # Tham số chay_ho giữ trong chữ ký để người gọi cũ không vỡ nhưng KHÔNG được dùng. Muốn chạy: khung chat chính (/api/tro-ly, người dùng ra lệnh) hoặc nút Chạy.
         chay_duoc = []
         bang = "\nWorkflow trang chạy hộ được:\n(hiện không có — đừng viết dòng CHAY)"
-        conv_moi = bool(conv) and _luot_conv.get(conv, 0) >= muc_toi_da.CHAT_LUOT_MOT_CONV   # [ghi chú kỹ thuật] đủ 8 lượt ⇒ mở cuộc mới, không nối lịch sử
+        conv_moi = bool(conv) and _luot_conv.get(conv, 0) >= muc_toi_da.CHAT_LUOT_MOT_CONV   # [D — M2] đủ 8 lượt ⇒ mở cuộc mới, không nối lịch sử
         if mh_cl:
             cfg = ho_so(org, ma_luot, mo_hinh=mh_cl)
             if muc_cl:
@@ -503,18 +503,18 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
         time.sleep(1)
         lg = _doc_log(t0, ma_luot)
         u = lg["usage"]
-        # [ghi chú kỹ thuật] HAI kiểu chạm trần (bản vá ghi cham_tran = 1 / 2):
+        # [ghi chú] HAI kiểu chạm trần (bản vá ghi cham_tran = 1 / 2):
         #  1 = trần token / số lần gọi của thư viện: dòng usage KHÔNG gồm lần gọi cuối (đo: ghi 113.853, thư viện báo 153.970) ⇒ ghi MỨC TỐI ĐA.
         #  2 = phép chặn CỠ của bản vá, ném TRƯỚC khi gửi lần gọi kế ⇒ dòng usage ĐỦ ⇒ ghi tiền THẬT (đo 11:11: 8 lần mô tả workflow song song,
         #      thật ≈ 0,0039 mà bản trước ghi 0,065). Giá trị lạ ⇒ coi như 1 (lệch phía an toàn).
         tin_usage = bool(u) and u["cham_tran"] in (0, 2)
         usd = muc_toi_da.tien_chat(u["input"], u["output"]) if tin_usage else muc_toi_da.CHAT_TOI_DA
-        if mh_cl:   # [ghi chú kỹ thuật] Claude: phần tính trần LUÔN 0 ở mọi kiểu kết thúc; token + tiền tham khảo ghi kèm (cổng AI ghi sổ thật từng lời gọi)
+        if mh_cl:   # [ghi chú] Claude: phần tính trần LUÔN 0 ở mọi kiểu kết thúc; token + tiền tham khảo ghi kèm (cổng AI ghi sổ thật từng lời gọi)
             usd = 0.0
             _g = muc_toi_da.GIA_BANG.get(mh_cl) or (0.0, 0.0)
             _tk = {"ncc": "bedrock", "mo_hinh": mh_cl + ("-" + muc_cl if muc_cl else ""), "token_bedrock": {"vao": u["input"], "ra": u["output"]} if u else None,
                    "usd_bedrock_tham_khao": round((u["input"] * _g[0] + u["output"] * _g[1]) / 1e6, 6) if u else None}
-        # [ghi chú kỹ thuật] chỉ coi là CHƯA tốn khi backend từ chối sớm bằng 4xx và không có dòng log nào của lượt; 5xx / quá giờ / 2xx ⇒ đã gọi
+        # [D minor 2] chỉ coi là CHƯA tốn khi backend từ chối sớm bằng 4xx và không có dòng log nào của lượt; 5xx / quá giờ / 2xx ⇒ đã gọi
         da_goi = not (400 <= code < 500 and loi is None and lg["bo_chay"] is None and u is None)
         try:
             if da_goi:
@@ -529,7 +529,7 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
                                                                 "lượt chạm trần token ⇒ ghi mức tối đa" if u else "KHÔNG có dòng usage ⇒ ghi mức tối đa")})
             if ma_giu is not None:
                 H.tra_cho(ma_giu)
-        except Exception as e:  # noqa: BLE001 — [ghi chú kỹ thuật] ghi sổ lỗi: KHÔNG bỏ chỗ (tiền chưa vào sổ ⇒ chỗ giữ còn chặn thay), khoá chat, ghi nhật ký
+        except Exception as e:  # noqa: BLE001 — [D minor 1] ghi sổ lỗi: KHÔNG bỏ chỗ (tiền chưa vào sổ ⇒ chỗ giữ còn chặn thay), khoá chat, ghi nhật ký
             KHOA["ly_do"] = "không ghi được sổ tiền cho lượt chat vừa rồi (%s)." % type(e).__name__
             ghi(f"CHAT {ma_luot}: GHI SỔ LỖI {type(e).__name__} — giữ nguyên chỗ {muc_toi_da.CHAT_TOI_DA} USD, khoá đường chat")
         if da_goi and not lg["xac_nhan"]:
@@ -537,7 +537,7 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
         sau = ds_wf()
         khac = [w for w, v in sau.items() if truoc.get(w) != v]   # mọi workflow của tổ chức đổi trong lúc lượt chat chạy
         cua_luot, cham = lg.get("wf_luu"), lg.get("wf_cham")
-        # [ghi chú kỹ thuật] KHOÁ: workflow CÓ SẴN đổi phiên bản VÀ (hộp không báo được danh sách chạm ⇒ cách cũ: cái nào cũng khoá | mã nằm trong danh sách chạm của lượt)
+        # [E K1] KHOÁ: workflow CÓ SẴN đổi phiên bản VÀ (hộp không báo được danh sách chạm ⇒ cách cũ: cái nào cũng khoá | mã nằm trong danh sách chạm của lượt)
         cu_doi = [w for w in khac if w in truoc]
         cu_khoa = cu_doi if cham is None else [w for w in cu_doi if w in cham]
         if cua_luot is not None and cham is not None:   # hộp báo đủ hai danh sách ⇒ ô workflow_doi = workflow lượt này lưu + workflow có sẵn lượt này chạm mà đổi
@@ -547,7 +547,7 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
                 ghi(f"CHAT {ma_luot}: {len(ngoai)} workflow của tổ chức đổi trong lúc chat nhưng KHÔNG do lượt này lưu / chạm (theo nhật ký hộp) — không tính cho lượt, không khoá")
             khac = hien
         doi = [{"id": w, "moi": w not in truoc, "phien_ban": sau[w], "loi_kiem": kiem_wf(w)} for w in khac]
-        if cu_khoa:   # [ghi chú kỹ thuật] chat không có công cụ sửa workflow có sẵn ⇒ workflow CŨ đổi phiên bản trong lượt là bất thường
+        if cu_khoa:   # [D minor 4] chat không có công cụ sửa workflow có sẵn ⇒ workflow CŨ đổi phiên bản trong lượt là bất thường
             KHOA["ly_do"] = KHOA["ly_do"] or "một workflow có sẵn đã đổi phiên bản trong lượt chat (chat chỉ được tạo mới) — kiểm lại trước khi dùng tiếp."
         if isinstance(r, dict) and r.get("conversation_id"):
             c = r["conversation_id"]
@@ -561,16 +561,16 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
         if loi or code >= 300 or not isinstance(r, dict):
             return 502, dict(chung, loi=f"Trợ lý không trả lời được ({loi or 'HTTP ' + str(code)}).")
         tra_loi = r.get("assistant_reply") or ""
-        if mh_cl and not tra_loi.strip() and not (u and u["cham_tran"]):   # [ghi chú kỹ thuật] lượt Claude trả lời RỖNG ⇒ báo rõ, không hiện khung trống
+        if mh_cl and not tra_loi.strip() and not (u and u["cham_tran"]):   # [ghi chú] lượt Claude trả lời RỖNG ⇒ báo rõ, không hiện khung trống
             tra_loi = ("Trợ lý chưa viết câu trả lời cho lượt này"
                        + (" (nó đã dùng công cụ hỏi-lựa-chọn mà trang này chưa hiện được)" if "ask_user_decision" in (lg.get("buoc") or []) else "")
                        + " — việc bạn nhờ CHƯA xong. Hãy gửi lại và nói rõ hơn: workflow nhận gì (câu hỏi gõ tay hay file) và cần trả ra gì.")
             ghi(f"CHAT {ma_luot}: câu trả lời RỖNG ⇒ thay bằng câu báo rõ (công cụ: {','.join(lg.get('buoc') or []) or '-'})")
         if u and u["cham_tran"] == 2:   # dừng vì phải đọc quá nhiều trong một lần ⇒ nói đúng việc cần làm
-            # [ghi chú kỹ thuật] chữ cũ "đọc quá nhiều workflow" sai lý do: bản vá chặn khi MỘT lần gọi mang > 100 KB tin nhắn (orchestrator CHAY_THU_CHAT_BYTE_1_LAN)
+            # [ghi chú] chữ cũ "đọc quá nhiều workflow" sai lý do: bản vá chặn khi MỘT lần gọi mang > 100 KB tin nhắn (orchestrator CHAY_THU_CHAT_BYTE_1_LAN)
             tra_loi = (f"Lượt này dừng vì một lần gọi trợ lý phải mang quá nhiều dữ liệu (hơn {muc_toi_da.CHAT_BYTE_1_LAN // 1000} KB) — việc bạn nhờ CHƯA xong. "
                        "Hãy chia nhỏ yêu cầu (ví dụ dựng workflow ít khối hơn, hoặc hỏi về một workflow một lần) rồi gửi lại ở cuộc trò chuyện mới.")
-        elif u and u["cham_tran"] and mh_cl:   # [ghi chú kỹ thuật] nhánh claude: rào duy nhất là số lần gọi; nói rõ cái gì ĐÃ lưu (sự cố 19/11: đã lưu mà báo "CHƯA xong")
+        elif u and u["cham_tran"] and mh_cl:   # [ghi chú] nhánh claude: rào duy nhất là số lần gọi; nói rõ cái gì ĐÃ lưu (sự cố 19/11: đã lưu mà báo "CHƯA xong")
             _moi = [w["id"] for w in doi if w["moi"]]
             tra_loi = ("Trợ lý đã gọi mô hình tới giới hạn số lần của một lượt chat nên dừng trước khi viết xong lời tóm tắt. "
                        + ("Trong lượt này ĐÃ lưu workflow mới: " + ", ".join(f"mã {w}" for w in _moi) + " — bạn mở nó ở tab “Workflow” để xem và chạy thử."
@@ -580,9 +580,9 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
                        "Hãy chia nhỏ yêu cầu (ví dụ tạo workflow ít khối hơn) rồi gửi lại ở một cuộc trò chuyện mới.")
         # [va_chat_chay C 12/11] dòng cuối `CHAY: <mã>` ⇒ CODE kiểm + chạy bằng chay() của nút Chạy, câu hỏi = NGUYÊN VĂN `cau` của người dùng.
         # Chỉ khi lượt chat KHÔNG chạm trần và sổ tiền / xác nhận công cụ bình thường (KHOA trống). Tiền lượt workflow do chay() tự giữ chỗ + ghi sổ.
-        # [ghi chú kỹ thuật] KHÔNG dự phòng (bảng = None ⇒ chỉ dòng cuối `CHAY: <mã>` được nhận ra) và KHÔNG chạy: lượt 6c7b3c11 trang tự chạy
+        # [ghi chú] KHÔNG dự phòng (bảng = None ⇒ chỉ dòng cuối `CHAY: <mã>` được nhận ra) và KHÔNG chạy: lượt 6c7b3c11 trang tự chạy
         # "KPI mẫu 18" khi trợ lý chỉ MỜI. Trợ lý vẫn viết dòng CHAY ⇒ bỏ dòng khỏi chữ hiện + NÓI RÕ đường này không chạy hộ (không im lặng).
-        # [ghi chú kỹ thuật] đọc dòng TAO_KPI TRƯỚC phép chặn số (câu hỏi KPI trong dòng lệnh có thể chứa số) — chỉ nhánh Claude (lời dặn luna không dạy dòng này)
+        # [ghi chú] đọc dòng TAO_KPI TRƯỚC phép chặn số (câu hỏi KPI trong dòng lệnh có thể chứa số) — chỉ nhánh Claude (lời dặn luna không dạy dòng này)
         tra_loi, cau_kpi = doc_tao_kpi(tra_loi) if mh_cl and not (u and u["cham_tran"]) else (tra_loi, None)
         tra_loi, ma_chay, du_phong = chat_chay.doc_de_nghi_day_du(tra_loi, None) if not (u and u["cham_tran"]) else (tra_loi, None, False)
         ket_chay = None
@@ -590,11 +590,11 @@ def gui(cau, conv, *, org: str, goi_ab, H, ghi, ds_wf, kiem_wf, do=do_truoc, cha
             ket_chay = {"da_chay": False, "workflow": ma_chay, "ten": "", "phien": None, "trang_thai": None, "tra_loi": None, "nhan": None, "du_phong": False,
                         "ly_do": KHONG_CHAY_HO}
             ghi(f"CHAT {ma_luot}: trợ lý viết dòng CHAY {ma_chay} — đường này KHÔNG chạy hộ (0 lượt chạy)")
-        tra_loi, bi_thay = chan_so_kpi(tra_loi)   # [ghi chú kỹ thuật]
+        tra_loi, bi_thay = chan_so_kpi(tra_loi)   # [ghi chú]
         if ma_chay:
             tra_loi = (tra_loi + "\n\n" if tra_loi.strip() else "") + "_" + KHONG_CHAY_HO + "_"
         kq_kpi = None
-        if cau_kpi is not None:   # [ghi chú kỹ thuật] hai khoá: dòng lệnh của trợ lý + ý dựng trong câu NGƯỜI DÙNG (`cau` — nguyên văn người dùng gõ)
+        if cau_kpi is not None:   # [ghi chú] hai khoá: dòng lệnh của trợ lý + ý dựng trong câu NGƯỜI DÙNG (`cau` — nguyên văn người dùng gõ)
             kq_kpi = thuc_hien_tao_kpi(cau, cau_kpi, tao_kpi, KHOA["ly_do"], ghi, ma_luot)
             if kq_kpi["da_tao"]:
                 if all(w["id"] != kq_kpi["workflow"] for w in doi):

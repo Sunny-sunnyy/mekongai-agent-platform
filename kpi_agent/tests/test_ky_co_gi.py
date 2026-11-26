@@ -58,9 +58,14 @@ def _strings_and_numbers(value) -> tuple[list[str], list]:
     return [], [value] if isinstance(value, (int, float)) and not isinstance(value, bool) else []
 
 
+MONEY_KEYS = ("tam_kpi", "thuong_them", "gia_vi")   # 20/11: đường này trả thêm BA TỔNG của bản cho trang Dữ liệu (quyết) — chỉ tổng, không theo người
+
+
 def _assert_nothing_private(body: dict, folder: Path) -> None:
-    texts, numbers = _strings_and_numbers(body)
-    assert numbers == []                                                          # không ô nào là số ⇒ không thể có tiền / % / số đếm
+    for key in [key for key in MONEY_KEYS if key in body]:                        # ba ô tổng (chỉ có khi bản thuộc kỳ được hỏi): đúng hình, không dòng theo người
+        assert set(body[key]) <= {"tong", "trang_thai", "ly_do"} and (body[key]["tong"] is None or isinstance(body[key]["tong"], int)), body[key]
+    texts, numbers = _strings_and_numbers({key: value for key, value in body.items() if key not in MONEY_KEYS})
+    assert numbers == []                                                          # NGOÀI ba ô tổng không ô nào là số ⇒ không tiền / % / số đếm nào khác
     joined = "\n".join(texts)
     assert not re.search(r"[0-9]{1,3}(\.[0-9]{3})+", joined)                       # không số viết kiểu tiền (1.234.567)
     assert not re.search(r"NV[0-9]{2}", joined)                                   # không mã che
@@ -74,7 +79,7 @@ def test_base_period_has_everything(client, folder):
     assert [item["key"] for item in body["items"]] == KEYS
     assert {item["key"]: item["state"] for item in body["items"]} == dict.fromkeys(KEYS, "co")
     assert body["ready"] is True and body["missing"] == [] and body["period"] == body["base_period"] == "2026-10" and body["data_source"] == "raw"
-    assert body["uploads_survive_restart"] is False
+    assert body["uploads_survive_restart"] is True
     raw, targets, routes, rules, extra = body["items"]
     meta = client.get("/api/meta").json()
     assert raw["file"] == "sample_data/thang_10/RAW DATA.xlsx" and raw["from_upload"] is False and raw["checked"] is None
@@ -119,7 +124,7 @@ def test_newline_inside_period_never_reaches_the_reader(client, monkeypatch):
 
 def test_no_key_is_refused_and_list_of_periods(client):
     assert client.get("/api/system/ky/2026-10").status_code == 401 and client.get("/api/system/ky").status_code == 401
-    assert client.get("/api/system/ky", headers=KEY).json() == {"periods": [{"period": "2026-10", "ready": True}]}
+    assert client.get("/api/system/ky", headers=KEY).json()["periods"] == [{"period": "2026-10", "ready": True}]
 
 
 def test_uploaded_file_becomes_the_raw_of_its_period(client, folder):
@@ -146,5 +151,5 @@ def test_uploaded_file_becomes_the_raw_of_its_period(client, folder):
     assert re.fullmatch(r"[0-9a-f]{64}\.xlsx", raw["file"]) and raw["file"].startswith(raw["sha256_8"])
     assert datetime.fromisoformat(raw["uploaded_at"]).date() == datetime.now().date()
     assert body["ready"] is True and [item["from_upload"] for item in body["items"][1:]] == [False] * 4
-    assert client.get("/api/system/ky", headers=KEY).json() == {"periods": [{"period": "2026-10", "ready": True}]}
+    assert client.get("/api/system/ky", headers=KEY).json()["periods"] == [{"period": "2026-10", "ready": True}]
     _assert_nothing_private(body, folder)

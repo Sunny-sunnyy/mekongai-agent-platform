@@ -57,7 +57,7 @@ def test_patterns_accept_real_values_and_refuse_path_like_strings():
 
 
 def test_patterns_are_strict_even_with_the_weaker_match_function():
-    # Người kiểm độc lập 12/11: `\d` nhận chữ số Unicode; `$` trần + re.match cho "NV05\n" qua. Thử bằng CHÍNH hàm yếu (re.match) trên mọi regex của file
+    # 12/11: `\d` nhận chữ số Unicode; `$` trần + re.match cho "NV05\n" qua. Thử bằng CHÍNH hàm yếu (re.match) trên mọi regex của file
     ok = {"employee_id": "NV05", "employee_a": "NV05", "employee_b": "NV06", "kpi": "LPPC", "period": "2026-10", "run_id": "12", "version_id": "3",
           "extra": "200.5", "target_pct": "94.9"}
     fullwidth = str.maketrans("0123456789", "０１２３４５６７８９")

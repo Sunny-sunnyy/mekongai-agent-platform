@@ -30,10 +30,10 @@ def flagged(answer: str) -> bool:
     RIGHT.replace("PC_ON: 2 đơn ngoài MCP — NV08", "PC_ON: 2 đơn ngoài MCP — NV04"),                        # sai người
     "PC_BT có 2 đơn ngoài MCP, liên quan NV08.",
     TABLE + "| PC_BT | 2 đơn ngoài MCP | NV04, NV08, NV14 |",
-    # Người kiểm vòng 2, điểm 1: mã đứng sau dấu chấm phẩy (vế không có "không" / "chưa") vẫn là người bị gắn cờ
+    # vòng 2, điểm 1: mã đứng sau dấu chấm phẩy (vế không có "không" / "chưa") vẫn là người bị gắn cờ
     "- PC_BT (độ phủ bột): có đơn của cửa hàng không thuộc MCP; mã liên quan: NV08.",
     "- PC_BT: 2 đơn ngoài MCP — NV04, NV14; NV08 cũng vậy.",
-    # Người kiểm vòng 2, điểm 2: chữ phủ định thuộc LỜI TẢ không được nuốt mã. Câu gốc "2 đơn không có trong MCP — NV08" không mang dấu hiệu nào
+    # vòng 2, điểm 2: chữ phủ định thuộc LỜI TẢ không được nuốt mã. Câu gốc "2 đơn không có trong MCP — NV08" không mang dấu hiệu nào
     # của FLAG_SIGNS (đã chạy trên mốc: qua vì không phải câu về cờ) ⇒ viết lại có "ngoài MCP" để thử đúng luật 1a.
     "- PC_BT: 2 đơn không có trong MCP, tức ngoài MCP — NV08.",
     TABLE + "| PC_BT | đơn không có trong MCP (ngoài MCP) | NV08 |",
@@ -41,7 +41,7 @@ def flagged(answer: str) -> bool:
     "- PC_ON: đơn bị trừ vì ngoài MCP — NV04.",
     "- PC_BT: 2 đơn ngoài MCP — trừ NV04, NV14 ra thì còn NV08.",
     "- PC_BT: 2 đơn ngoài MCP — không có NV04, chỉ có NV08.",
-    # Bổ sung của người kiểm: lời tả có "không" đứng trước danh sách mã không làm mất mã
+    # Bổ sung của: lời tả có "không" đứng trước danh sách mã không làm mất mã
     "- PC_BT: 2 đơn ở cửa hàng không thuộc MCP, không được tính theo công văn 6.2 — NV04, NV14, NV08",
     # KPI không có dòng lưu ý nào mang dấu hiệu này (mọi dòng "không thuộc MCP" đều gắn một KPI khác) ⇒ gắn ai vào cũng sai
     "- ASO_Focus: 2 đơn ngoài MCP — NV04",
@@ -67,7 +67,7 @@ def test_person_attached_to_the_wrong_kpi_flag_is_blocked(answer):
     "Riêng PC_ON chỉ có NV08 có đơn ở cửa hàng không thuộc MCP.",
     "- PC_BT: 2 đơn ngoài MCP — NV04 và NV14; không có NV08",
     "- PC_BT: 2 đơn ngoài MCP — NV04, NV14, chưa thấy NV08",
-    # Bổ sung của người kiểm: lời tả có "không" ĐỨNG TRƯỚC danh sách mã — chính lời công cụ có cụm này
+    # Bổ sung của: lời tả có "không" ĐỨNG TRƯỚC danh sách mã — chính lời công cụ có cụm này
     "- PC_BT: 2 đơn ở cửa hàng không thuộc MCP, không được tính theo công văn 6.2 — NV04, NV14",
     "- PC_ON: 2 đơn ngoài MCP (không được tính) — NV08",
 ])
@@ -117,9 +117,9 @@ def test_own_negation_cases(answer, blocked):
     assert flagged(answer) is blocked
 
 
-# kiem_so@28 (19/11) — lỗ của @26 do người kiểm độc lập tìm: câu viết đúng KHUÔN câu chuẩn lưu ý (lời chú có "không được tính") gắn vào một KPI KHÔNG có
+# kiem_so@28 (19/11) — lỗ của @26 do tìm: câu viết đúng KHUÔN câu chuẩn lưu ý (lời chú có "không được tính") gắn vào một KPI KHÔNG có
 # dòng lưu ý nào vẫn qua khi người được nêu có cờ ở KPI khác — chữ "không" của lời chú bị đọc thành câu "không có cờ". Năm câu đầu là nguyên văn của
-# người kiểm (đỏ trên @26 / @27); hai câu kế là ca đang chặn đúng, không được hỏng. Kỳ vọng ghi TRƯỚC khi chạy.
+# (đỏ trên @26 / @27); hai câu kế là ca đang chặn đúng, không được hỏng. Kỳ vọng ghi TRƯỚC khi chạy.
 HOLE = "- {kpi}: 2 đơn ở cửa hàng " + NOTE + " — liên quan {codes}."
 
 
@@ -145,9 +145,9 @@ def test_note_negation_is_not_a_no_flag_claim(answer, blocked):
     assert flagged(answer) is blocked
 
 
-# ---------- Vòng 2 (người kiểm độc lập 19/11, trên bản đầu của @28): test bắt CẢ LOẠI, không từng câu ----------
+# Vòng 2 (19/11, trên bản đầu của @28): test bắt CẢ LOẠI, không từng câu ----------
 # Loại lỗ: mục nêu một KPI KHÔNG có dòng lưu ý nào + gắn mã người có cờ ở KPI khác + một LỜI CHÚ có chữ phủ định ở bất kỳ đâu (sau dấu hiệu, trước dấu
-# hiệu, trong ngoặc, ở vế sau, trong ô bảng). Hai lời chú đầu là nguyên văn người kiểm (lọt trên bản đầu @28). {c} = danh sách mã.
+# hiệu, trong ngoặc, ở vế sau, trong ô bảng). Hai lời chú đầu là nguyên văn (lọt trên bản đầu @28). {c} = danh sách mã.
 NOTED = [
     "đơn ở cửa hàng không thuộc MCP, hệ thống không ghi nhận vào kết quả — {c}.",
     "{c} có đơn ở cửa hàng không thuộc MCP, chưa thấy được tính.",
@@ -179,7 +179,7 @@ def test_note_in_a_table_cell_never_frees_an_attached_code():
     assert flagged(TABLE + "| ASO_Focus | đơn ngoài MCP, hệ thống không ghi nhận | NV08 |")
 
 
-# Chiều ngược: câu nói thẳng "người đó KHÔNG dính" (ba khuôn hẹp trong kiem_so) phải qua — hai câu đầu bản đầu @28 chặn oan (người kiểm)
+# Chiều ngược: câu nói thẳng "người đó KHÔNG dính" (ba khuôn hẹp trong kiem_so) phải qua — hai câu đầu bản đầu @28 chặn oan
 @pytest.mark.parametrize("answer", [
     "- LPPC_Meat: NV08 không hề có đơn ở cửa hàng không thuộc MCP.",
     "- ASO_Focus_2: NV04, NV08 đều không vướng cửa hàng không thuộc MCP.",

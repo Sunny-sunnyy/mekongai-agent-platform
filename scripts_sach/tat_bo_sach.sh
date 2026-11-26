@@ -7,9 +7,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=_chung.sach.sh
 source "${SCRIPT_DIR}/_chung.sach.sh"
 
-echo "== 1. Tắt cụm container kpi-backend (nếu đang chạy) =="
+echo "== 1. Tắt cụm container kpi-backend và kpi-tai-len (nếu đang chạy) =="
+KPI_PROJ=()
+if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
+  KPI_PROJ=(-p "${COMPOSE_PROJECT_NAME}")
+fi
 if [[ -f "${SCRIPT_DIR}/compose.kpi_backend.sach.yaml" ]]; then
-  docker compose --project-directory "${ROOT_DIR}" -f "${SCRIPT_DIR}/compose.kpi_backend.sach.yaml" stop || true
+  docker compose "${KPI_PROJ[@]}" --project-directory "${ROOT_DIR}" -f "${SCRIPT_DIR}/compose.kpi_backend.sach.yaml" stop || true
+fi
+if [[ -f "${ROOT_DIR}/compose.kpi_tai_len.yaml" ]]; then
+  docker compose "${KPI_PROJ[@]}" --project-directory "${ROOT_DIR}" -f "${ROOT_DIR}/compose.kpi_tai_len.yaml" stop || true
 fi
 
 echo "== 2. Tắt các container nền tảng chính (giữ nguyên volume dữ liệu) =="

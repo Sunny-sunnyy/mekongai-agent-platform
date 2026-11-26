@@ -24,8 +24,12 @@ log = logging.getLogger("kpi_tai_len")
 TRAN_BYTE = 20 * 1024 * 1024
 BACKEND = (os.environ.get("KPI_BACKEND_HOST", "kpi-backend"), int(os.environ.get("KPI_BACKEND_PORT", "8110")))
 HET_GIO = 180
-LOAI = {"raw", "tracking", "chi_tieu"}
-MAU = {"loai": re.compile(r"^(raw|tracking|chi_tieu)$"), "ky": re.compile(r"^\d{4}-\d{2}$"),
+# [ghi chú] thêm hai loại: so_tracking (sổ theo dõi .xlsx) + trang_chi_tieu (trang theo dõi .html — CHỮ, không phải
+# gói "PK", trần RIÊNG 5 MB theo lõi). Ba loại .xlsx giữ kiểm 4 byte "PK" + trần 20 MB như cũ.
+LOAI = {"raw", "tracking", "chi_tieu", "so_tracking", "trang_chi_tieu"}
+TRAN_TRANG = 5 * 1024 * 1024
+BAN = re.compile(r"[0-9a-f]{64}", re.ASCII)   # mã bản dữ liệu của lõi: sha256 hex chữ thường, ĐÚNG 64 ký tự (dùng fullmatch)
+MAU = {"loai": re.compile(r"^(raw|tracking|chi_tieu|so_tracking|trang_chi_tieu)$"), "ky": re.compile(r"^\d{4}-\d{2}$"),
        "ngay_chot": re.compile(r"^\d{4}-\d{2}-\d{2}$"), "data_version": re.compile(r"^[0-9a-f]{1,64}$")}
 _mot_luot = threading.Lock()
 # [D mục 18, major] chống DNS rebinding: trang lạ trỏ tên miền của nó về 127.0.0.1 ⇒ trình duyệt coi cùng origin ⇒ POST file lạ (hộp tự gắn
@@ -143,7 +147,14 @@ class XuLy(BaseHTTPRequestHandler):
         if u.path in ("/ky", "/ky/") or u.path.startswith("/ky/"):
             # đường dẫn THÔ phải bằng ĐÚNG phần path đã phân tích: urlparse tự bỏ ký tự xuống dòng / tab và tách ? ; # — chuỗi thô khác đi một ký tự (có tham số, dấu ? trống,
             # ký tự điều khiển bị bỏ) ⇒ 404, không đoán ý người gọi
-            if u.query or u.params or u.fragment or self.path != u.path:
+            # [va_hop_kpi_ky_trong] RIÊNG đường một kỳ nhận ĐÚNG MỘT tham số: ?data_version=<64 ký tự hex> (ba tổng của một bản — lõi fdd20ab0). Chuỗi thô phải bằng ĐÚNG
+            # "<path>?data_version=<mã>"; tham số khác / lặp / mã sai dạng ⇒ 404 / 422, không chạm lõi. Đường danh sách /ky vẫn không nhận tham số.
+            ban = None
+            if u.query and u.path.startswith("/ky/") and not u.params and not u.fragment and u.query.startswith("data_version=") and self.path == u.path + "?" + u.query:
+                ban = u.query[len("data_version="):]
+                if not BAN.fullmatch(ban):
+                    return self._tra(422, {"refused": "mã bản dữ liệu sai dạng"})
+            elif u.query or u.params or u.fragment or self.path != u.path:
                 return self._tra(404, {"refused": "không có đường này"})
             if u.path == "/ky":
                 duong = "/api/system/ky"
@@ -151,13 +162,13 @@ class XuLy(BaseHTTPRequestHandler):
                 ky = u.path[len("/ky/"):]
                 if not KY.fullmatch(ky):
                     return self._tra(422, {"refused": "kỳ sai dạng — cần YYYY-MM"})
-                duong = f"/api/system/ky/{ky}"
+                duong = f"/api/system/ky/{ky}" + (f"?data_version={ban}" if ban else "")
             try:
                 ma, tl = _goi_backend("GET", duong, None, None)
             except (OSError, http.client.HTTPException) as e:
                 log.warning("loi_backend ky %s", type(e).__name__)
                 return self._tra(502, {"refused": "không gọi được backend KPI — thử lại sau"})
-            log.info("ky duong=%s http=%d", "danh_sach" if duong.endswith("/ky") else "mot_ky", ma)
+            log.info("ky duong=%s http=%d", "danh_sach" if duong.endswith("/ky") else ("mot_ky_theo_ban" if ban else "mot_ky"), ma)
             return self._tra(ma, tl)
         return self._tra(404, {"refused": "không có đường này"})
 
@@ -177,7 +188,7 @@ class XuLy(BaseHTTPRequestHandler):
             return self._tra(404, {"refused": "không có đường này"})
         q = dict(parse_qsl(u.query, keep_blank_values=True))
         if set(q) - set(MAU) or any(not MAU[k].match(v) for k, v in q.items()) or "loai" not in q or "ky" not in q:
-            return self._tra(422, {"refused": "tham số sai: cần loai (raw|tracking|chi_tieu), ky (YYYY-MM); ngay_chot (YYYY-MM-DD), data_version (hex) tuỳ chọn"})
+            return self._tra(422, {"refused": "tham số sai: cần loai (raw|chi_tieu|so_tracking|trang_chi_tieu|tracking), ky (YYYY-MM); ngay_chot (YYYY-MM-DD), data_version (hex) tuỳ chọn"})
         if q["loai"] == "tracking" and "ngay_chot" not in q:
             return self._tra(422, {"refused": "file Tracking cần ngày chốt"})
         if (self.headers.get("Content-Type") or "").split(";")[0].strip().lower() != "application/octet-stream":
@@ -186,16 +197,21 @@ class XuLy(BaseHTTPRequestHandler):
         if n is None or not n.isdigit():
             return self._tra(411, {"refused": "thiếu Content-Length"})
         n = int(n)
-        if n < 4 or n > TRAN_BYTE:   # kiểm TRƯỚC khi đọc thân
-            return self._tra(413, {"refused": f"file phải từ 4 byte tới {TRAN_BYTE // (1024 * 1024)} MB"})
+        la_trang = q["loai"] == "trang_chi_tieu"; tran = TRAN_TRANG if la_trang else TRAN_BYTE
+        if n < 4 or n > tran:   # kiểm TRƯỚC khi đọc thân
+            return self._tra(413, {"refused": f"file phải từ 4 byte tới {tran // (1024 * 1024)} MB"})
         if not _mot_luot.acquire(blocking=False):
-            return self._tra(409, {"refused": "đang xử lý một file khác — thử lại sau"})
+            return self._tra(409, {"refused": "đang xử lý một file khác — thử lại sau", "code": "dang_ban"})   # cùng mã với lõi fdd20ab0
         try:
             than = self.rfile.read(n)
             if len(than) != n:
                 return self._tra(400, {"refused": "thân không đủ byte"})
             sha = hashlib.sha256(than).hexdigest()
-            if than[:4] != b"PK\x03\x04":
+            if la_trang:   # trang .html là CHỮ; file Excel gửi nhầm vào loại này ⇒ nói rõ, không đẩy gói nén vào bộ đọc trang của lõi
+                if than[:4] == b"PK\x03\x04":
+                    log.info("tu_choi trang_la_goi_nen sha=%s co=%d", sha[:16], n)
+                    return self._tra(422, {"refused": "đây là file Excel, không phải trang theo dõi (.html) — chọn lại loại file"})
+            elif than[:4] != b"PK\x03\x04":
                 log.info("tu_choi khong_phai_xlsx sha=%s co=%d", sha[:16], n)
                 return self._tra(422, {"refused": "không phải file .xlsx"})
             c = http.client.HTTPConnection(*BACKEND, timeout=HET_GIO)

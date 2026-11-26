@@ -113,7 +113,7 @@ Theo cấu trúc bàn giao, các image tự phát triển được dựng trực
 cd ~/mekongai/mekongai-agent-platform
 
 # 1. Dựng 3 image bổ sung
-docker build -t capitol-local/kpi-backend:252dc30a -f docker_build/kpi-backend/Dockerfile docker_build/kpi-backend
+docker build -t capitol-local/kpi-backend:c1b4111a -f docker_build/kpi-backend/Dockerfile docker_build/kpi-backend
 docker build -t capitol-local/mcp-exa:latest -f docker_build/mcp-exa/Dockerfile docker_build/mcp-exa
 docker build -t capitol-local/sandbox-py:v3 -f docker_build/sandbox-py/v3/Dockerfile.v3 docker_build/sandbox-py/v3
 
@@ -184,9 +184,12 @@ BAT_KPI=co BAT_RAG=co bash scripts_sach/bat_bo_sach.sh
 
 - **Thấy gì là đúng:** Script lần lượt in:
   - `OK: RAM khả dụng ... MiB`
-  - `OK: platform-api sẵn sàng (http://127.0.0.1:8080/health)`
-  - `OK: agentic-backend sẵn sàng (http://127.0.0.1:8000/health)`
-  - `OK: kpi-backend sẵn sàng (http://127.0.0.1:18401/api/health)`
+  - `OK: MinIO đang chạy trên mạng nội bộ s3_noi_bo`
+  - `OK: capitol-platform-api sẵn sàng (http://127.0.0.1:80/health)`
+  - `OK: capitol-ab-api sẵn sàng (http://127.0.0.1:80/health)`
+  - `OK: cong-ngoai đang lắng nghe cổng 18300`
+  - `OK: đã khởi tạo tổ chức (...) -> .../org_id.txt` (ở lần bật đầu tiên)
+  - `OK: kpi-backend sẵn sàng (http://kpi-backend:8110/api/meta)` và `OK: cụm dịch vụ KPI đã sẵn sàng.`
   - Khi bật RAG: `127.0.0.1:19453` lắng nghe và kết nối tới `127.0.0.1:1945`.
 - **Sai thì làm gì:**
   - Báo thiếu RAM: kiểm tra `free -m`, tắt ứng dụng nặng trên Windows hoặc tăng `memory` trong `.wslconfig`.
@@ -206,7 +209,7 @@ python3 -I giao_dien/may_chu.py
 
 ### `DỪNG-CẦN-NGƯỜI` (Mốc 4 — Mở trình duyệt & kiểm tra thực tế)
 1. Mở trình duyệt tại `http://127.0.0.1:18400`.
-2. Lấy mã mở trang từ file `${CAPITOL_STATE_DIR}/mo_trang_18400.txt` để đăng nhập.
+2. Lấy mã mở trang từ file `${CAPITOL_STATE_DIR}/mo_trang_18400.txt` để truy cập (nếu bật `CAPITOL_BAT_BUOC_DANG_NHAP=1`, đăng nhập theo 1 trong 3 vai trò `nhan_vien`, `nguoi_duyet`, `quan_tri`, mật khẩu mặc định `capitol-noi-bo-2026` hoặc đặt qua `CAPITOL_MAT_KHAU_MAC_DINH`).
 3. Gõ thử một câu KPI tháng 10 vào khung chat (ví dụ: *"Tổng lương kinh doanh cả đội tháng 10 là bao nhiêu?"*) → kiểm tra câu trả lời có nhãn tạm tính và con số `152.360.000 đ`.
 4. (Nếu đã bật `mekongai-rag` + cổng RAG `19453`): thử kéo một file PDF/Word mẫu vào khung chat để kiểm tra hỏi đáp tài liệu có dẫn nguồn `[trang N]`/`[đoạn N]`.
 

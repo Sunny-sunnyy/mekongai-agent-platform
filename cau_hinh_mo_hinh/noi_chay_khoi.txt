@@ -10,3 +10,5 @@ data_analysis_agent_node = e2b   # [ghi chú] khối phân tích dữ liệu
 docx_chat_node = e2b   # [ghi chú] khối Word
 d3_data_visualization_node = e2b   # [ghi chú] khối biểu đồ
 pptx_chat_node = e2b
+skill_code_interpreter_node = e2b
+agent_node = e2b

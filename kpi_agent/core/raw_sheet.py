@@ -65,7 +65,7 @@ def sheet_rows(path: str | Path, sheet: str | int) -> tuple[list[str], tuple[tup
     File không có sheet đó ⇒ (tên các sheet, None) — không ném lỗi, không tạo mục nhớ: mỗi nơi gọi tự sinh lời dừng của mình."""
     keep = kept_files()
     # Băm và ĐỌC cùng một khối byte: băm xong mới mở lại theo đường dẫn thì file bị thay giữa hai bước sẽ cho dòng MỚI nằm dưới mã băm CŨ
-    # ⇒ lần sau hỏi bằng nội dung cũ nhận nhầm dòng mới (người kiểm 19/11). Giá: giữ thêm các byte của file trong lúc đọc (trần tải lên 20 MB).
+    # ⇒ lần sau hỏi bằng nội dung cũ nhận nhầm dòng mới. Giá: giữ thêm các byte của file trong lúc đọc (trần tải lên 20 MB).
     data = Path(path).read_bytes()
     digest = hashlib.sha256(data).hexdigest()
     stream = io.BytesIO(data)

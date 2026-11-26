@@ -1,4 +1,4 @@
-"""[ghi chú kỹ thuật] Bốn đường MÀN GHÉP CỘT của trang 18400 ⇒ hộp chuyển tiếp 127.0.0.1:18402 (chuyen_tiep.py nhóm kỹ thuật,
+"""[ghi chú] Bốn đường MÀN GHÉP CỘT của trang 18400 ⇒ hộp chuyển tiếp 127.0.0.1:18402 (chuyen_tiep.py nhóm kỹ thuật,
 449e834f) ⇒ kpi-backend (lõi mekongai 1e7202d4: khuon / bo-cuc / ghep-thu / ghep-xac-nhan).
 
 Vì sao tách file: may_chu.py chỉ thêm 2 dòng định tuyến; mọi phép kiểm nằm ở đây để thử được 0 đồng với hộp 18402 GIẢ (thu_ghep_kpi.py).
@@ -19,7 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import mo_khong_doi_huong   # [ghi chú kỹ thuật] cùng thư mục giao_dien/
+import mo_khong_doi_huong   # [ghi chú] cùng thư mục giao_dien/
 
 GOC_18402 = "http://127.0.0.1:18402"
 BANG = "don_hang"
@@ -30,6 +30,7 @@ _SHA = re.compile(r"[0-9a-f]{64}")
 _MA = re.compile(r"[0-9a-f]{32}")
 _KY = re.compile(r"\d{4}-\d{2}")
 _NGAY = re.compile(r"\d{4}-\d{2}-\d{2}")
+_DV = re.compile(r"[0-9a-f]{1,64}")
 _MOI = re.compile(r"moi_\d{1,4}")
 _TRUONG = re.compile(r"[a-z_]{1,40}")
 DUONG = {"/api/kpi/ghep/khuon": ("GET", "khuon"), "/api/kpi/ghep/bo-cuc": ("POST", "bo-cuc"),
@@ -47,9 +48,9 @@ def _cot(v):
 
 def _kiem_thu(b):
     """Thân ghép thử từ trang ⇒ (thân gửi lõi, None) | (None, lý do). Khoá cho phép: sha_file, ghep{sheet, header_row, columns}, ky, ngay_chot,
-    khong_co_cot_sau_ck. `bang` do máy chủ tự điền. KHÔNG nhận ghep.values / accepted_values (chưa có màn ghép giá trị — xem Giới hạn)."""
-    if not isinstance(b, dict) or set(b) - {"sha_file", "ghep", "ky", "ngay_chot", "khong_co_cot_sau_ck"}:
-        return None, "Thân ghép thử chỉ nhận: sha_file, ghep, ky, ngay_chot, khong_co_cot_sau_ck."
+    khong_co_cot_sau_ck, data_version. `bang` do máy chủ tự điền. KHÔNG nhận ghep.values / accepted_values."""
+    if not isinstance(b, dict) or set(b) - {"sha_file", "ghep", "ky", "ngay_chot", "khong_co_cot_sau_ck", "data_version"}:
+        return None, "Thân ghép thử chỉ nhận: sha_file, ghep, ky, ngay_chot, khong_co_cot_sau_ck, data_version."
     if not (isinstance(b.get("sha_file"), str) and _SHA.fullmatch(b["sha_file"])):
         return None, "sha_file sai dạng (phải là mã 64 ký tự do bước đọc bố cục trả)."
     if not (isinstance(b.get("ky"), str) and _KY.fullmatch(b["ky"])):
@@ -58,6 +59,9 @@ def _kiem_thu(b):
         return None, "Ngày chốt phải có dạng năm-tháng-ngày."
     if not isinstance(b.get("khong_co_cot_sau_ck", False), bool):
         return None, "khong_co_cot_sau_ck phải là đúng / sai."
+    dv = b.get("data_version")
+    if dv is not None and not (isinstance(dv, str) and _DV.fullmatch(dv)):
+        return None, "data_version sai dạng."
     g = b.get("ghep")
     if not isinstance(g, dict) or set(g) - {"sheet", "header_row", "columns"}:
         return None, "Bảng ghép chỉ nhận: sheet, header_row, columns."
@@ -69,7 +73,8 @@ def _kiem_thu(b):
     if not isinstance(c, dict) or not c or len(c) > 60 or any(not (isinstance(k, str) and _TRUONG.fullmatch(k)) or not _cot(v) for k, v in c.items()):
         return None, "Bảng ghép: mỗi trường phải có một cột (vị trí hoặc tên)."
     return {"sha_file": b["sha_file"], "bang": BANG, "ghep": {"sheet": g["sheet"], "header_row": g["header_row"], "columns": c},
-            "ky": b["ky"], "ngay_chot": b["ngay_chot"], **({"khong_co_cot_sau_ck": True} if b.get("khong_co_cot_sau_ck") else {})}, None
+            "ky": b["ky"], "ngay_chot": b["ngay_chot"], **({"khong_co_cot_sau_ck": True} if b.get("khong_co_cot_sau_ck") else {}),
+            **({"data_version": dv} if dv else {})}, None
 
 
 def _kiem_xac_nhan(b):
@@ -102,7 +107,7 @@ def _goi(phuong_thuc, duong, than, kieu, ma_tl, het_gio):
         h |= {"Content-Type": kieu, "Content-Length": str(len(than))}
     req = urllib.request.Request(GOC_18402 + duong, data=than, method=phuong_thuc, headers=h)
     try:
-        with mo_khong_doi_huong.mo(req, timeout=het_gio) as r:   # [ghi chú kỹ thuật] 3xx ⇒ HTTPError, mã riêng không đi theo Location
+        with mo_khong_doi_huong.mo(req, timeout=het_gio) as r:   # [ghi chú] 3xx ⇒ HTTPError, mã riêng không đi theo Location
             ma, tho = r.status, r.read(1024 * 1024)
     except urllib.error.HTTPError as e:
         ma, tho = e.code, e.read(1024 * 1024)

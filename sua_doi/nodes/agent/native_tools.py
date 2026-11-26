@@ -595,18 +595,19 @@ def _sql_co_so(fn, run_id: str, orgid: str):
     return sql_query
 
 
-def build_native_tools(params: dict, run_id: str = "", orgid: str = "") -> list:
+def build_native_tools(params: dict, run_id: str = "", orgid: str = "", e2b_run_code: bool = False) -> list:
     """Công cụ bật theo các ô bật / tắt của khối (params tool_*). Có mã khách (ô tool_customer_id — hệ thống điền) ⇒ tra đơn chỉ trong đơn của
     khách đó; ô trống ⇒ giữ cách cũ (bộ ca thử chưa có mã khách) — ghi rõ là CHƯA kiểm chủ đơn."""
     out = []
-    if _on(params.get("tool_run_python")):
+    if _on(params.get("tool_run_python")) or e2b_run_code:
         # R12 (a) — vá 10: chặn ngay lúc dựng công cụ (mỗi lần khối chạy), báo rõ lý do; lớp mức workflow ở prepare (vá 10 phần b, c)
         ngoai = sorted(f for f in params if f.startswith("tool_") and f not in CONG_CU_DI_KEM_RUN_PYTHON
                        and f not in ("tool_run_python", "tool_ma_file", "tool_customer_id") and _on(params.get(f)))
         if ngoai:
             raise ValueError(f"Khối bật 'chạy code' không được bật cùng công cụ gửi ra ngoài: {', '.join(ngoai)}. "
                              "Cần cả hai thì tra web ở khối TRƯỚC, chạy code ở khối sau (sandbox R12).")
-        out.append(Tool(_run_python_for(str(params.get("tool_ma_file") or "").strip()), takes_ctx=False))
+        if _on(params.get("tool_run_python")) and not e2b_run_code:
+            out.append(Tool(_run_python_for(str(params.get("tool_ma_file") or "").strip()), takes_ctx=False))
     for field, fn in TOOLS.items():
         if not _on(params.get(field)):
             continue

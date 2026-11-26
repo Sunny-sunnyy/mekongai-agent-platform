@@ -37,7 +37,7 @@ def ctx(backend):
 
 def test_tool_list_is_exactly_ten_read_tools_board_removed():
     # get_team_board BỎ (04/11 giữa 11:31 và 11:40 — chồng vai với get_team_bonus_table); /api/team-board vẫn cho trang
-    # + 3 công cụ nhóm A bậc mức tra cứu (09/11): A1 get_team_kpi_summary, A3 compare_employees, A6 get_data_issues
+    # + 3 công cụ nhóm A bậc mức tra cứu (09/11): A1 get_team_kpi_summary, A3 compare_employees, get_data_issues
     # 11/11: + get_extra_bonus (bậc (b) — Thưởng thêm, chỉ đọc)
     # 13/11: + get_spice_loyalty (công cụ 12 — 1 % gia vị, tiền trả khách, chỉ đọc)
     assert [tool["function"]["name"] for tool in chat.tool_schemas(["PC_BT"])] == \

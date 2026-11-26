@@ -132,7 +132,7 @@ def test_run_without_workflow_run_cannot_export(start):
 
 @needs_data
 def test_workflow_without_gate_still_needs_review(start):
-    # Ca xấu C B3 (10/11, major): bỏ cổng, nối thẳng bonus ⇒ xuat — file hợp lệ, bước xuất chạy, nhưng CHƯA SOÁT ⇒ vẫn không có file
+    # Ca xấu C (10/11, major): bỏ cổng, nối thẳng bonus ⇒ xuat — file hợp lệ, bước xuất chạy, nhưng CHƯA SOÁT ⇒ vẫn không có file
     workflow = _main_workflow()
     gate = next(node["id"] for node in workflow["nodes"] if node["type"] == "review_gate")
     workflow["nodes"] = [node for node in workflow["nodes"] if node["id"] != gate]

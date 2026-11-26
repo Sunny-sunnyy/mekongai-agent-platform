@@ -205,7 +205,7 @@ def test_agent_chat_without_key_never_reaches_the_model(keyed_agent):
 
 
 def test_out_of_scope_refusal_carries_no_incomplete_warning(keyed_agent):
-    # Người kiểm độc lập 19/11 (đọc diff P5): stop "out_of_scope" thiếu trong danh sách "trọn vẹn" của server ⇒ câu từ chối cố định bị kèm cảnh báo
+    # 19/11 (đọc diff P5): stop "out_of_scope" thiếu trong danh sách "trọn vẹn" của server ⇒ câu từ chối cố định bị kèm cảnh báo
     # "không trả lời trọn vẹn (out_of_scope)". Đi qua cửa /api/chat thật của server (test của rào chỉ soi bản ghi của chat).
     from kpi_agent.agent.input_guard import OUT_OF_SCOPE_ANSWER
     client, model, _, _, good = keyed_agent

@@ -18,10 +18,10 @@ Trình duyệt người dùng (http://127.0.0.1:18400)
    │
    ▼
 [1] Máy chủ giao diện & điều phối (Python HTTP + React/Vite)
-   ├── Khung chat tiếng Việt (định tuyến câu hỏi vào đúng quy trình dựng sẵn)
-   ├── Khung vẽ workflow (kéo–thả khối theo DAG — đồ thị một chiều không vòng)
-   ├── Trang Dữ liệu (tải Excel KPI tháng, nạp tài liệu vào kho)
-   └── Sổ chi phí & giữ chỗ hạn mức ngày
+   ├── Khung chat tiếng Việt (định tuyến câu hỏi vào đúng quy trình dựng sẵn, lịch sử bền SQLite)
+   ├── Khung vẽ workflow (kéo–thả khối theo DAG — đồ thị một chiều không vòng, hỗ trợ Exa tra web)
+   ├── Trang Dữ liệu (tải 4 loại file KPI kỳ trống, ghép cột, nạp tài liệu vào kho)
+   └── Đăng nhập 3 vai trò nội bộ, sổ chi phí & giữ chỗ hạn mức ngày
    │
    ├──▶ [2] Hộp gác cổng (Caddy :18300 / :18301 / :18233) ──▶ Nền tảng chạy quy trình Capitol
    │       ├── agentic-backend (API + Worker + Worker Temporal)
@@ -31,10 +31,10 @@ Trình duyệt người dùng (http://127.0.0.1:18400)
    │
    ├──▶ [3] Cổng AI tập trung (capitol-cong-ai :8090 nội bộ)
    │       └── Đọc bảng định tuyến mô hình, giữ khoá API, ghi sổ từng lời gọi
-   │       └── Mặc định chạy `gpt-6-luna` qua OpenAI API (tuỳ chọn chuyển sang Claude Sonnet 5.5 / Opus 5.5 qua AWS Bedrock) + OpenRouter (định tuyến khung chat)
+   │       └── Mặc định chạy `gpt-6-luna` qua OpenAI API (gồm cả AI kiểm số KPI và viết lại câu hỏi RAG nối tiếp; tuỳ chọn chuyển sang Claude Sonnet 5.5 / Opus 5.5 qua AWS Bedrock) + OpenRouter (định tuyến khung chat)
    │
    ├──▶ [4] Các dịch vụ chuyên biệt
-   │       ├── kpi_agent (đóng băng bản 252dc30a) + cổng chuyển tiếp tải file (:18402) + xem bảng (:18403)
+   │       ├── kpi_agent (bản c1b4111a — kỳ trống, ghép cột, tự cấp mã NV mới) + cổng chuyển tiếp tải file (:18402) + xem bảng (:18403)
    │       ├── Cổng RAG (:19453) ──▶ Dịch vụ mekongai-rag (:1945)
    │       └── Nơi chạy code AI viết: hộp kín trên máy (sandbox-py) hoặc máy ảo E2B
 ```
@@ -51,11 +51,11 @@ Trình duyệt người dùng (http://127.0.0.1:18400)
 |---|---|
 | `README.md` | Tài liệu tổng quan và bản đồ dẫn đường nhanh (file này) |
 | `docs/CAI_DAT_MAY_TRONG.md` | Hướng dẫn từng bước dựng từ máy trống (Google Drive 7 `.tar`, build `Dockerfile`, điền 16 `.env`, khởi tạo) |
-| `docs/HUONG_DAN_SU_DUNG_VA_VAN_HANH.md` | Cách bật/tắt, dùng trang `18400`, Trợ lý KPI (`252dc30a`), cổng RAG `19453`, quy trình nhánh Git |
-| `docs/GIOI_HAN_DA_BIET_VA_R2.md` | Giới hạn đã biết của bản 1, trạng thái kiểm tĩnh, nguồn dữ liệu thô Cloudflare R2 (`capitol2`) |
+| `docs/HUONG_DAN_SU_DUNG_VA_VAN_HANH.md` | Cách bật/tắt, dùng trang `18400`, Trợ lý KPI (`c1b4111a`), đăng nhập 3 vai trò, cổng RAG `19453`, quy trình nhánh Git |
+| `docs/GIOI_HAN_DA_BIET_VA_R2.md` | Giới hạn đã biết của bản bàn giao, trạng thái kiểm chứng, nguồn dữ liệu thô Cloudflare R2 (`capitol2`) |
 | `docs/BAO_CAO_HE_THONG.docx` | Tài liệu kiến trúc hệ thống bản Word (đã tách phụ lục tên thật & thu nhập sang Drive công ty) |
 | `docs/HUONG_DAN_TACH_PHU_LUC_BAO_CAO_WORD.md` | Hướng dẫn tách và quản lý phần phụ lục nhạy cảm của báo cáo Word trên Google Drive |
-| `kpi_agent/` | Mã nguồn Trợ lý tính thưởng KPI tự đứng được (đóng băng bản `252dc30a`), `pyproject.toml`, `scripts/with_env.sh` |
+| `kpi_agent/` | Mã nguồn Trợ lý tính thưởng KPI tự đứng được (bản `c1b4111a`), `pyproject.toml`, `scripts/with_env.sh` |
 | `sample_data/thang_10/` | 7 file dữ liệu đầu vào KPI tháng 10/2026 (~16,4 MB) dùng để chạy thử ngay |
 | `giao_dien/` | Máy chủ trang web (`may_chu.py`), giao diện React/Vite (`web/`), hộp gác cổng, sổ tiền |
 | `cong_ai/` & `cau_hinh_mo_hinh/` | Cổng AI tập trung, bảng định tuyến mô hình, cấu hình mô hình khối & nơi chạy code |

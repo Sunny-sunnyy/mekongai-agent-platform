@@ -87,7 +87,7 @@ TOOL_PARAMS = {"get_team_bonus_table": {"period"}, "get_employee_result": {"empl
                # /api/team-board vẫn còn cho trang; câu cấp đội về get_team_bonus_table.
                "get_opportunities": {"period"}, "get_data_provenance": set(),
                "simulate_kpi_change": {"employee_id", "kpi", "extra", "target_pct", "period"},   # A-ii-1: target_pct cạnh extra
-               # Nhóm A bậc mức tra cứu: A1, A3, A6 — A2 mở rộng get_team_bonus_table
+               # Nhóm A bậc mức tra cứu: A1, A3, — A2 mở rộng get_team_bonus_table
                "get_team_kpi_summary": {"kpi", "period"}, "compare_employees": {"employee_a", "employee_b", "kpi", "period"},
                "get_data_issues": {"employee_id", "period"}}
 # Công cụ CHỈ qua backend (cần app — đọc lại file RAW), khối agent của dây chuyền tự viết không có: TÁCH khỏi TOOL_PARAMS vì `workflow/blocks.py`

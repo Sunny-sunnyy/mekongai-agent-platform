@@ -1,4 +1,4 @@
-"""[ghi chú kỹ thuật] TẠO workflow ghim "Tính trên bảng — chạy code (khung chat)": khối nhận file + ô câu hỏi ⇒ khối Chạy code (máy ảo E2B) ⇒ kết quả — qua ĐÚNG đường Lưu của
+"""[ghi chú] TẠO workflow ghim "Tính trên bảng — chạy code (khung chat)": khối nhận file + ô câu hỏi ⇒ khối Chạy code (máy ảo E2B) ⇒ kết quả — qua ĐÚNG đường Lưu của
 trang (POST /api/save; 0 đồng AI). Hình lấy theo hai lượt thật 20/11 (phiên 2dcf7326 CSV, 497d2d48 Excel): cùng loại khối, cùng cổng nối.
   python3 -I chay_thu/va_tinh_tren_bang/tao_workflow.py            # XEM TRƯỚC: in workflow sẽ lưu, KHÔNG ghi gì, KHÔNG tải file
   GHI=co python3 -I chay_thu/va_tinh_tren_bang/tao_workflow.py     # tải MỘT file mẫu 2 dòng vào kho file (khối nhận file bắt buộc có file lúc Lưu) rồi lưu workflow
@@ -28,9 +28,7 @@ Luật:
 4. Trả lời bằng tiếng Việt, lời thường, ngắn: câu trả lời trước, rồi một dòng "Đã đọc N hàng, M cột của sheet …". Bảng nhỏ thì kẻ bảng. Số tiền / số lớn viết có dấu chấm ngăn nghìn.
 5. Câu hỏi không trả lời được bằng file này (thiếu cột, hỏi chuyện khác) ⇒ nói thẳng file thiếu gì, không bịa.
 6. Nếu tạo file kết quả (bảng tổng hợp, biểu đồ) thì lưu vào thư mục output và nói tên file."""
-_STATE_DIR = Path(os.environ.get("CAPITOL_STATE_DIR") or (Path.home() / ".local" / "share" / "capitol-platform")).expanduser()
-_RUNTIME_DIR = Path(os.environ.get("CAPITOL_RUNTIME_DIR") or (CT / "runtime")).expanduser()
-d = (_STATE_DIR / "mo_trang_18400.txt").read_text().strip()
+d = (Path(os.environ.get("CAPITOL_STATE_DIR") or (Path.home() / ".local" / "share" / "capitol-platform")).expanduser() / "mo_trang_18400.txt").read_text().strip()
 assert d.startswith("http://127.0.0.1:18400/") and "#k=" in d
 GOC, _K = d.partition("#")[0].rstrip("/"), d.split("#k=", 1)[1]
 
@@ -53,7 +51,7 @@ def workflow(phong_bi) -> dict:
             "nodes": [{"id": fi, "type": "file_input_node", "position": {"x": 0.0, "y": 0.0}, "params": {"file_data": phong_bi}},
                       {"id": vao, "type": "text_input_node", "position": {"x": 0.0, "y": 200.0}, "params": {"text_input": "(khung chat điền câu hỏi vào đây lúc chạy)"}},
                       {"id": ai, "type": "flexible_code_interpreter_node", "position": {"x": 400.0, "y": 0.0},
-                       "params": {"model": "claude-sonnet-5-5", "system_prompt": LOI_DAN, "language": "python", "packages": "", "timeout": 120, "retries": 0}},
+                       "params": {"model": "gpt-6-luna", "system_prompt": LOI_DAN, "language": "python", "packages": "", "timeout": 120, "retries": 0}},
                       {"id": ra, "type": "markdown_output_node", "position": {"x": 800.0, "y": 0.0}, "params": {}}],
             "edges": [{"from_node": fi, "from_port": "files", "to_node": ai, "to_port": "files"},
                       {"from_node": vao, "from_port": "text", "to_node": ai, "to_port": "user_prompt"},
@@ -66,7 +64,7 @@ if __name__ == "__main__":
     print(f"workflow sẽ lưu: “{w['name']}” · {len(w['nodes'])} khối ({' ⇒ '.join(n['type'] for n in w['nodes'])}) · lời dặn {len(LOI_DAN)} ký tự")
     try:
         import xem_workflow as X
-        org = (_RUNTIME_DIR / "org_id.txt").read_text().strip()
+        org = (Path(os.environ.get("CAPITOL_RUNTIME_DIR") or (CT / "runtime")).expanduser() / "org_id.txt").read_text().strip()
         assert len(org) == 36 and set(org) <= set("0123456789abcdef-")
         n = X.sql("select json_build_object('n', count(*)) from workflow w where w.org_id::text = '" + org + "' and not coalesce(w.is_deleted, false) and w.name = '" + TEN.replace("'", "''") + "'")
         co = n.get("n") if isinstance(n, dict) else None

@@ -161,8 +161,8 @@
   },
   {
    "ma": "kpi_kiem_so",
-   "ten": "Kiểm số bằng code",
-   "mo_ta": "Code so từng con số trong câu trả lời với kết quả công cụ; sai một số là chặn cả câu.",
+   "ten": "Kiểm số KPI",
+   "mo_ta": "Đối chiếu số trong câu trả lời với kết quả công cụ (code đối chiếu nguồn + AI kiểm số gpt-6-luna); sai số là chặn cả câu.",
    "khoi_goc": "guardrails_node",
    "sua_duoc": {},
    "o_day": [
@@ -179,7 +179,7 @@
     "kpi_data_version"
    ],
    "ghi_chu": {
-    "che_do_kiem": "code (không dùng AI để kiểm)"
+    "che_do_kiem": "rào KPI (code đối chiếu nguồn + lớp AI kiểm số gpt-6-luna theo cấu hình nóng)"
    },
    "gia_tri_cung": {
     "che_do_kiem": "code",

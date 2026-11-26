@@ -33,11 +33,3 @@ services:
     environment:
       CAPITOL_STATE_DIR: ${CAPITOL_STATE_DIR:-/tmp/capitol-state}
       CAPITOL_RUNTIME_DIR: ${CAPITOL_RUNTIME_DIR:-./runtime}
-
-  kpi-tai-len:
-    environment:
-      KPI_KHO_URL: http://kpi-backend:8099
-
-  kpi-xem-cong:
-    environment:
-      KPI_BACKEND_URL: http://kpi-backend:8099

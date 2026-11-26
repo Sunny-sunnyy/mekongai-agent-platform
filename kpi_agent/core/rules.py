@@ -7,6 +7,7 @@ in sẵn ở mục 5.2 / 2.3 (`printed_amount`) — chặn lỗi gõ tỷ lệ k
 (7) hàm thưởng vượt chạy trên ví dụ in sẵn của mục 7.2 ra đúng số in sẵn; (8) hai ngưỡng thưởng vượt (NPP ≥ 100 %,
 ĐDKD > 103 %) = số trong nhãn chép chữ 7.2 — ví dụ in sẵn không ghim được ngưỡng. Giới hạn: gõ sai CẢ số lẫn chữ chép cùng lúc
 thì không bắt được — chữ chép cũng là gõ tay."""
+import difflib
 import re
 from datetime import date
 from decimal import Decimal
@@ -20,6 +21,15 @@ SUPPORTED_ASSUMPTIONS = {
     # sku_list (10/11, theo trang sếp): chỉ các mã ở `aso_focus_2_skus` — cần dữ liệu có mã hàng từng dòng (RAW), sổ Tracking không có
     "aso_focus_2_scope": {"whole_group", "sku_list"},
 }
+# MỌI khoá được phép có trong khối `assumptions` (bậc 3a, sau kiểm độc lập 19/11): khoá lạ ⇒ dừng nêu tên. Vì sao: gõ nhầm tên một khoá KHÔNG bắt
+# buộc (vd `cho_qua_khong_co_donn`, `late_invoice_kpi`) thì code coi như không có khoá đó — luật người viết tưởng đang áp lại không áp, không ai báo.
+# Thêm khoá luật mới ⇒ thêm vào đây cùng lúc (test so danh sách này với các file luật thật).
+KNOWN_ASSUMPTIONS = frozenset({
+    "turnover_basis", "exclude_outlets_outside_mcp", "mcp_filter_kpis", "pc_bt_min_lines", "pc_bt_excluded_subdiv", "lppc_min_lines",
+    "lppc_same_day_lines", "lppc_lines_exclude_free_items", "moq_lines_exclude_free_items", "late_invoice_kpis", "invoice_required_status",
+    "max_excluded_sales_pct", "counted_status", "invoice_deadline", "lppc_excluded_subdiv", "lppc_meat_subdiv",
+    "aso_focus_groups", "aso_focus_skus", "aso_focus_label", "aso_focus_2_scope", "aso_focus_2_skus", "aso_focus_2_groups", "aso_focus_2_label",
+    "cho_qua_khong_co_don"})
 # Tỷ trọng in trong công văn có 4 chữ số lẻ ⇒ tỷ trọng × tổng lệch tiền in sẵn vài đồng; 1.000 đ là đủ bắt lỗi gõ thật.
 WEIGHT_TOLERANCE_VND = 1000
 
@@ -60,6 +70,10 @@ def validate_rules(rules: dict) -> list[str]:
         for tiers in tier_lists:
             errors.extend(_check_tiers(name, tiers, kpi["amount_100"]))
 
+    for key in sorted(set(rules.get("assumptions", {})) - KNOWN_ASSUMPTIONS):
+        close = difflib.get_close_matches(str(key), KNOWN_ASSUMPTIONS, n=1)
+        errors.append(f"assumptions.{key}: khoá lạ — không có luật nào đọc khoá này" + (f" (có phải `{close[0]}`?)" if close else "")
+                      + "; sửa tên khoá hoặc bỏ dòng đó")
     for key, allowed in SUPPORTED_ASSUMPTIONS.items():
         value = rules.get("assumptions", {}).get(key)
         if value not in allowed:

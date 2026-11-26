@@ -147,7 +147,7 @@ MIXED_OR_LOOKALIKE = [
     "Lập bảng thưởng của cả đội",                                                   # giống "giao việc" nhưng là câu KPI
     "Làm bảng so sánh NV01 và NV02",
     "Dịch chuyển chỉ tiêu sang tháng sau được không?",                              # "dịch" không phải dịch văn bản
-    "Viết code nào đang áp cho Homey 2,9 kg?",                                      # "code" = mã hàng (người kiểm độc lập 19/11: bản @28 chặn oan)
+    "Viết code nào đang áp cho Homey 2,9 kg?",                                      # "code" = mã hàng (19/11: bản @28 chặn oan)
 ]
 
 
@@ -157,7 +157,7 @@ def test_mixed_or_lookalike_question_goes_to_the_model(question):
     assert not is_other_task(question)
 
 
-# Ba mẫu LỌT người kiểm độc lập tìm 19/11 trên bản P5 (đỏ trên bản đó) + vài câu cùng loại
+# Ba mẫu LỌT tìm 19/11 trên bản P5 (đỏ trên bản đó) + vài câu cùng loại
 LEAKED = [
     "Dịch đoạn này sang tiếng Anh: hôm nay trời đẹp",        # không có "loại văn bản" trong danh sách
     "Lập trình giúp một hàm Python tính giai thừa",

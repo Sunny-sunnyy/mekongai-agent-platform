@@ -92,7 +92,7 @@ def test_changed_route_file_makes_a_new_unreviewed_run(tmp_path):
             if review:
                 assert client.post(f"/api/runs/{meta['current_run_id']}/review", json={"reviewer": "Giám sát thử"}).status_code == 200
                 meta = client.get("/api/meta").json()
-                # File tuyến biến mất KHI ĐANG CHẠY (người kiểm độc lập 12/11: bản vá đầu trả HTTP 500) ⇒ lời từ chối rõ, không đường dẫn máy
+                # File tuyến biến mất KHI ĐANG CHẠY (12/11: bản vá đầu trả HTTP 500) ⇒ lời từ chối rõ, không đường dẫn máy
                 for gone in (route_copy, raw_link):                                      # file tuyến, rồi file đơn hàng (đường link tạm)
                     hidden = gone.with_name("da_doi_ten")
                     gone.rename(hidden)

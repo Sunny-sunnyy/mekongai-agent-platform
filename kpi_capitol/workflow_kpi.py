@@ -256,7 +256,7 @@ def dung(v, cau_hoi: str, ky: str, ngay_chot: str, ban_luat: str | None = None, 
          # của bộ ghi gpt-6-luna reasoning_effort="low" (vá 03/11, người vận hành — sua_doi/core/config/ai/registry.py:466-468) ⇒ đặt vào
          # openai_reasoning_effort (sua_doi/ai/agentic/models/openai.py:166-167). Áp MỌI chỗ dùng luna ⇒ không đổi riêng workflow này.
          # Chat mekongai chạy medium (-73 đính chính) ⇒ lệch P0: -73 / A chạy lại mốc chat ở "low".
-         "rao": v.khoi(RAO, "Kiểm số bằng code", 700, 0, {"che_do_kiem": "code", "kpi_data_version": data_version or ""}),   # [C data_version] CÙNG giá trị với Agent
+         "rao": v.khoi(RAO, "Kiểm số KPI", 700, 0, {"che_do_kiem": "code", "kpi_data_version": data_version or ""}),   # [C data_version] CÙNG giá trị với Agent
          "duyet": v.khoi("human_intervention_node", "Giám sát duyệt bảng thưởng", 1050, 0,
                          {"che_do_kpi": True, "timeout": duyet_giay, "auto_approve_on_timeout": True,   # [ghi chú] hết hạn không ai bấm ⇒ tự đi tiếp, mang nhãn tự duyệt
                           "reviewer_note": "Duyệt bảng thưởng từ lõi tính (không phải số AI viết). Kiểm mã băm trước khi bấm."}),

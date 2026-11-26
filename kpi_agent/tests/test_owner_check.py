@@ -87,7 +87,7 @@ def test_same_employee_tier_money_said_as_current_is_now_blocked():
     "NV02 ASO_Focus đạt mốc 90 %.",                 # mức mốc nói như % — CÙNG NV, vế có "mốc" ⇒ không xét (vòng 2 đã bắt "NV02 đạt 90 %")
 ])
 def test_known_limit_same_employee_errors_pass(answer):
-    # Giới hạn ghi trước (kế hoạch mục 2, tầng A -22 / A4-28): S+ không bắt lỗi cùng NV — chỉ Phần B (khuôn claims) bắt được
+    # Giới hạn ghi trước (kế hoạch mục 2, tầng A -22 -28): S+ không bắt lỗi cùng NV — chỉ Phần B (khuôn claims) bắt được
     assert check_owners(answer, [EXPLAIN_NV02])["ok"]
 
 
@@ -446,7 +446,7 @@ def test_two_paid_list_must_equal_code_set():
     assert check_owners("Cả 14 nhân viên (NV01–NV14) chưa có tiền Turnover.", [TEAM], same_sentence_after=True)["ok"] is True   # dải mã
 
 
-# 11/11 (B, bản cuối 3): tiền gán nhầm người qua tổng một-người / tiền giả định (C B5) + câu danh sách chỉ tiêu (@13) ----------
+# 11/11 (B, bản cuối 3): tiền gán nhầm người qua tổng một-người / tiền giả định + câu danh sách chỉ tiêu (@13) ----------
 PC_ON_SUMMARY = {"kpi": "PC_ON", "employee_count": 14, "team_amount_total": 1500000, "paid_count": 1, "paid_employee_ids": ["NV04"],
                  "unpaid_employee_ids": [f"NV{i:02d}" for i in range(1, 15) if i != 4],
                  "by_tier": [{"reached_tier": "Đạt 100%", "employee_count": 1, "employee_ids": ["NV04"], "amount_total": 1500000}]}
@@ -454,7 +454,7 @@ NV05_GAP = {"employee_id": "NV05", "gaps": [{"kpi": "PC_ON", "amount_if_reached"
 
 
 @pytest.mark.parametrize("answer, ok", [
-    ("NV05 được 1.500.000 đ ở PC_ON.", False),                 # C B5: 1,5 tr là tổng đội = tiền NV04 duy nhất
+    ("NV05 được 1.500.000 đ ở PC_ON.", False),                 # C: 1,5 tr là tổng đội = tiền NV04 duy nhất
     ("NV04 được 1.500.000 đ ở PC_ON.", True),
     ("Cả đội nhận 1.500.000 đ từ PC_ON.", True),               # tổng đội, không gán cho ai
 ])
@@ -614,7 +614,7 @@ def test_round3_narrowed_paths(answer, ok):
     ("Mức thưởng của NV05:\n- PC_BT: 2.200.000 đồng.", False),                     # "mức" trần ở dòng dẫn không mở ô mốc
     ("NV05 còn thiếu để lên các mốc kế tiếp:\n- PC_BT: thưởng 2.200.000 đồng.", True),
     ("NV05 đang nhận mức 2.200.000 đ PC_BT.", False),                               # C 2f
-    ("NV05 đã lên mốc, được 2.200.000 đ PC_BT.", False),                            # bản 3b — hồi quy ca cũ C L-C5 (NV05 PC_BT 0 đ)
+    ("NV05 đã lên mốc, được 2.200.000 đ PC_BT.", False),                            # bản 3b — hồi quy ca cũ C L- (NV05 PC_BT 0 đ)
     ("NV05 đang ở mốc 100 %, nhận 2.200.000 đ PC_BT.", False),
     ("Nếu NV05 lên mốc 100 % thì được 2.200.000 đ PC_BT.", True),
     ("NV05 hiện 0 đồng; mốc thấp nhất của PC_BT là Đạt 100 %, tương ứng 2.200.000 đồng.", True),
@@ -636,7 +636,7 @@ def test_item_level_closes_old_limit():
 
 
 # 12/11 — kiem_so@17: ô CHỈ TIÊU (`target`) không phải tiền thật của người đó (như @14). @15 từng nới (hết chặn oan câu 03 M3 Capitol nhưng lọt "NV04 được
-# <chỉ tiêu của chính NV04> đ"); @16 thử nới theo ngữ cảnh bằng dò chữ, người kiểm độc lập không đồng ý ⇒ lùi. Hình kết quả như get_employee_result +
+# <chỉ tiêu của chính NV04> đ"); @16 thử nới theo ngữ cảnh bằng dò chữ, không đồng ý ⇒ lùi. Hình kết quả như get_employee_result +
 # get_extra_bonus (số tự đặt): 1.300.000.000 = chỉ tiêu Turnover NV04; 23.800.000 = chỉ tiêu Kokomi NV04 (thưởng thật 500.000).
 TARGETS = [{"employee_id": "NV04", "kpis": [{"kpi": "Turnover", "target": 1300000000, "actual": 1310000000, "pct": 100.77, "amount": 5600000}]},
            {"employee_id": "NV05", "kpis": [{"kpi": "Turnover", "target": 900000000, "actual": 700000000, "pct": 77.78, "amount": 0}]},
@@ -673,7 +673,7 @@ TIER_RESULT = {"employee_id": "NV05", "kpi": "Turnover", "cong_van_section": "m�
                "tiers": [{"label": "Đạt 95%", "min": 95, "amount": 3920000}, {"label": "Đạt 100%", "min": 100, "amount": 5600000}],
                "amount": 5600000, "reason": "Turnover: thực hiện 101.36% ⇒ đạt mốc 'Đạt 100%' ⇒ 5.600.000 đ", "params_used": {"employee_id": "NV05", "kpi": "Turnover"}}
 TIER_QUESTION = "KPI Turnover của NV05: chỉ tiêu bao nhiêu, có những mốc nào, mỗi mốc được bao nhiêu tiền?"
-# Hai câu trả lời THẬT lần đầu của mô hình bị @17 chặn (người kiểm độc lập gửi nguyên văn 13/11) ⇒ mô hình viết lại và BỎ mốc 95 % (đủ hai mốc 6 / 8 ⇒ 1 / 8)
+# Hai câu trả lời THẬT lần đầu của mô hình bị @17 chặn (gửi nguyên văn 13/11) ⇒ mô hình viết lại và BỎ mốc 95 % (đủ hai mốc 6 / 8 ⇒ 1 / 8)
 REAL_TIER_LISTINGS = [
     "**NV05 – Turnover** (công văn mục 2.1): chỉ tiêu **838.192.683**. Các mốc thưởng là:\n\n- Đạt 95%: **3.920.000 đ**\n- Đạt 100%: **5.600.000 đ**\n\n"
     "Số liệu **tạm tính — chưa phải số chốt, chưa duyệt**.",

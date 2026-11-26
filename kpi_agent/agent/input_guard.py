@@ -27,7 +27,7 @@ OTHER_TASK = re.compile(r"\b(?:viết|soạn|dịch|sáng tác|làm|kể|lập t
                         r"truyện|chuyện cười|câu chuyện|văn bản|hợp đồng|tin nhắn|chương trình|đoạn code|script)\b", re.IGNORECASE)
 KPI_WORDS = re.compile(r"kpi|thưởng|lương|chỉ tiêu|doanh số|mốc|đơn hàng|cửa hàng|điểm bán|nhân viên|\bNV\d|\bđội\b|tuyến|mcp|công văn|"
                        r"turnover|pc_bt|pc_on|lppc|aso", re.IGNORECASE)
-# Người kiểm độc lập 19/11 — 2 mẫu lọt vì không có "loại văn bản" trong danh sách: "Dịch đoạn này sang tiếng Anh: …", "Lập trình giúp một hàm Python …"
+# 19/11 — 2 mẫu lọt vì không có "loại văn bản" trong danh sách: "Dịch đoạn này sang tiếng Anh: …", "Lập trình giúp một hàm Python …"
 OTHER_TASK_MORE = re.compile(r"\bdịch\b[^.?!\n]{0,60}?\bsang tiếng\b|"
                              r"\b(?:lập trình|viết)\b[^.?!\n]{0,40}?\b(?:hàm|đoạn mã|python|javascript|sql)\b", re.IGNORECASE)
 # Câu gõ KHÔNG DẤU ("viet email xin nghi phep" — người gõ khung chat hay bỏ dấu): chỉ xét khi CẢ CÂU không có dấu tiếng Việt. Bỏ dấu làm nhiều chữ
