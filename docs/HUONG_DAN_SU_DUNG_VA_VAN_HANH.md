@@ -14,10 +14,18 @@ Tài liệu hướng dẫn cách bật/tắt hệ thống hằng ngày, thao tá
    BAT_KPI=co BAT_RAG=co bash scripts_sach/bat_bo_sach.sh
    ```
    *(Nếu không dùng RAG, đặt `BAT_RAG=khong`.)*
-3. Bật máy chủ giao diện `18400` (và các tiến trình nền chạy code cách ly như `sandbox/nguoi_chay_hop.py`, `sandbox/nguoi_chay_phien.py` nếu dùng hộp kín nội bộ):
+3. Bật máy chủ giao diện `18400` kèm nạp các biến môi trường cổng RAG và OpenRouter (chạy thêm `sandbox/nguoi_chay_hop.py`, `sandbox/nguoi_chay_phien.py` nếu dùng hộp kín nội bộ):
    ```bash
-   CAPITOL_STATE_DIR="${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}" \
+   cd ~/mekongai/mekongai-agent-platform
+   CAPITOL_STATE_DIR="${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}"
+   set -a
+   [ -f env/openrouter.khoa.env ] && . env/openrouter.khoa.env
+   [ -f "${CAPITOL_STATE_DIR}/rag_cong.env" ] && . "${CAPITOL_STATE_DIR}/rag_cong.env"
+   [ -f "${CAPITOL_STATE_DIR}/rag_nap.env" ] && . "${CAPITOL_STATE_DIR}/rag_nap.env"
+   set +a
+   CAPITOL_STATE_DIR="${CAPITOL_STATE_DIR}" \
    CAPITOL_RUNTIME_DIR="${CAPITOL_RUNTIME_DIR:-./runtime}" \
+   RAG_CONG_GOC="http://127.0.0.1:19453" \
    python3 -I giao_dien/may_chu.py
    ```
 4. Mở `http://127.0.0.1:18400`, lấy mã mở trang tại `${CAPITOL_STATE_DIR}/mo_trang_18400.txt` để truy cập.

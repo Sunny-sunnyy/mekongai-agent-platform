@@ -1,6 +1,6 @@
-# Giới hạn đã biết (Bản 1) & Nguồn dữ liệu thô Cloudflare R2
+# Giới hạn đã biết (Bản 1.1) & Nguồn dữ liệu thô Cloudflare R2
 
-Tài liệu này ghi minh bạch tình trạng thực tế của **Bản bàn giao 1**, những phần đang làm dở hoặc chưa kiểm tra thực tế khi đóng gói, và hướng dẫn nguồn gốc kho dữ liệu tham khảo từ Cloudflare R2.
+Tài liệu này ghi minh bạch tình trạng thực tế của **Bản bàn giao 1.1**, những phần đang làm dở hoặc chưa kiểm tra thực tế khi đóng gói, và hướng dẫn nguồn gốc kho dữ liệu tham khảo từ Cloudflare R2.
 
 ---
 

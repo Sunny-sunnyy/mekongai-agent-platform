@@ -4,6 +4,7 @@ Kho mã nguồn bàn giao cho **nền tảng trợ lý AI chạy theo quy trình
 
 - **Kho chính (nền tảng & Trợ lý KPI):** `https://github.com/hieumekongai/mekongai-agent-platform`
 - **Kho liên kết (dịch vụ đọc & tìm tài liệu RAG mức 1):** `https://github.com/hieumekongai/mekongai-rag`
+  *(Các URL `hieumekongai/...` áp dụng sau khi hoàn tất chuyển quyền sở hữu kho sang tài khoản công ty; trong thời gian chuyển tiếp dùng URL kho private nội bộ được cấp.)*
 
 > **Lưu ý khi cài đặt từ máy trống:** Bộ tài liệu trong kho được viết cho **cả đồng nghiệp lẫn coding agent** (Claude Code, Gemini CLI, Codex…) để tự kiểm tra và dựng từng bước trên máy chưa cài sẵn gì (**Windows + WSL2 Ubuntu + Docker Desktop, RAM ≥ 16 GB**, kèm ghi chú cho Linux/macOS). Hãy cài và bật **kho `mekongai-rag` trước**, sau đó mới dựng kho `mekongai-agent-platform`.
 
@@ -72,4 +73,4 @@ Trình duyệt người dùng (http://127.0.0.1:18400)
 1. **Cài mới từ máy trống:** đọc tuần tự [docs/CAI_DAT_MAY_TRONG.md](docs/CAI_DAT_MAY_TRONG.md) (sau khi đã dựng xong kho `https://github.com/hieumekongai/mekongai-rag`).
 2. **Bật hệ thống & sử dụng hằng ngày:** xem [docs/HUONG_DAN_SU_DUNG_VA_VAN_HANH.md](docs/HUONG_DAN_SU_DUNG_VA_VAN_HANH.md).
 3. **Hiểu sâu kiến trúc & các lớp kiểm soát:** mở [docs/BAO_CAO_HE_THONG.docx](docs/BAO_CAO_HE_THONG.docx) (xem thêm ghi chú tách phụ lục bảo mật tại [docs/HUONG_DAN_TACH_PHU_LUC_BAO_CAO_WORD.md](docs/HUONG_DAN_TACH_PHU_LUC_BAO_CAO_WORD.md)).
-4. **Kiểm tra giới hạn bản 1 & nguồn dữ liệu R2:** xem [docs/GIOI_HAN_DA_BIET_VA_R2.md](docs/GIOI_HAN_DA_BIET_VA_R2.md).
+4. **Kiểm tra giới hạn bản 1.1 & nguồn dữ liệu R2:** xem [docs/GIOI_HAN_DA_BIET_VA_R2.md](docs/GIOI_HAN_DA_BIET_VA_R2.md).

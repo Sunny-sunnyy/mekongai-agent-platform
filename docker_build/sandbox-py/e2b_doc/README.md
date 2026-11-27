@@ -23,4 +23,4 @@ set +a
 python3 va_e2b/bac2/dung_template_bac2.py
 ```
 
-Sau khi dựng thành công, cập nhật `E2B_TEMPLATE_ID` (hoặc tên mẫu tương ứng) vào `env/e2b.khoa.env` và khởi động lại dịch vụ nền tảng nếu cần.
+Sau khi dựng thành công, cập nhật `CHAY_THU_E2B_TEMPLATE` (tên/ID mẫu vừa dựng, mặc định nếu bỏ trống là `code-interpreter-v1`) vào `env/e2b.khoa.env` và khởi động lại dịch vụ nền tảng nếu cần.

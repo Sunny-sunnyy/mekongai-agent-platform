@@ -4,7 +4,7 @@ Thư mục này chứa đủ **16 file `.env.example`** tương ứng với cấ
 
 > **Nguyên tắc bảo mật:** Không bao giờ commit file `.env` hoặc `*.khoa.env` chứa giá trị thật lên Git. Quyền file chứa khoá phải là `600` (`chmod 600`).
 
-## 1. Phân loại 16 file trong `env/`
+## 1. Phân loại 16 file trong `chay_thu/env/`
 
 ### Nhóm A — Cấu hình không chứa khoá thật (chỉ chép bỏ đuôi `.example`)
 1. `agentic-backend.env.example` → `agentic-backend.env`
@@ -21,14 +21,16 @@ Thư mục này chứa đủ **16 file `.env.example`** tương ứng với cấ
 ### Nhóm C — API key dịch vụ ngoài (người nhận tự điền, `chmod 600`)
 > **Mặc định chạy `gpt-6-luna` qua OpenAI API:** `OPENAI_API_KEY` là **bắt buộc**; thông tin AWS Bedrock (`bedrock-046-creds.json`) là **tuỳ chọn** (chỉ cần nếu chuyển cấu hình nóng sang Claude 5.5).
 
-9. `agentic-backend.khoa.env.example` → `agentic-backend.khoa.env` (`OPENAI_API_KEY` — **bắt buộc**, tuỳ chọn `SERPER_API_KEY`)
+9. `agentic-backend.khoa.env.example` → `agentic-backend.khoa.env` (`OPENAI_API_KEY` — **bắt buộc**; tuỳ chọn `SERPER_API_KEY` dùng cho Google Search qua `mcp-servers`, lấy tại `serper.dev`)
 10. `cong_ai.khoa.env.example` → `cong_ai.khoa.env` (`OPENAI_API_KEY` — **bắt buộc**, đồng bộ từ `agentic-backend.khoa.env`)
-11. `e2b.khoa.env.example` → `e2b.khoa.env` (`CHAY_THU_E2B_KHOA`, tuỳ chọn nếu dùng khối chạy code/đọc Office từ xa)
+11. `e2b.khoa.env.example` → `e2b.khoa.env` (`CHAY_THU_E2B_KHOA`, tuỳ chọn `CHAY_THU_E2B_TEMPLATE` mặc định `code-interpreter-v1` — bỏ trống nếu dùng hộp nội bộ `may`)
 12. `eval.khoa.env.example` → `eval.khoa.env` (`OPENAI_API_KEY` — **bắt buộc** khi dùng đánh giá, đúng 1 dòng)
-13. `exa.khoa.env.example` → `exa.khoa.env` (`EXA_API_KEY`, tuỳ chọn)
-14. `openrouter.khoa.env.example` → `openrouter.khoa.env` (`OPENROUTER_API_KEY`, tuỳ chọn)
+13. `exa.khoa.env.example` → `exa.khoa.env` (`EXA_API_KEY`, tuỳ chọn — lấy tại `exa.ai` cho khối Nghiên cứu sâu `capitol-mcp-exa`)
+14. `openrouter.khoa.env.example` → `openrouter.khoa.env` (`OPENROUTER_API_KEY`, tuỳ chọn — lấy tại `openrouter.ai`, làm tuyến dự phòng định tuyến khung chat khi đã có `OPENAI_API_KEY`)
 15. `platform-api-openai.khoa.env.example` → `platform-api-openai.khoa.env` (`OPENAI_API_KEY` — **bắt buộc**)
 16. `qdrant_svc.khoa.env.example` → `qdrant_svc.khoa.env` (`OPENAI_API_KEY`, chỉ dùng nếu bật `qdrant_svc`)
+
+> **Lưu ý biến nền gốc Capitol:** Các biến để trống/tắt trong `agentic-backend.env`, `platform-api.env`, `mcp.env` (`SERPAPI_KEY`, `DIFFBOT_KEY`, `ANTHROPIC_API_KEY`, `CEREBRAS_API_KEY`, `POSTHOG_API_KEY`, `SENTRY_DSN`, `CORALOGIX_SEND_DATA_KEY`, `LANGFUSE_ENABLED=false`) giữ trống nguyên mẫu, **không cần đăng ký**.
 
 ## 2. Các file trong `CAPITOL_STATE_DIR` (thư mục `state_dir_mau/`)
 

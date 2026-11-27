@@ -49,6 +49,8 @@ docker --version && docker compose version
 
 Trên WSL2, luôn đặt mã nguồn bên trong hệ thống file Linux (`~/mekongai/...`, **không đặt trong `/mnt/c/...`** để tránh chậm I/O và lỗi quyền file):
 
+> *Lưu ý URL kho:* Địa chỉ `https://github.com/hieumekongai/...` dùng sau khi hoàn tất chuyển quyền sở hữu kho từ tài khoản chuyển tiếp sang tài khoản chính thức của công ty (`hieumekongai`). Trong giai đoạn chuyển tiếp trước khi chuyển quyền, thay bằng URL kho private tương ứng được cấp.
+
 ```bash
 mkdir -p ~/mekongai && cd ~/mekongai
 git clone https://github.com/hieumekongai/mekongai-rag.git
@@ -152,16 +154,18 @@ bash scripts_sach/khoi_tao_lan_dau.sh
 ### `DỪNG-CẦN-NGƯỜI` (Mốc 3 — Điền API Key vào `.env`, tuyệt đối không commit lên Git)
 Mở các file sau trong `env/` và `${CAPITOL_STATE_DIR}/` bằng trình soạn thảo cục bộ để thay các nhãn `DIEN_...` bằng khoá thật (giữ quyền `chmod 600`):
 
-| File cần điền | Biến / nội dung | Bắt buộc? | Ghi chú |
+| File cần điền | Biến / nội dung | Bắt buộc? | Lấy key ở đâu & Ghi chú |
 |---|---|---|---|
-| `env/agentic-backend.khoa.env` | `OPENAI_API_KEY` (tuỳ chọn `SERPER_API_KEY`) | **Bắt buộc** | Cần cho mô hình mặc định `gpt-6-luna` (OpenAI API); giá tham khảo: `0,10 USD` / 1M token vào, `0,50 USD` / 1M token ra, `0,01 USD` / 1M token `cache_read` |
-| `env/cong_ai.khoa.env` | `OPENAI_API_KEY` | **Bắt buộc** | Đồng bộ với `agentic-backend.khoa.env` để Cổng AI giữ khoá gọi `gpt-6-luna` |
-| `env/platform-api-openai.khoa.env` & `env/eval.khoa.env` | `OPENAI_API_KEY` | **Bắt buộc** | Dùng cho `platform-api` (đặt tên/tra kho bảng) và dịch vụ chấm điểm `eval-service` theo mặc định `gpt-6-luna` |
-| `env/openrouter.khoa.env` | `OPENROUTER_API_KEY` | **Bắt buộc cho khung chat** | Dùng cho bộ định tuyến chọn quy trình trong khung chat |
-| `${CAPITOL_STATE_DIR}/bedrock_046/bedrock-046-creds.json` | JSON STS token / khoá AWS Bedrock | **Tuỳ chọn** | Chỉ cần khi chuyển đổi cấu hình nóng sang dùng Claude Sonnet 5.5 / Opus 5.5 qua Amazon Bedrock |
-| `env/e2b.khoa.env` | `CHAY_THU_E2B_KHOA` (+ template ID nếu dùng E2B) | Bắt buộc nếu bật E2B | Nếu chưa dùng E2B, sửa các dòng `= e2b` trong `cau_hinh_mo_hinh/noi_chay_khoi.txt` về `may` |
-| `env/exa.khoa.env` | `EXA_API_KEY` | Tuỳ chọn | Chỉ cần khi chạy công cụ tìm web Exa |
-| `env/qdrant_svc.khoa.env` | `OPENAI_API_KEY` | Tuỳ chọn | Chỉ cần nếu bật hộp `qdrant_svc` gốc của Capitol |
+| `env/agentic-backend.khoa.env` | `OPENAI_API_KEY` (tuỳ chọn `SERPER_API_KEY`) | **Bắt buộc** (`OPENAI_API_KEY`) | Lấy `OPENAI_API_KEY` tại `https://platform.openai.com/api-keys` (chạy `gpt-6-luna`: `0,10 USD` / 1M token vào, `0,50 USD` / 1M token ra, `0,01 USD` / 1M token `cache_read`). `SERPER_API_KEY` (tuỳ chọn, `https://serper.dev/api-key`) dùng cho tìm kiếm Google qua `mcp-servers` (~`$0,001`/lần). |
+| `env/cong_ai.khoa.env` | `OPENAI_API_KEY` | **Bắt buộc** | Đồng bộ từ `agentic-backend.khoa.env` để Cổng AI giữ khoá gọi `gpt-6-luna`. |
+| `env/platform-api-openai.khoa.env` & `env/eval.khoa.env` | `OPENAI_API_KEY` | **Bắt buộc** | Dùng cho `platform-api` (kho bảng SQL) và dịch vụ chấm điểm `eval-service` (`eval.khoa.env` đúng 1 dòng). |
+| `env/openrouter.khoa.env` | `OPENROUTER_API_KEY` | **Tuỳ chọn** (khuyến nghị cho khung chat) | Lấy tại `https://openrouter.ai/keys`. Nếu đã có `OPENAI_API_KEY`, khung chat ưu tiên `OPENAI_API_KEY`; điền `OPENROUTER_API_KEY` làm tuyến định tuyến dự phòng. |
+| `${CAPITOL_STATE_DIR}/bedrock_046/bedrock-046-creds.json` | JSON STS token / khoá AWS Bedrock | **Tuỳ chọn** | Chỉ cần nếu chuyển cấu hình nóng sang dùng Claude Sonnet 5.5 / Opus 5.5 qua Amazon Bedrock. |
+| `env/e2b.khoa.env` | `CHAY_THU_E2B_KHOA` (tuỳ chọn `CHAY_THU_E2B_TEMPLATE`) | Bắt buộc nếu bật E2B | Lấy key tại `https://e2b.dev/dashboard`; `CHAY_THU_E2B_TEMPLATE` mặc định `code-interpreter-v1` nếu bỏ trống. Nếu chưa dùng E2B, sửa các dòng `= e2b` trong `cau_hinh_mo_hinh/noi_chay_khoi.txt` về `may`. |
+| `env/exa.khoa.env` | `EXA_API_KEY` | **Tuỳ chọn** | Lấy tại `https://dashboard.exa.ai/api-keys`. Chỉ cần khi bật tra cứu web Exa trên khối **Nghiên cứu sâu** (`capitol-mcp-exa`). |
+| `env/qdrant_svc.khoa.env` | `OPENAI_API_KEY` | **Tuỳ chọn** | Chỉ cần nếu tự bật dịch vụ `qdrant_svc` gốc của Capitol (hệ thống mặc định dùng `mekongai-rag`). |
+
+> **Các biến nền gốc Capitol KHÔNG cần đăng ký key (để trống/tắt sẵn trong `agentic-backend.env`, `platform-api.env`, `mcp.env`):** `SERPAPI_KEY`, `DIFFBOT_KEY`, `ANTHROPIC_API_KEY`, `CEREBRAS_API_KEY`, `POSTHOG_API_KEY`, `SENTRY_DSN`, `CORALOGIX_SEND_DATA_KEY`, `LANGFUSE_ENABLED=false` — giữ trống nguyên mẫu, **không cần** tạo tài khoản hay điền key cho các biến này.
 
 - **Đặt trần chi tiêu ngày:** kiểm tra file `${CAPITOL_STATE_DIR}/tran_ngay/$(date +%F).txt` (mặc định **`2.0` USD** — áp cho mọi lời gọi `gpt-6-luna` qua OpenAI API, OpenRouter, E2B và Exa; với giá `gpt-6-luna` `0,10 / 0,50 USD` mỗi 1M token vào/ra và `cache_read 0,01 USD`, mức `2.0 USD` đủ chạy nhiều chục lượt thử nghiệm mỗi ngày; nếu chuyển sang Claude qua Bedrock thì lời gọi Bedrock được ghi sổ theo dõi riêng).
 - **Tuỳ chọn dựng template E2B riêng:** nếu chưa có template E2B, xem hướng dẫn tại `docker_build/sandbox-py/e2b_doc/README.md` để đẩy mẫu từ `va_e2b/bac2/dung_template_bac2.py` rồi điền ID mẫu vào `env/e2b.khoa.env`.
@@ -202,8 +206,15 @@ BAT_KPI=co BAT_RAG=co bash scripts_sach/bat_bo_sach.sh
 
 ```bash
 cd ~/mekongai/mekongai-agent-platform
-CAPITOL_STATE_DIR="${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}" \
+CAPITOL_STATE_DIR="${CAPITOL_STATE_DIR:-${HOME}/.local/share/capitol-platform}"
+set -a
+[ -f env/openrouter.khoa.env ] && . env/openrouter.khoa.env
+[ -f "${CAPITOL_STATE_DIR}/rag_cong.env" ] && . "${CAPITOL_STATE_DIR}/rag_cong.env"
+[ -f "${CAPITOL_STATE_DIR}/rag_nap.env" ] && . "${CAPITOL_STATE_DIR}/rag_nap.env"
+set +a
+CAPITOL_STATE_DIR="${CAPITOL_STATE_DIR}" \
 CAPITOL_RUNTIME_DIR="${CAPITOL_RUNTIME_DIR:-./runtime}" \
+RAG_CONG_GOC="http://127.0.0.1:19453" \
 python3 -I giao_dien/may_chu.py
 ```
 
